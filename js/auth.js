@@ -11,6 +11,16 @@ function initLoginForm() {
   const form = document.getElementById("login-form");
   if (!form) return;
 
+  const demoFillBtn = document.getElementById("demo-fill-btn");
+  if (demoFillBtn) {
+    demoFillBtn.addEventListener("click", () => {
+      const emailInput = document.getElementById("login-email");
+      const passwordInput = document.getElementById("login-password");
+      if (emailInput) emailInput.value = "aditya.cs23@campus.edu";
+      if (passwordInput) passwordInput.value = "password123";
+    });
+  }
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     clearAuthAlert();
