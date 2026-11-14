@@ -4,7 +4,24 @@ document.addEventListener("DOMContentLoaded", () => {
   initLoginForm();
   initRegisterForm();
   initPasswordToggles();
+  initDemoCredentials();
 });
+
+// ---------------- DEMO CREDENTIALS AUTOFILL ----------------
+function initDemoCredentials() {
+  const fillBtn = document.getElementById("demo-fill-btn");
+  if (fillBtn) {
+    fillBtn.addEventListener("click", () => {
+      const emailInput = document.getElementById("login-email");
+      const passInput = document.getElementById("login-password");
+      if (emailInput && passInput) {
+        emailInput.value = "aditya.cs23@campus.edu";
+        passInput.value = "password123";
+        showAuthAlert("Demo student credentials inserted. Click Sign In to continue.", "success");
+      }
+    });
+  }
+}
 
 // ---------------- LOGIN FORM HANDLER ----------------
 function initLoginForm() {

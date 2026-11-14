@@ -63,13 +63,35 @@ const API = {
       const contentType = res.headers.get("content-type");
       let data = null;
       if (contentType && contentType.includes("application/json")) {
-        data = await res.json();
+        try {
+          data = await res.json();
+        } catch (e) {
+          data = null;
+        }
       } else {
-        data = await res.text();
+        try {
+          data = await res.text();
+        } catch (e) {
+          data = null;
+        }
       }
 
       if (!res.ok) {
-        const errorMsg = (data && data.detail) || (data && data.message) || res.statusText || "Request failed";
+        let errorMsg = (data && data.detail) || (data && data.message);
+        if (!errorMsg && typeof data === "string" && data.trim() && !data.trim().startsWith("<")) {
+          errorMsg = data;
+        }
+        if (!errorMsg) {
+          if (res.status === 401) {
+            errorMsg = "Invalid email address or password. Please verify your credentials or register a new account.";
+          } else if (res.status === 404) {
+            errorMsg = "Service endpoint not found. Please verify the URL or deployment.";
+          } else if (res.status >= 500) {
+            errorMsg = "Server error occurred. Please try again shortly.";
+          } else {
+            errorMsg = res.statusText || "Request failed";
+          }
+        }
         throw new Error(errorMsg);
       }
 

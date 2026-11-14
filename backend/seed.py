@@ -78,6 +78,9 @@ def seed_data():
         aditya_user = get_or_create_student(
             "Aditya Sen", "aditya.cs23@campus.edu", "password123", "Computer Science & Engineering", 3, "student"
         )
+        aparna_user = get_or_create_student(
+            "Aparna Maity", "aparnamaity2609@gmail.com", "password123", "Computer Science & Engineering", 4, "admin"
+        )
 
         # 2. Create Campus Societies
         c1 = get_or_create_club(
