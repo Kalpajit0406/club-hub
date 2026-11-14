@@ -1,29 +1,36 @@
 /**
  * js/firebase-config.js
- * Client-Side Firebase SDK Initialization for ClubHub / ClubClash.
+ * Official Firebase Client SDK Configuration for ClubHub / ClubClash.
  * Project: club-hub-9c2de (https://console.firebase.google.com/project/club-hub-9c2de/)
+ * App: ClubHub Web (1:827177564707:web:22cfb774615a6b18c38f96)
  */
 
-// Firebase Web Configuration
 const firebaseConfig = {
-  projectId: "club-hub-9c2de",
+  apiKey: "AIzaSyCE0zg2--ey-2v6UyF7zjbM9qFZb4DDsak",
   authDomain: "club-hub-9c2de.firebaseapp.com",
-  storageBucket: "club-hub-9c2de.appspot.com",
-  // Optional: add your web apiKey & appId from Firebase Console -> Project Settings -> General -> Web Apps
+  projectId: "club-hub-9c2de",
+  storageBucket: "club-hub-9c2de.firebasestorage.app",
+  messagingSenderId: "827177564707",
+  appId: "1:827177564707:web:22cfb774615a6b18c38f96",
+  measurementId: "G-BDHN7YT0J5"
 };
 
 // Global Firebase initialization helper
 let firebaseApp = null;
 let firebaseAuth = null;
+let firebaseStorage = null;
 
 function initFirebaseClient() {
   if (typeof firebase !== "undefined" && !firebaseApp) {
     try {
       firebaseApp = firebase.initializeApp(firebaseConfig);
       firebaseAuth = firebase.auth();
-      console.log("[Firebase] Initialized client for project club-hub-9c2de");
+      if (firebase.storage) {
+        firebaseStorage = firebase.storage();
+      }
+      console.log("[Firebase] Successfully connected to project: club-hub-9c2de");
     } catch (e) {
-      console.warn("[Firebase] Initialization warning:", e);
+      console.warn("[Firebase] Init warning:", e);
     }
   }
 }
@@ -37,7 +44,7 @@ async function signInWithFirebaseGoogle() {
     initFirebaseClient();
   }
   if (!firebaseAuth) {
-    alert("Firebase Auth SDK is not loaded. Please verify script inclusion in the HTML header.");
+    alert("Firebase Auth SDK is initializing. Please verify your connection.");
     return null;
   }
 
@@ -51,7 +58,7 @@ async function signInWithFirebaseGoogle() {
 
     console.log("[Firebase Auth] Signed in successfully as:", user.email);
 
-    // Persist session
+    // Save session locally
     localStorage.setItem("clubhub_firebase_token", idToken);
     localStorage.setItem("clubhub_firebase_user", JSON.stringify({
       uid: user.uid,
@@ -59,6 +66,19 @@ async function signInWithFirebaseGoogle() {
       email: user.email,
       photoURL: user.photoURL
     }));
+
+    // Optional: Synchronize with FastAPI backend
+    try {
+      const backendSync = await fetch("http://127.0.0.1:8001/auth/me", {
+        headers: { "Authorization": `Bearer ${idToken}` }
+      });
+      if (backendSync.ok) {
+        const backendUser = await backendSync.json();
+        localStorage.setItem("clubclash_user", JSON.stringify(backendUser));
+      }
+    } catch (e) {
+      // Backend sync is optional when running standalone
+    }
 
     return { user, idToken };
   } catch (error) {
@@ -68,6 +88,5 @@ async function signInWithFirebaseGoogle() {
   }
 }
 
-// Auto-initialize if Firebase script is present
+// Auto-initialize when document loads
 document.addEventListener("DOMContentLoaded", initFirebaseClient);
-
