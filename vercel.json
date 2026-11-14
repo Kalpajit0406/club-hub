@@ -1,9 +1,24 @@
 {
   "version": 2,
   "rewrites": [
-    {
-      "source": "/(auth|clubs|events|students|applications|badges|dashboard|network|admin|health|docs|openapi.json)(.*)",
-      "destination": "/api/index.py"
-    }
+    { "source": "/auth", "destination": "/api/index.py" },
+    { "source": "/auth/(.*)", "destination": "/api/index.py" },
+    { "source": "/clubs", "destination": "/api/index.py" },
+    { "source": "/clubs/(.*)", "destination": "/api/index.py" },
+    { "source": "/events", "destination": "/api/index.py" },
+    { "source": "/events/(.*)", "destination": "/api/index.py" },
+    { "source": "/dashboard", "destination": "/api/index.py" },
+    { "source": "/dashboard/(.*)", "destination": "/api/index.py" },
+    { "source": "/network", "destination": "/api/index.py" },
+    { "source": "/network/(.*)", "destination": "/api/index.py" },
+    { "source": "/students", "destination": "/api/index.py" },
+    { "source": "/students/(.*)", "destination": "/api/index.py" },
+    { "source": "/applications", "destination": "/api/index.py" },
+    { "source": "/applications/(.*)", "destination": "/api/index.py" },
+    { "source": "/badges", "destination": "/api/index.py" },
+    { "source": "/badges/(.*)", "destination": "/api/index.py" },
+    { "source": "/health", "destination": "/api/index.py" },
+    { "source": "/docs", "destination": "/api/index.py" },
+    { "source": "/openapi.json", "destination": "/api/index.py" }
   ]
 }

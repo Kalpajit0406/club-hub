@@ -103,6 +103,8 @@ def health_check(db: Session = Depends(get_db)):
         }
 
 
-# Mount Static Files to serve frontend HTML, CSS, JS at root
-project_root = Path(__file__).resolve().parent.parent
-app.mount("/", StaticFiles(directory=str(project_root), html=True), name="static")
+# Mount Static Files to serve frontend HTML, CSS, JS at root when running locally
+if not os.getenv("VERCEL"):
+    project_root = Path(__file__).resolve().parent.parent
+    if project_root.exists():
+        app.mount("/", StaticFiles(directory=str(project_root), html=True), name="static")

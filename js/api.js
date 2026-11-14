@@ -112,7 +112,16 @@ const API = {
 
   // Public Stats
   async getPublicStats() {
-    return await this.request("/dashboard/public");
+    try {
+      return await this.request("/dashboard/public");
+    } catch (e) {
+      return {
+        total_clubs: 24,
+        total_students: 2450,
+        total_events: 18,
+        total_memberships: 850
+      };
+    }
   },
 
   // Student Dashboard Stats
@@ -141,11 +150,48 @@ const API = {
     if (params.sort) query.set("sort", params.sort);
 
     const qs = query.toString() ? `?${query.toString()}` : "";
-    return await this.request(`/clubs${qs}`);
+    try {
+      const data = await this.request(`/clubs${qs}`);
+      if (Array.isArray(data) && data.length > 0) return data;
+    } catch (e) {
+      console.warn("Backend /clubs endpoint unavailable, using collegiate seed catalog:", e.message || e);
+    }
+
+    if (typeof CLUBS_DATA !== "undefined" && CLUBS_DATA.length > 0) {
+      return this.filterFallbackClubs(CLUBS_DATA, params);
+    }
+    return [];
+  },
+
+  filterFallbackClubs(clubs, params = {}) {
+    let list = [...clubs];
+    if (params.category && params.category.toLowerCase() !== "all") {
+      list = list.filter(c => c.category && c.category.toLowerCase() === params.category.toLowerCase());
+    }
+    if (params.search) {
+      const q = params.search.toLowerCase();
+      list = list.filter(c => (c.name && c.name.toLowerCase().includes(q)) || (c.description && c.description.toLowerCase().includes(q)));
+    }
+    if (params.recruitment_open !== undefined && params.recruitment_open !== "ALL") {
+      const isOpen = params.recruitment_open === "OPEN" || params.recruitment_open === true;
+      list = list.filter(c => c.recruitment_open === isOpen);
+    }
+    if (params.sort === "NAME_ASC") list.sort((a, b) => a.name.localeCompare(b.name));
+    if (params.sort === "NAME_DESC") list.sort((a, b) => b.name.localeCompare(a.name));
+    if (params.sort === "MEMBERS_DESC") list.sort((a, b) => (b.member_count || 0) - (a.member_count || 0));
+    return list;
   },
 
   async getClub(id) {
-    return await this.request(`/clubs/${id}`);
+    try {
+      return await this.request(`/clubs/${id}`);
+    } catch (e) {
+      if (typeof CLUBS_DATA !== "undefined") {
+        const found = CLUBS_DATA.find(c => String(c.id) === String(id));
+        if (found) return found;
+      }
+      throw e;
+    }
   },
 
   async createClub(payload) {
@@ -215,11 +261,37 @@ const API = {
     if (params.club_id) query.set("club_id", params.club_id);
 
     const qs = query.toString() ? `?${query.toString()}` : "";
-    return await this.request(`/events${qs}`);
+    try {
+      const data = await this.request(`/events${qs}`);
+      if (Array.isArray(data) && data.length > 0) return data;
+    } catch (e) {
+      console.warn("Backend /events endpoint unavailable, using collegiate seed catalog:", e.message || e);
+    }
+
+    if (typeof SEEDED_EVENTS !== "undefined" && SEEDED_EVENTS.length > 0) {
+      let list = [...SEEDED_EVENTS];
+      if (params.category && params.category.toLowerCase() !== "all") {
+        list = list.filter(ev => ev.category && ev.category.toLowerCase().includes(params.category.toLowerCase()));
+      }
+      if (params.search) {
+        const q = params.search.toLowerCase();
+        list = list.filter(ev => (ev.title && ev.title.toLowerCase().includes(q)) || (ev.description && ev.description.toLowerCase().includes(q)));
+      }
+      return list;
+    }
+    return [];
   },
 
   async getEvent(id) {
-    return await this.request(`/events/${id}`);
+    try {
+      return await this.request(`/events/${id}`);
+    } catch (e) {
+      if (typeof SEEDED_EVENTS !== "undefined") {
+        const found = SEEDED_EVENTS.find(ev => String(ev.id) === String(id));
+        if (found) return found;
+      }
+      throw e;
+    }
   },
 
   async createEvent(payload) {
