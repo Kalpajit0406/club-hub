@@ -288,7 +288,7 @@ async function loadClubEvents(clubId) {
 
 function showClubNotFound(msg = "Society Not Found") {
   const main = document.querySelector(".main-content");
-  if (main) {
+  if (main && typeof UIStates !== "undefined") {
     main.innerHTML = `
       <div class="container" style="text-align: center; padding: 100px 20px;">
         <h2 style="font-size: 28px; margin-bottom: 12px; color: var(--text-main);">${escapeHTML(msg)}</h2>

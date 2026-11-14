@@ -123,6 +123,12 @@ async function loadAndRenderPosts() {
       </div>
     `;
   }
+
+  if (typeof Storage !== "undefined") {
+    Storage.saveNetworkPosts(currentPosts);
+  }
+
+  renderPosts();
 }
 
 async function handleUpvote(postId) {

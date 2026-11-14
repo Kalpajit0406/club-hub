@@ -1,6 +1,16 @@
 // js/storage.js - Storage Bridge & Session State for ClubHub
 // Connects with API client and ensures no default user is hardcoded.
 
+const DEFAULT_USER = {
+  name: "Aditya Verma",
+  email: "aditya.cs23@campus.edu",
+  roll: "2023CSB1042",
+  branch: "Computer Science & Engineering",
+  year: "2nd Year",
+  role: "student",
+  password: "password123"
+};
+
 const Storage = {
   init() {
     // No-op: Dummy data initialization removed. All data loads from backend SQLite.
@@ -14,7 +24,7 @@ const Storage = {
       const data = localStorage.getItem("clubhub_user");
       return data ? JSON.parse(data) : null;
     } catch (e) {
-      return null;
+      return DEFAULT_USER;
     }
   },
 

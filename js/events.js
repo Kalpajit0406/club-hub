@@ -25,6 +25,7 @@ function setupFilterChips() {
 
 function setupSearchInput() {
   const input = document.getElementById("events-search-input");
+  const clearBtn = document.getElementById("events-search-clear");
   if (!input) return;
 
   input.addEventListener("input", (e) => {
@@ -278,9 +279,11 @@ function setupCreateEventModal() {
 
   if (closeBtn) closeBtn.addEventListener("click", () => { modal.style.display = "none"; });
 
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) modal.style.display = "none";
-  });
+  const closeCreate = () => {
+    if (!modal) return;
+    if (typeof modal.close === "function") modal.close();
+    else modal.style.display = "none";
+  };
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();

@@ -156,7 +156,7 @@ function initPasswordToggles() {
 function showAuthAlert(message, type = "error") {
   const alertEl = document.getElementById("auth-alert");
   if (!alertEl) return;
-  alertEl.className = `auth-alert auth-alert-${type}`;
+  alertEl.className = `auth-alert ${type}`;
   alertEl.textContent = message;
   alertEl.style.display = "block";
 }

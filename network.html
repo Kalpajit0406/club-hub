@@ -32,14 +32,8 @@
   <!-- GLOBAL NAVBAR -->
   <header class="navbar">
     <div class="nav-container">
-      <a href="index.html" class="nav-brand">
-        <div class="brand-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/>
-            <polyline points="9 12 11 14 15 10"/>
-          </svg>
-        </div>
-        <div class="brand-name">Club<span>Hub</span></div>
+      <a href="index.html" class="nav-brand" aria-label="ClubHub Home">
+        <span class="brand-name">Club<span>Hub</span></span>
       </a>
 
       <nav class="nav-links">
@@ -68,22 +62,61 @@
       <div>
         <button id="create-post-trigger" class="btn btn-cta">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Post a Collaboration
+          Post Collaboration
         </button>
       </div>
     </div>
   </section>
 
   <!-- MAIN LAYOUT -->
-  <main class="container">
-    
-    <!-- Filter Chips -->
-    <div class="net-chips">
-      <button class="net-chip active" data-tag="all">All Discussions</button>
-      <button class="net-chip" data-tag="#HackathonTeam">#HackathonTeam</button>
-      <button class="net-chip" data-tag="#StudyGroup">#StudyGroup</button>
-      <button class="net-chip" data-tag="#ProjectCollab">#ProjectCollab</button>
-      <button class="net-chip" data-tag="#CampusLife">#CampusLife</button>
+  <main class="net-main-section">
+    <div class="container">
+      
+      <!-- Filter Chips -->
+      <div class="net-chips-scroll" role="tablist">
+        <button class="net-chip active" data-tag="all">All Discussions</button>
+        <button class="net-chip" data-tag="#HackathonTeam">#HackathonTeam</button>
+        <button class="net-chip" data-tag="#StudyGroup">#StudyGroup</button>
+        <button class="net-chip" data-tag="#ProjectCollab">#ProjectCollab</button>
+        <button class="net-chip" data-tag="#CampusLife">#CampusLife</button>
+      </div>
+
+      <div class="net-layout-grid">
+        <!-- Main Feed -->
+        <section class="net-feed-column">
+          <div id="net-feed-list" class="net-feed-list" aria-live="polite">
+            <!-- Injected by network.js -->
+          </div>
+        </section>
+
+        <!-- Sidebar -->
+        <aside class="net-sidebar-column">
+          <div class="net-sidebar-card">
+            <h3 class="net-sidebar-title">⚡ Find Teammates Faster</h3>
+            <p class="net-sidebar-desc">
+              Looking for a teammate for SIH 2026 or HackTINT? Clearly mention your current tech stack (e.g. Flutter, FastAPI), the problem statement, and expected weekly commitment.
+            </p>
+            <button class="btn btn-outline btn-block btn-sm" onclick="document.getElementById('create-post-trigger').click()">
+              Create Collaboration Post
+            </button>
+          </div>
+
+          <div class="net-sidebar-card">
+            <h3 class="net-sidebar-title">🔥 Trending Topics</h3>
+            <div id="net-trending-topics">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <div class="net-sidebar-card net-verified-card">
+            <h4 class="net-verified-title">🛡️ Verified Peer Network</h4>
+            <p class="net-verified-desc">
+              Every post is tied to an authenticated college roll number. Keep all interactions respectful, constructive, and aligned with academic ethics.
+            </p>
+          </div>
+        </aside>
+      </div>
+
     </div>
 
     <div class="net-layout">
@@ -121,7 +154,10 @@
   <div id="create-post-modal" class="modal-overlay" style="display: none;">
     <div class="modal-content" style="max-width: 520px;">
       <div class="modal-header">
-        <h3 style="margin: 0; font-size: 18px; font-family: 'Plus Jakarta Sans', sans-serif;">Create Collaboration Post</h3>
+        <div>
+          <h3 class="modal-title">Create Collaboration Post</h3>
+          <p class="modal-subtitle">Share with students across campus departments</p>
+        </div>
         <button id="create-post-close" class="modal-close" aria-label="Close modal">&times;</button>
       </div>
       <div class="modal-body">
@@ -153,14 +189,57 @@
         </form>
       </div>
     </div>
-  </div>
+  </dialog>
 
-  <!-- FOOTER -->
+  <!-- ENTERPRISE FOOTER -->
   <footer class="footer">
-    <div class="container footer-bottom" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 24px 0;">
-      <div>&copy; 2026 <strong>ClubHub</strong> &bull; The All-in-One Smart Campus Operating System</div>
+    <div class="container footer-content">
+      <div class="footer-col footer-col-brand">
+        <a href="index.html" class="nav-brand" style="margin-bottom: 12px; display: inline-flex;">
+          <span class="brand-name">Club<span>Hub</span></span>
+        </a>
+        <p class="footer-description">
+          The all-in-one university campus operating system. Discover societies, attend hackathons, trade student goods, and find collaborative teams.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <div class="footer-col-title">Campus Hubs</div>
+        <ul class="footer-links">
+          <li><a href="clubs.html">All Societies</a></li>
+          <li><a href="events.html">Campus Events</a></li>
+          <li><a href="marketplace.html">Student Exchange</a></li>
+          <li><a href="network.html">Peer Network</a></li>
+          <li><a href="recruiters.html">Career Drives</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <div class="footer-col-title">Command Center</div>
+        <ul class="footer-links">
+          <li><a href="dashboard.html">Student Profile</a></li>
+          <li><a href="recruiter-dashboard.html">Recruiter Portal</a></li>
+          <li><a href="admin.html">Secretariat Access</a></li>
+          <li><a href="login.html">Account Sign In</a></li>
+          <li><a href="register.html">Student Onboarding</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <div class="footer-col-title">System Status</div>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 8px;">
+          FastAPI Backend &bull; Operational<br>
+          Connected Node Architecture<br>
+          Vercel &amp; Firebase Hosted
+        </p>
+        <span class="badge badge-teal" style="font-size: 12px; padding: 4px 10px;">v2.4 Production</span>
+      </div>
+    </div>
+
+    <div class="container footer-bottom">
+      <div>&copy; 2026 <strong>ClubHub</strong> &bull; The University Campus Operating System. All rights reserved.</div>
       <div style="display: flex; gap: 16px; font-size: 13px;">
-        <a href="clubs.html" style="color: var(--text-secondary);">Clubs</a>
+        <a href="clubs.html" style="color: var(--text-secondary);">Societies</a>
         <a href="events.html" style="color: var(--text-secondary);">Events</a>
         <a href="network.html" style="color: var(--text-secondary);">Network</a>
         <a href="dashboard.html" style="color: var(--text-secondary);">Dashboard</a>
@@ -169,6 +248,9 @@
   </footer>
 
   <!-- Scripts -->
+  <script src="js/icons.js"></script>
+  <script src="js/states.js"></script>
+  <script src="js/brand.js"></script>
   <script src="js/data.js"></script>
   <script src="js/api.js"></script>
   <script src="js/storage.js"></script>

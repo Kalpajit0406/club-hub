@@ -32,14 +32,8 @@
   <!-- GLOBAL NAVBAR -->
   <header class="navbar">
     <div class="nav-container">
-      <a href="index.html" class="nav-brand">
-        <div class="brand-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/>
-            <polyline points="9 12 11 14 15 10"/>
-          </svg>
-        </div>
-        <div class="brand-name">Club<span>Hub</span></div>
+      <a href="index.html" class="nav-brand" aria-label="ClubHub Home">
+        <span class="brand-name">Club<span>Hub</span></span>
       </a>
 
       <nav class="nav-links">
@@ -77,7 +71,7 @@
           </div>
         </div>
 
-        <div style="display: flex; gap: 8px;">
+        <div class="profile-actions">
           <a href="clubs.html" class="btn btn-outline btn-sm">Explore Clubs</a>
           <a href="events.html" class="btn btn-cta btn-sm">Campus Events</a>
         </div>
@@ -86,7 +80,7 @@
   </section>
 
   <!-- MAIN DASHBOARD CONTENT -->
-  <main class="container" style="padding-bottom: 60px;">
+  <main class="container dashboard-main-content">
     
     <!-- 4 Key Summary Metrics -->
     <div class="dashboard-stats-grid">
@@ -98,9 +92,9 @@
         <div class="stat-number" id="metric-pending-count" style="color: var(--warm-accent, #F59E0B);">0</div>
         <div class="stat-label">Pending Join Requests</div>
       </div>
-      <div class="stat-card">
-        <div class="stat-number" id="metric-events-count">0</div>
-        <div class="stat-label">Event Passes Held</div>
+      <div class="dash-stat-tile">
+        <div class="dash-stat-number" id="metric-events-count">0</div>
+        <div class="dash-stat-label">Event Passes Issued</div>
       </div>
       <div class="stat-card">
         <div class="stat-number" id="metric-badges-count" style="color: var(--success);">0</div>
@@ -113,7 +107,7 @@
       <button class="dashboard-tab-btn active btn btn-outline btn-sm" data-tab="clubs">
         My Clubs &amp; Memberships (<span id="tab-count-clubs">0</span>)
       </button>
-      <button class="dashboard-tab-btn btn btn-outline btn-sm" data-tab="events">
+      <button class="dashboard-tab-btn" data-tab="events">
         Registered Events (<span id="tab-count-events">0</span>)
       </button>
       <button class="dashboard-tab-btn btn btn-outline btn-sm" data-tab="network">
@@ -169,14 +163,57 @@
         <!-- Injected by js/dashboard.js -->
       </div>
     </div>
-  </div>
+  </dialog>
 
-  <!-- FOOTER -->
+  <!-- ENTERPRISE FOOTER -->
   <footer class="footer">
-    <div class="container footer-bottom" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 24px 0;">
-      <div>&copy; 2026 <strong>ClubHub</strong> &bull; The All-in-One Smart Campus Operating System</div>
+    <div class="container footer-content">
+      <div class="footer-col footer-col-brand">
+        <a href="index.html" class="nav-brand" style="margin-bottom: 12px; display: inline-flex;">
+          <span class="brand-name">Club<span>Hub</span></span>
+        </a>
+        <p class="footer-description">
+          The all-in-one university campus operating system. Discover societies, attend hackathons, trade student goods, and find collaborative teams.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <div class="footer-col-title">Campus Hubs</div>
+        <ul class="footer-links">
+          <li><a href="clubs.html">All Societies</a></li>
+          <li><a href="events.html">Campus Events</a></li>
+          <li><a href="marketplace.html">Student Exchange</a></li>
+          <li><a href="network.html">Peer Network</a></li>
+          <li><a href="recruiters.html">Career Drives</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <div class="footer-col-title">Command Center</div>
+        <ul class="footer-links">
+          <li><a href="dashboard.html">Student Profile</a></li>
+          <li><a href="recruiter-dashboard.html">Recruiter Portal</a></li>
+          <li><a href="admin.html">Secretariat Access</a></li>
+          <li><a href="login.html">Account Sign In</a></li>
+          <li><a href="register.html">Student Onboarding</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <div class="footer-col-title">System Status</div>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 8px;">
+          FastAPI Backend &bull; Operational<br>
+          Connected Node Architecture<br>
+          Vercel &amp; Firebase Hosted
+        </p>
+        <span class="badge badge-teal" style="font-size: 12px; padding: 4px 10px;">v2.4 Production</span>
+      </div>
+    </div>
+
+    <div class="container footer-bottom">
+      <div>&copy; 2026 <strong>ClubHub</strong> &bull; The University Campus Operating System. All rights reserved.</div>
       <div style="display: flex; gap: 16px; font-size: 13px;">
-        <a href="clubs.html" style="color: var(--text-secondary);">Clubs</a>
+        <a href="clubs.html" style="color: var(--text-secondary);">Societies</a>
         <a href="events.html" style="color: var(--text-secondary);">Events</a>
         <a href="network.html" style="color: var(--text-secondary);">Network</a>
         <a href="dashboard.html" style="color: var(--text-secondary);">Dashboard</a>
@@ -185,6 +222,9 @@
   </footer>
 
   <!-- Scripts -->
+  <script src="js/icons.js"></script>
+  <script src="js/states.js"></script>
+  <script src="js/brand.js"></script>
   <script src="js/data.js"></script>
   <script src="js/api.js"></script>
   <script src="js/storage.js"></script>

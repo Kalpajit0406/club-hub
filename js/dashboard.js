@@ -334,7 +334,20 @@ function showPassModal(title, clubName, passCode, dateStr, location) {
     </div>
   `;
 
-  modal.style.display = "flex";
+  if (typeof modal.showModal === "function") modal.showModal();
+  else modal.style.display = "block";
+}
+
+function closePassModal() {
+  const modal = document.getElementById("dash-pass-modal");
+  if (!modal) return;
+  if (typeof modal.close === "function") modal.close();
+  else modal.style.display = "none";
+}
+
+function setupPassModal() {
+  const closeBtn = document.getElementById("dash-pass-close");
+  if (closeBtn) closeBtn.onclick = closePassModal;
 }
 
 // ---------------- TAB 3: MY COLLAB POSTS ----------------
