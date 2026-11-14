@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CampusClubs | Burgundy Heritage — Beyond the Classroom</title>
+  <meta name="description" content="Discover official college clubs, technical chapters, cultural groups, and societies. Submit membership applications and track your recruitment status in real time.">
+
+  <!-- Dark / Light Theme Immediate Init (Anti-Flicker) -->
+  <script>
+    (function() {
+      var saved = localStorage.getItem("campus_connect_theme_v1") || "light";
+      document.documentElement.setAttribute("data-theme", saved);
+    })();
+  </script>
+
+  <!-- Google Fonts: Playfair Display & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600;1,700&display=swap" rel="stylesheet">
+
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/home.css">
+</head>
+<body>
+
+  <!-- ==================== NAVIGATION BAR ==================== -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="brand-logo" aria-label="CampusClubs Home">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/>
+            <polyline points="9 12 11 14 15 10"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          Campus<span>Clubs</span>
+          <span class="brand-sub">Burgundy Heritage</span>
+        </div>
+      </a>
+
+      <!-- Desktop & Mobile Navigation Links -->
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link active">Home</a></li>
+          <li><a href="clubs.html" class="nav-link">Explore Clubs</a></li>
+          <li><a href="#upcoming-events" class="nav-link">Events</a></li>
+          <li>
+            <a href="dashboard.html" class="nav-link">
+              My Dashboard
+              <span id="nav-app-count" class="nav-counter" style="display: none;">0</span>
+            </a>
+          </li>
+          <li><a href="admin.html" class="nav-link">Admin Portal</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <div id="nav-auth-box"></div>
+        <a href="clubs.html" class="btn btn-primary btn-sm">Explore Clubs</a>
+        <button class="mobile-nav-toggle" aria-label="Toggle Navigation Menu" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main class="main-content">
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero-content">
+          
+          <div class="hero-badge">
+            <span class="hero-badge-dot"></span>
+            Official Collegiate Societies • Recruitment Season Live
+          </div>
+
+          <h1 class="hero-title">Find Your Community.</h1>
+          <div class="hero-subtitle-heading">
+            Make Your Campus <span class="gold-flourish">Story.</span>
+          </div>
+
+          <p class="hero-description">
+            Discover your interests, connect with like-minded students and become part of something meaningful.
+          </p>
+
+          <div class="hero-cta-buttons">
+            <a href="clubs.html" class="btn btn-primary btn-lg">Explore Clubs</a>
+            <a href="#how-it-works" class="btn btn-outline btn-lg">Discover Campus Life</a>
+          </div>
+
+          <!-- Instant Search Form -->
+          <form id="hero-search-form" class="hero-search-form" role="search">
+            <div class="hero-search-wrapper">
+              <svg class="hero-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input 
+                type="text" 
+                id="hero-search-input" 
+                class="hero-search-input" 
+                placeholder="Search societies, technical chapters, debating, sports leagues..."
+                autocomplete="off"
+              >
+              <button type="submit" class="btn btn-primary hero-search-btn">Search Guilds</button>
+            </div>
+          </form>
+
+          <!-- Key Metrics / Stats Card (SaaS Elevated) -->
+          <div class="hero-stats-card">
+            <div class="stat-item">
+              <div class="stat-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+              </div>
+              <div>
+                <div class="stat-number">30+</div>
+                <div class="stat-label">Active Societies</div>
+              </div>
+            </div>
+
+            <div class="stat-item">
+              <div class="stat-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <polyline points="16 11 18 13 22 9"/>
+                </svg>
+              </div>
+              <div>
+                <div class="stat-number">1,800+</div>
+                <div class="stat-label">Student Members</div>
+              </div>
+            </div>
+
+            <div class="stat-item">
+              <div class="stat-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+              </div>
+              <div>
+                <div class="stat-number">60+</div>
+                <div class="stat-label">Annual Events</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- CATEGORIES SECTION -->
+    <section class="categories-section" id="categories">
+      <div class="container">
+        <div class="section-header text-center">
+          <h2 class="section-title">Explore by Guild & Discipline</h2>
+          <p class="section-subtitle">Whether your calling is advanced software engineering, varsity debate, orchestral performance, or entrepreneurship, find your peer circle.</p>
+        </div>
+
+        <div id="categories-grid" class="categories-grid">
+          <!-- Dynamically populated by js/home.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURED CLUBS SECTION -->
+    <section class="featured-section" id="featured">
+      <div class="container">
+        <div class="section-header">
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <h2 class="section-title">Featured Societies Recruiting Now</h2>
+              <p class="section-subtitle">Official campus organizations actively accepting membership applications for the current academic term.</p>
+            </div>
+            <a href="clubs.html" class="btn btn-outline btn-sm">View All Societies &rarr;</a>
+          </div>
+        </div>
+
+        <div id="featured-clubs-grid" class="clubs-grid">
+          <!-- Dynamically populated by js/home.js -->
+        </div>
+
+        <div class="section-actions">
+          <a href="clubs.html" class="btn btn-primary btn-lg">Browse Complete Clubs Directory</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- UPCOMING CAMPUS EVENTS SECTION -->
+    <section class="events-section" id="upcoming-events">
+      <div class="container">
+        <div class="section-header text-center">
+          <h2 class="section-title">Upcoming Campus Events</h2>
+          <p class="section-subtitle">Conferences, hackathons, music showcases, and symposiums hosted by campus clubs.</p>
+        </div>
+
+        <div id="events-grid" class="events-grid">
+          <!-- Dynamically populated by js/home.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS SECTION -->
+    <section class="workflow-section" id="how-it-works">
+      <div class="container">
+        <div class="section-header text-center">
+          <h2 class="section-title">Beyond the Classroom: How It Works</h2>
+          <p class="section-subtitle">A transparent, structured induction journey designed for aspiring student leaders.</p>
+        </div>
+
+        <div class="workflow-steps-grid">
+          <div class="workflow-step-card">
+            <div class="step-num-badge">1</div>
+            <h3 class="step-title">Discover Societies</h3>
+            <p class="step-desc">Explore verified collegiate organizations, read past achievements, and inspect open recruitment wings.</p>
+          </div>
+
+          <div class="workflow-step-card">
+            <div class="step-num-badge">2</div>
+            <h3 class="step-title">Submit Application</h3>
+            <p class="step-desc">Select your target domain, share your portfolio or past experiences, and articulate your motivation.</p>
+          </div>
+
+          <div class="workflow-step-card">
+            <div class="step-num-badge">3</div>
+            <h3 class="step-title">Review & Interview</h3>
+            <p class="step-desc">Club leaders review your candidate profile and schedule technical or creative evaluation rounds.</p>
+          </div>
+
+          <div class="workflow-step-card">
+            <div class="step-num-badge">4</div>
+            <h3 class="step-title">Official Induction</h3>
+            <p class="step-desc">Receive official approval, gain access to private society channels, and begin leading projects.</p>
+          </div>
+        </div>
+
+        <!-- CALL TO ACTION BANNER -->
+        <div class="cta-banner">
+          <h2>Make Your Campus Story Meaningful.</h2>
+          <p>Join over 1,800 active scholars participating in prestigious collegiate chapters and societies across the university.</p>
+          <div class="cta-buttons">
+            <a href="clubs.html" class="btn btn-gold btn-lg">Explore Societies</a>
+            <a href="dashboard.html" class="btn btn-outline btn-lg" style="color: #FAF7F0 !important; border-color: var(--champagne); background: transparent;">Track My Applications</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="brand-logo">
+            <div class="brand-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/>
+                <polyline points="9 12 11 14 15 10"/>
+              </svg>
+            </div>
+            <div class="brand-text">
+              Campus<span>Clubs</span>
+            </div>
+          </div>
+          <p>Burgundy Heritage – Beyond the Classroom. The official university portal for recognized academic chapters, cultural societies, and athletic guilds.</p>
+          <div class="footer-pill">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Directorate of Student Welfare Certified
+          </div>
+        </div>
+
+        <div>
+          <h4 class="footer-heading">Navigation</h4>
+          <ul class="footer-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="clubs.html">Explore Societies</a></li>
+            <li><a href="#upcoming-events">Campus Events</a></li>
+            <li><a href="dashboard.html">Student Dashboard</a></li>
+            <li><a href="admin.html">Club Admin Portal</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-heading">Guild Categories</h4>
+          <ul class="footer-links">
+            <li><a href="clubs.html?category=Technical">Technical & Coding</a></li>
+            <li><a href="clubs.html?category=Cultural">Cultural & Arts</a></li>
+            <li><a href="clubs.html?category=Sports">Sports & Athletics</a></li>
+            <li><a href="clubs.html?category=Literary">Literary & Debate</a></li>
+            <li><a href="clubs.html?category=Entrepreneurship">E-Cell & Business</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-heading">University Secretariat</h4>
+          <ul class="footer-links">
+            <li><a href="mailto:societies@campusclubs.edu">societies@campusclubs.edu</a></li>
+            <li><a href="#">Dean of Student Affairs</a></li>
+            <li><a href="#">Society Charters & By-Laws</a></li>
+            <li><a href="#">Activity Points Policy</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 CampusClubs. Burgundy Heritage. All Rights Reserved.</div>
+        <div>Editorial University SaaS Architecture • HTML5, CSS3, JavaScript</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/home.js"></script>
+</body>
+</html>
