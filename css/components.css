@@ -151,9 +151,9 @@
 
 /* Sizing Modifiers */
 .btn-sm {
-  height: 34px;
-  font-size: 0.8125rem;
-  padding: 0 0.95rem;
+  height: 38px;
+  font-size: 0.825rem;
+  padding: 0 1rem;
   border-radius: var(--radius-sm);
 }
 
@@ -169,6 +169,9 @@
   height: 38px;
   padding: 0;
   border-radius: var(--radius-btn);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ============================================================

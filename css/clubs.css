@@ -80,12 +80,14 @@
   flex-wrap: wrap;
 }
 
+.search-box,
 .search-input-box {
   flex: 1;
   min-width: 280px;
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 .search-icon {
@@ -93,6 +95,7 @@
   left: 14px;
   color: var(--text-muted);
   pointer-events: none;
+  transition: color var(--transition-fast), opacity var(--transition-fast);
 }
 
 .search-input-box .search-input {
@@ -122,6 +125,7 @@
   border-radius: 50%;
   background: var(--border-color);
   color: var(--text-secondary);
+  border: none;
   display: none;
   align-items: center;
   justify-content: center;
