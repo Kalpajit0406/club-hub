@@ -132,10 +132,10 @@
       </a>
 
       <nav class="nav-links">
+        <a href="dashboard.html" class="nav-link">Dashboard</a>
         <a href="clubs.html" class="nav-link">Explore Clubs</a>
         <a href="events.html" class="nav-link">Events</a>
         <a href="network.html" class="nav-link">Network</a>
-        <a href="dashboard.html" class="nav-link">Dashboard</a>
       </nav>
 
       <div class="nav-actions">
@@ -165,7 +165,8 @@
         </p>
 
         <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-          <a href="clubs.html" class="btn btn-cta btn-lg">Explore Societies</a>
+          <a href="dashboard.html" class="btn btn-cta btn-lg">Student Dashboard</a>
+          <a href="clubs.html" class="btn btn-outline btn-lg">Explore Clubs</a>
           <a href="events.html" class="btn btn-outline btn-lg">Browse Events</a>
           <a href="network.html" class="btn btn-outline btn-lg">Collab Feed</a>
         </div>
@@ -204,7 +205,22 @@
       </div>
 
       <div class="suite-grid">
-        <!-- Module 1: Clubs -->
+        <!-- Module 1: Student Dashboard & Command Center -->
+        <a href="dashboard.html" class="feature-suite-card">
+          <div class="feature-suite-icon">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="9" rx="1"/>
+              <rect x="14" y="3" width="7" height="5" rx="1"/>
+              <rect x="14" y="12" width="7" height="9" rx="1"/>
+              <rect x="3" y="16" width="7" height="5" rx="1"/>
+            </svg>
+          </div>
+          <h3 class="feature-suite-title">Student Dashboard</h3>
+          <p class="feature-suite-desc">Manage active club memberships, track pending join requests in real-time, access digital event passes, and verify achievement credentials.</p>
+          <span class="feature-suite-link">View Dashboard &rarr;</span>
+        </a>
+
+        <!-- Module 2: Societies & Chapters (Explore Clubs) -->
         <a href="clubs.html" class="suite-card">
           <div class="suite-icon-box">
             <span data-icon="users" data-icon-size="22"></span>
@@ -214,7 +230,7 @@
           <span class="feature-suite-link">Explore Clubs &rarr;</span>
         </a>
 
-        <!-- Module 2: Events -->
+        <!-- Module 3: Events -->
         <a href="events.html" class="suite-card">
           <div class="suite-icon-box">
             <span data-icon="calendar" data-icon-size="22"></span>
@@ -224,7 +240,7 @@
           <span class="suite-action">Browse Events <span data-icon="arrow-right" data-icon-size="14"></span></span>
         </a>
 
-        <!-- Module 3: Network -->
+        <!-- Module 4: Network -->
         <a href="network.html" class="feature-suite-card">
           <div class="feature-suite-icon">
             <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -238,24 +254,54 @@
           <p class="feature-suite-desc">Find Smart India Hackathon partners, form semester study groups, collaborate on engineering hardware, and exchange insights with fellow peers.</p>
           <span class="feature-suite-link">Join Discussion &rarr;</span>
         </a>
-
-        <!-- Module 4: Digital Badges & Dashboard -->
-        <a href="dashboard.html" class="feature-suite-card">
-          <div class="feature-suite-icon">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              <polyline points="9 12 11 14 15 10"/>
-            </svg>
-          </div>
-          <h3 class="feature-suite-title">Verified Digital Badges</h3>
-          <p class="feature-suite-desc">Earn cryptographically verifiable achievement certificates for hackathon wins, active club memberships, and coordinator leadership with unique hash IDs.</p>
-          <span class="feature-suite-link">View Command Center &rarr;</span>
-        </a>
       </div>
     </section>
 
-    <!-- 4. FEATURED CLUBS SPOTLIGHT -->
-    <section class="section-pad" style="background: var(--bg-surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+    <!-- 3. STUDENT DASHBOARD COMMAND CENTER SECTION (BEFORE EXPLORE CLUBS) -->
+    <section id="dashboard-section" class="section-pad" style="background: var(--bg-card); border-top: 1px solid var(--border);">
+      <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 28px;">
+          <div>
+            <span class="section-tag"><span data-icon="activity" data-icon-size="14"></span> Central Command Center</span>
+            <h2 class="section-h2" style="margin-bottom: 0;">Student &amp; Member Dashboard</h2>
+            <p class="section-p" style="margin-top: 6px; margin-bottom: 0;">
+              Your personalized academic operating station. Monitor your society memberships, pending join requests, event entry passes, and verifiable digital badges.
+            </p>
+          </div>
+          <a href="dashboard.html" class="btn btn-cta btn-sm">Open My Dashboard &rarr;</a>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+          <a href="dashboard.html" class="stat-card" style="text-decoration: none; background: var(--bg-surface); padding: 22px; border-radius: var(--radius-card); border: 1px solid var(--border); transition: transform 0.2s, box-shadow 0.2s; display: block;">
+            <div style="font-size: 26px; margin-bottom: 8px;">🏛️</div>
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">My Memberships</div>
+            <div style="font-size: 20px; font-weight: 800; color: var(--primary); margin: 6px 0;">Club Rosters</div>
+            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.45;">View societies you belong to and stay connected with executive teams.</div>
+          </a>
+          <a href="dashboard.html" class="stat-card" style="text-decoration: none; background: var(--bg-surface); padding: 22px; border-radius: var(--radius-card); border: 1px solid var(--border); transition: transform 0.2s, box-shadow 0.2s; display: block;">
+            <div style="font-size: 26px; margin-bottom: 8px;">⏳</div>
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Candidacy Requests</div>
+            <div style="font-size: 20px; font-weight: 800; color: var(--warm-accent, #F59E0B); margin: 6px 0;">Join Status</div>
+            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.45;">Real-time tracking of pending, accepted, or under-review club applications.</div>
+          </a>
+          <a href="dashboard.html" class="stat-card" style="text-decoration: none; background: var(--bg-surface); padding: 22px; border-radius: var(--radius-card); border: 1px solid var(--border); transition: transform 0.2s, box-shadow 0.2s; display: block;">
+            <div style="font-size: 26px; margin-bottom: 8px;">🎟️</div>
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Digital Ticketing</div>
+            <div style="font-size: 20px; font-weight: 800; color: var(--text-main); margin: 6px 0;">Campus Passes</div>
+            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.45;">Instant digital QR entrance verification passes for campus workshops &amp; hackathons.</div>
+          </a>
+          <a href="dashboard.html" class="stat-card" style="text-decoration: none; background: var(--bg-surface); padding: 22px; border-radius: var(--radius-card); border: 1px solid var(--border); transition: transform 0.2s, box-shadow 0.2s; display: block;">
+            <div style="font-size: 26px; margin-bottom: 8px;">🛡️</div>
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Digital Badges</div>
+            <div style="font-size: 20px; font-weight: 800; color: var(--success); margin: 6px 0;">Verified Credentials</div>
+            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.45;">Cryptographically verifiable SHA-256 achievement tokens for hackathons and club leadership.</div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. FEATURED CLUBS SPOTLIGHT (EXPLORE CLUBS SECTION) -->
+    <section id="explore-clubs-section" class="section-pad" style="background: var(--bg-surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
       <div class="container">
         <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 32px;">
           <div>
@@ -319,10 +365,10 @@
     <div class="container footer-bottom" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 24px 0;">
       <div>&copy; 2026 <strong>ClubHub</strong> &bull; The All-in-One Smart Campus Operating System</div>
       <div style="display: flex; gap: 16px; font-size: 13px;">
-        <a href="clubs.html" style="color: var(--text-secondary);">Clubs</a>
+        <a href="dashboard.html" style="color: var(--text-secondary);">Dashboard</a>
+        <a href="clubs.html" style="color: var(--text-secondary);">Explore Clubs</a>
         <a href="events.html" style="color: var(--text-secondary);">Events</a>
         <a href="network.html" style="color: var(--text-secondary);">Network</a>
-        <a href="dashboard.html" style="color: var(--text-secondary);">Dashboard</a>
       </div>
     </div>
   </footer>
