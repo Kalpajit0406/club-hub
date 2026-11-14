@@ -36,6 +36,7 @@ class StudentRegister(StudentBase):
 class StudentLogin(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=1)
+    section: Optional[str] = None  # "student" or "admin"
 
 
 class StudentResponse(StudentBase):

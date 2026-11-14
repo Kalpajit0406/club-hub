@@ -143,14 +143,19 @@ def update_application_status(
             detail=f"Join request with ID {application_id} not found."
         )
 
-    # Authorization Check: ONLY admin of that specific club or site admin
-    is_club_admin = application.club and application.club.coordinator_id == current_user.id
-    is_site_admin = current_user.role == "admin"
+    # Authorization Check: club coordinator, site admin/coordinator, or club member
+    is_club_coord = application.club and application.club.coordinator_id == current_user.id
+    is_site_admin = current_user.role in ("admin", "coordinator")
+    is_club_member = (
+        db.query(Membership)
+        .filter(Membership.club_id == application.club_id, Membership.student_id == current_user.id)
+        .first() is not None
+    )
 
-    if not (is_club_admin or is_site_admin):
+    if not (is_club_coord or is_site_admin or is_club_member):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only the admin of this specific club can approve or reject its join requests."
+            detail="Only administrators or members of this club can approve or reject its join requests."
         )
 
     new_status = payload.status

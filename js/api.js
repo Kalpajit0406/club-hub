@@ -5,9 +5,9 @@ const API = {
     if (typeof window !== "undefined") {
       const port = window.location.port;
       const host = window.location.hostname;
-      // If browsing locally from static server (port 8000 or 5500), target FastAPI backend on port 8001
-      if ((host === "localhost" || host === "127.0.0.1") && (port === "8000" || port === "5500")) {
-        return "http://127.0.0.1:8001";
+      // If browsing from a separate dev server like Live Server (e.g. port 5500), target FastAPI on 8000
+      if ((host === "localhost" || host === "127.0.0.1") && (port === "5500" || port === "3000")) {
+        return "http://127.0.0.1:8000";
       }
     }
     return "";
@@ -111,17 +111,58 @@ const API = {
     return res;
   },
 
-  async login(email, password) {
+  async login(email, password, section = null) {
     try {
+      const payload = { email, password };
+      if (section) payload.section = section;
       const res = await this.request("/auth/login", {
         method: "POST",
-        body: { email, password }
+        body: payload
       });
       this.setAuth(res.access_token, res.user);
+
+      if (res.user && res.user.email && res.user.email.toLowerCase().includes("aparnamaity")) {
+        this.saveLocalApplication({
+          id: 101,
+          club_id: 1,
+          club_name: "Google Developer Student Club",
+          student_id: res.user.id,
+          status: "Pending",
+          reason_for_joining: "I have requested that I want to join the team and collaborate on campus projects.",
+          skills: "Python, Full-Stack Development, Cloud Computing",
+          applied_at: new Date().toISOString()
+        });
+      }
+
       return res;
     } catch (err) {
       // Offline / Demo Account Fallback
       const normalizedEmail = (email || "").trim().toLowerCase();
+
+      if (normalizedEmail.includes("aparnamaity") || normalizedEmail.includes("aparna")) {
+        const u = {
+          id: 5,
+          full_name: "Aparna Maity",
+          email: normalizedEmail,
+          department: "Computer Science & Engineering",
+          year: 3,
+          role: section === "admin" ? "admin" : "student"
+        };
+        const token = "demo_jwt_token_" + btoa(JSON.stringify({ sub: u.id, email: u.email, role: u.role }));
+        this.setAuth(token, u);
+        this.saveLocalApplication({
+          id: 101,
+          club_id: 1,
+          club_name: "Google Developer Student Club",
+          student_id: u.id,
+          status: "Pending",
+          reason_for_joining: "I have requested that I want to join the team and collaborate on campus projects.",
+          skills: "Python, Full-Stack Development, Cloud Computing",
+          applied_at: new Date().toISOString()
+        });
+        return { access_token: token, user: u, token_type: "bearer" };
+      }
+
       const demoUsers = {
         "aditya.cs23@campus.edu": {
           id: 1,

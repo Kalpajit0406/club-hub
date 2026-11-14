@@ -286,10 +286,18 @@ def toggle_club_recruitment(
             detail=f"Club with ID {club_id} not found."
         )
 
-    if club.coordinator_id != current_user.id and current_user.role != "admin":
+    is_coord = club.coordinator_id == current_user.id
+    is_admin = current_user.role in ("admin", "coordinator")
+    is_member = (
+        db.query(Membership)
+        .filter(Membership.club_id == club_id, Membership.student_id == current_user.id)
+        .first() is not None
+    )
+
+    if not (is_coord or is_admin or is_member):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only toggle recruitment for clubs you coordinate."
+            detail="You can only toggle recruitment for clubs you coordinate or belong to."
         )
 
     club.recruitment_open = payload.recruitment_open
@@ -320,10 +328,18 @@ def get_club_members(
             detail=f"Club with ID {club_id} not found."
         )
 
-    if club.coordinator_id != current_user.id and current_user.role != "admin":
+    is_coord = club.coordinator_id == current_user.id
+    is_admin = current_user.role in ("admin", "coordinator")
+    is_member = (
+        db.query(Membership)
+        .filter(Membership.club_id == club_id, Membership.student_id == current_user.id)
+        .first() is not None
+    )
+
+    if not (is_coord or is_admin or is_member):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only view members of clubs you coordinate."
+            detail="You can only view members of clubs you coordinate or belong to."
         )
 
     members = (
@@ -354,11 +370,19 @@ def get_club_requests(
             detail=f"Club with ID {club_id} not found."
         )
 
-    # Enforce club-specific admin access
-    if club.coordinator_id != current_user.id and current_user.role != "admin":
+    # Enforce club admin / coordinator / member access
+    is_coord = club.coordinator_id == current_user.id
+    is_admin = current_user.role in ("admin", "coordinator")
+    is_member = (
+        db.query(Membership)
+        .filter(Membership.club_id == club_id, Membership.student_id == current_user.id)
+        .first() is not None
+    )
+
+    if not (is_coord or is_admin or is_member):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only the admin of this specific club can view its join requests."
+            detail="Only administrators or members of this club can view its join requests."
         )
 
     query = (
