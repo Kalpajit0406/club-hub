@@ -10,6 +10,7 @@ from backend.models import (
     Student,
     Club,
     Membership,
+    Application,
     Event,
     EventRegistration,
     NetworkPost,
@@ -79,7 +80,10 @@ def seed_data():
             "Aditya Sen", "aditya.cs23@campus.edu", "password123", "Computer Science & Engineering", 3, "student"
         )
         aparna_user = get_or_create_student(
-            "Aparna Maity", "aparnamaity2609@gmail.com", "password123", "Computer Science & Engineering", 4, "admin"
+            "Aparna Maity", "aparnamaity2609@campus.edu", "password123", "Computer Science & Engineering", 3, "student"
+        )
+        aparna_gmail = get_or_create_student(
+            "Aparna Maity", "aparnamaity2609@gmail.com", "password123", "Computer Science & Engineering", 3, "student"
         )
 
         # 2. Create Campus Societies
@@ -137,6 +141,22 @@ def seed_data():
             existing_m = db.query(Membership).filter(Membership.student_id == s.id, Membership.club_id == c.id).first()
             if not existing_m:
                 db.add(Membership(student_id=s.id, club_id=c.id))
+        db.commit()
+
+        # 3b. Seed Pending Join Request ("Requested to Join Team") for Aparna Maity
+        for st in [aparna_user, aparna_gmail]:
+            existing_app = db.query(Application).filter(
+                Application.student_id == st.id,
+                Application.club_id == c1.id
+            ).first()
+            if not existing_app:
+                db.add(Application(
+                    student_id=st.id,
+                    club_id=c1.id,
+                    reason_for_joining="I have requested that I want to join the team and collaborate on campus projects.",
+                    skills="Python, Full-Stack Development, Cloud Computing",
+                    status="Pending"
+                ))
         db.commit()
 
         # 4. Create Campus Events

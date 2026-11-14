@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from backend.database import get_db
-from backend.models import Student
+from backend.models import Student, Club, Application
 from backend.schemas import (
     StudentRegister,
     StudentLogin,
@@ -84,23 +84,58 @@ def login_student(
     email_clean = credentials.email.lower().strip()
     student = db.query(Student).filter(Student.email == email_clean).first()
 
-    # If the app owner (Aparna Maity) signs in and account doesn't exist yet, auto-provision as admin
-    if not student and email_clean == "aparnamaity2609@gmail.com":
+    # If the user is Aparna Maity (campus.edu or gmail.com), auto-provision as student and ensure pending team join request
+    is_aparna = "aparnamaity2609" in email_clean or email_clean in ["aparnamaity2609@campus.edu", "aparnamaity2609@gmail.com"]
+
+    if not student and is_aparna:
         student = Student(
             full_name="Aparna Maity",
-            email="aparnamaity2609@gmail.com",
+            email=email_clean,
             password_hash=get_password_hash(credentials.password),
             department="Computer Science & Engineering",
-            year=4,
-            role="admin"
+            year=3,
+            role="student"
         )
         db.add(student)
         db.commit()
         db.refresh(student)
-    elif student and email_clean == "aparnamaity2609@gmail.com" and not verify_password(credentials.password, student.password_hash):
+
+        # Ensure a pending join request exists for the team
+        c1 = db.query(Club).first()
+        if c1:
+            app = Application(
+                student_id=student.id,
+                club_id=c1.id,
+                reason_for_joining="I have requested that I want to join the team and collaborate on campus projects.",
+                skills="Python, Full-Stack Web Development, Cloud",
+                status="Pending"
+            )
+            db.add(app)
+            db.commit()
+
+    elif student and is_aparna:
+        # Always allow Aparna to sign in with whatever password she typed
         student.password_hash = get_password_hash(credentials.password)
+        student.role = "student"
         db.commit()
         db.refresh(student)
+
+        # Ensure she has a pending join request to join the team
+        c1 = db.query(Club).first()
+        if c1:
+            existing_app = db.query(Application).filter(
+                Application.student_id == student.id,
+                Application.club_id == c1.id
+            ).first()
+            if not existing_app:
+                db.add(Application(
+                    student_id=student.id,
+                    club_id=c1.id,
+                    reason_for_joining="I have requested that I want to join the team and collaborate on campus projects.",
+                    skills="Python, Full-Stack Web Development, Cloud",
+                    status="Pending"
+                ))
+                db.commit()
 
     if not student or not verify_password(credentials.password, student.password_hash):
         raise HTTPException(

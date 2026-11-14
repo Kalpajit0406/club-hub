@@ -9,6 +9,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ---------------- DEMO CREDENTIALS AUTOFILL ----------------
 function initDemoCredentials() {
+  const aparnaBtn = document.getElementById("aparna-fill-btn");
+  if (aparnaBtn) {
+    aparnaBtn.addEventListener("click", () => {
+      const emailInput = document.getElementById("login-email");
+      const passInput = document.getElementById("login-password");
+      if (emailInput && passInput) {
+        emailInput.value = "aparnamaity2609@campus.edu";
+        passInput.value = "password123";
+        showAuthAlert("Aparna Maity student credentials inserted. Click Sign In to continue.", "success");
+      }
+    });
+  }
+
   const fillBtn = document.getElementById("demo-fill-btn");
   if (fillBtn) {
     fillBtn.addEventListener("click", () => {
@@ -60,7 +73,7 @@ function initLoginForm() {
       }
 
       const res = await API.login(email, password);
-      showAuthAlert(`Welcome back, ${res.user.full_name}! Redirecting...`, "success");
+      showAuthAlert(`Welcome back, ${res.user.full_name}! Logged in successfully. Redirecting...`, "success");
 
       // Check redirect URL in query parameters
       const urlParams = new URLSearchParams(window.location.search);
