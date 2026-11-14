@@ -1,7 +1,6 @@
 """
 backend/routers/applications.py
-Club Membership Applications Router.
-Tags: Applications
+Club Join Requests & Applications Router.
 """
 
 from typing import List
@@ -16,7 +15,7 @@ from backend.schemas import (
     ApplicationStatusUpdate,
     ApplicationResponse
 )
-from backend.dependencies import get_current_user, require_coordinator_or_admin
+from backend.dependencies import get_current_user
 
 router = APIRouter(prefix="/applications", tags=["Applications"])
 
@@ -25,15 +24,13 @@ router = APIRouter(prefix="/applications", tags=["Applications"])
     "",
     response_model=ApplicationResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Submit a club membership application",
-    description="Submits an application to join a club. Enforces recruitment open check, duplicate prevention, and initial 'Pending' status."
+    summary="Submit a club join request"
 )
-def submit_application(
+def submit_join_request(
     payload: ApplicationCreate,
     current_user: Student = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    # 1. Verify club exists
     club = db.query(Club).filter(Club.id == payload.club_id).first()
     if not club:
         raise HTTPException(
@@ -41,14 +38,13 @@ def submit_application(
             detail=f"Club with ID {payload.club_id} not found."
         )
 
-    # 2. Check if recruitment is open
     if not club.recruitment_open:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Recruitment for '{club.name}' is currently closed."
         )
 
-    # 3. Check for existing membership
+    # Check for existing membership
     existing_member = (
         db.query(Membership)
         .filter(Membership.student_id == current_user.id, Membership.club_id == payload.club_id)
@@ -60,24 +56,39 @@ def submit_application(
             detail=f"You are already an active member of '{club.name}'."
         )
 
-    # 4. Check for duplicate application
+    # Check for existing application
     existing_app = (
         db.query(Application)
         .filter(Application.student_id == current_user.id, Application.club_id == payload.club_id)
         .first()
     )
     if existing_app:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"You have already submitted an application to '{club.name}'. Duplicate applications are not permitted."
-        )
+        if existing_app.status == "Pending":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"You already have a pending join request for '{club.name}'."
+            )
+        elif existing_app.status == "Approved":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Your membership request for '{club.name}' is already approved."
+            )
+        elif existing_app.status == "Rejected":
+            # Allow re-requesting after rejection
+            existing_app.status = "Pending"
+            existing_app.reason_for_joining = (payload.reason_for_joining or "").strip()
+            existing_app.skills = (payload.skills or "").strip()
+            existing_app.applied_at = datetime.utcnow()
+            existing_app.updated_at = datetime.utcnow()
+            db.commit()
+            db.refresh(existing_app)
+            return existing_app
 
-    # 5. Create application with initial 'Pending' status
     new_application = Application(
         student_id=current_user.id,
         club_id=payload.club_id,
-        reason_for_joining=payload.reason_for_joining.strip(),
-        skills=payload.skills.strip(),
+        reason_for_joining=(payload.reason_for_joining or "").strip(),
+        skills=(payload.skills or "").strip(),
         status="Pending",
         applied_at=datetime.utcnow(),
         updated_at=datetime.utcnow()
@@ -93,8 +104,7 @@ def submit_application(
 @router.get(
     "/my",
     response_model=List[ApplicationResponse],
-    summary="View applications of the logged-in student",
-    description="Returns all club applications submitted by the current authenticated student with live status."
+    summary="View current user's join requests"
 )
 def get_my_applications(
     current_user: Student = Depends(get_current_user),
@@ -110,57 +120,15 @@ def get_my_applications(
     return applications
 
 
-@router.get(
-    "/{application_id}",
-    response_model=ApplicationResponse,
-    summary="View application details",
-    description="Accessible by the applicant student, the club's coordinator, or an administrator."
-)
-def get_application_by_id(
-    application_id: int,
-    current_user: Student = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    application = (
-        db.query(Application)
-        .options(joinedload(Application.student), joinedload(Application.club))
-        .filter(Application.id == application_id)
-        .first()
-    )
-    if not application:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Application with ID {application_id} not found."
-        )
-
-    # Authorization Check
-    is_applicant = (application.student_id == current_user.id)
-    is_coordinator = (
-        current_user.role == "coordinator" and
-        application.club and
-        application.club.coordinator_id == current_user.id
-    )
-    is_admin = (current_user.role == "admin")
-
-    if not (is_applicant or is_coordinator or is_admin):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You are not authorized to view this application."
-        )
-
-    return application
-
-
 @router.patch(
     "/{application_id}/status",
     response_model=ApplicationResponse,
-    summary="Update application status (Review)",
-    description="Updates status (Pending, Shortlisted, Approved, Rejected). When approved, a Membership record is automatically created in a safe transaction."
+    summary="Approve or Reject a join request"
 )
 def update_application_status(
     application_id: int,
     payload: ApplicationStatusUpdate,
-    current_user: Student = Depends(require_coordinator_or_admin),
+    current_user: Student = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     application = (
@@ -172,27 +140,25 @@ def update_application_status(
     if not application:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Application with ID {application_id} not found."
+            detail=f"Join request with ID {application_id} not found."
         )
 
-    # Coordinators can review applications for their own clubs only
-    if current_user.role == "coordinator":
-        if not application.club or application.club.coordinator_id != current_user.id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You are only authorized to review applications for clubs you coordinate."
-            )
+    # Authorization Check: ONLY admin of that specific club or site admin
+    is_club_admin = application.club and application.club.coordinator_id == current_user.id
+    is_site_admin = current_user.role == "admin"
+
+    if not (is_club_admin or is_site_admin):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the admin of this specific club can approve or reject its join requests."
+        )
 
     new_status = payload.status
-    old_status = application.status
-
-    # Safe Transactional Execution
     try:
         application.status = new_status
         application.updated_at = datetime.utcnow()
 
         if new_status == "Approved":
-            # Check if membership already exists
             existing_membership = (
                 db.query(Membership)
                 .filter(
@@ -210,7 +176,6 @@ def update_application_status(
                 )
                 db.add(membership)
         elif new_status == "Rejected":
-            # Rejection must never create a membership; if it was previously approved, revoke membership
             existing_membership = (
                 db.query(Membership)
                 .filter(
@@ -230,6 +195,5 @@ def update_application_status(
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database transaction error while updating application: {str(e)}"
+            detail=f"Database error while updating join request: {str(e)}"
         )
-

@@ -10,7 +10,7 @@
   <script>
     (function() {
       var savedTheme = localStorage.getItem("clubhub_theme_mode_v2") || "light";
-      var savedPalette = localStorage.getItem("clubhub_active_palette") || "default";
+      var savedPalette = localStorage.getItem("clubhub_active_palette") || "indigo-steel";
       document.documentElement.setAttribute("data-theme", savedTheme);
       document.documentElement.setAttribute("data-palette", savedPalette);
     })();
@@ -45,9 +45,8 @@
       <nav class="nav-links">
         <a href="clubs.html" class="nav-link">Clubs</a>
         <a href="events.html" class="nav-link">Events</a>
-        <a href="marketplace.html" class="nav-link">Marketplace</a>
         <a href="network.html" class="nav-link active">Network</a>
-        <a href="recruiters.html" class="nav-link">Placements</a>
+        <a href="dashboard.html" class="nav-link">Dashboard</a>
       </nav>
 
       <div class="nav-actions">
@@ -61,13 +60,13 @@
 
   <!-- PAGE HEADER -->
   <section class="net-header">
-    <div class="container net-header-inner">
+    <div class="container net-header-inner" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;">
       <div class="net-title-wrap">
         <h1>Student Peer Network &amp; Collab Feed</h1>
         <p>Find hackathon teammates, organize exam study circles, share project ideas, and connect with fellow engineering peers.</p>
       </div>
       <div>
-        <button id="create-post-trigger" class="btn btn-primary">
+        <button id="create-post-trigger" class="btn btn-cta">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Post a Collaboration
         </button>
@@ -91,7 +90,7 @@
       <!-- Main Feed -->
       <section>
         <div id="net-feed-list" class="net-feed-list">
-          <!-- Injected by network.js -->
+          <!-- Injected by js/network.js -->
         </div>
       </section>
 
@@ -100,37 +99,17 @@
         <div class="net-sidebar-card">
           <h3>⚡ Find Teammates Faster</h3>
           <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0 0 12px 0;">
-            Looking for a teammate for SIH 2026 or HackTINT? Mention your current tech stack (e.g. Flutter, FastAPI), the problem statement, and expected commitment.
+            Looking for a teammate for SIH 2026 or HackTINT? Mention your current tech stack, the problem statement, and expected commitment.
           </p>
-          <button class="btn btn-outline btn-sm" style="width: 100%;" onclick="document.getElementById('create-post-trigger').click()">
+          <button class="btn btn-outline btn-sm" style="width: 100%;" onclick="openCreatePostModal()">
             Create Team Post
           </button>
         </div>
 
-        <div class="net-sidebar-card">
-          <h3>🔥 Trending Topics</h3>
-          <div class="net-trend-item">
-            <span style="font-weight: 600; color: var(--primary);">#SmartIndiaHackathon</span>
-            <span style="color: var(--text-muted);">42 posts</span>
-          </div>
-          <div class="net-trend-item">
-            <span style="font-weight: 600; color: var(--primary);">#HackTINT2026</span>
-            <span style="color: var(--text-muted);">28 posts</span>
-          </div>
-          <div class="net-trend-item">
-            <span style="font-weight: 600; color: var(--primary);">#MAKAUTSemNotes</span>
-            <span style="color: var(--text-muted);">19 posts</span>
-          </div>
-          <div class="net-trend-item">
-            <span style="font-weight: 600; color: var(--primary);">#ARSCombatRobotics</span>
-            <span style="color: var(--text-muted);">15 posts</span>
-          </div>
-        </div>
-
         <div class="net-sidebar-card" style="background: var(--bg-surface); border: 1px dashed var(--border);">
           <h4 style="font-size: 13px; margin: 0 0 6px 0; color: var(--text-main);">🛡️ Verified Peer Community</h4>
-          <p style="font-size: 11px; color: var(--text-muted); margin: 0; line-height: 1.4;">
-            All posts are linked to registered student roll numbers and institutional emails. Keep collaboration constructive and aligned with the Campus Honor Code.
+          <p style="font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.5;">
+            All posts and comments are cryptographically associated with registered student profiles. Keep discussions respectful and collegiate.
           </p>
         </div>
       </aside>
@@ -140,7 +119,7 @@
 
   <!-- CREATE POST MODAL -->
   <div id="create-post-modal" class="modal-overlay" style="display: none;">
-    <div class="modal-content" style="max-width: 540px;">
+    <div class="modal-content" style="max-width: 520px;">
       <div class="modal-header">
         <h3 style="margin: 0; font-size: 18px; font-family: 'Plus Jakarta Sans', sans-serif;">Create Collaboration Post</h3>
         <button id="create-post-close" class="modal-close" aria-label="Close modal">&times;</button>
@@ -148,23 +127,28 @@
       <div class="modal-body">
         <form id="create-post-form">
           <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label">Post Headline / Topic <span class="required">*</span></label>
+            <input type="text" id="post-title-input" class="form-input" required placeholder="e.g. Need 1 React &amp; 1 UI/UX designer for SIH 2026 team">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 14px;">
             <label class="form-label">Category Tag <span class="required">*</span></label>
-            <select id="post-tag" class="form-select" required>
-              <option value="#HackathonTeam" selected>#HackathonTeam (Find project &amp; hackathon partners)</option>
-              <option value="#StudyGroup">#StudyGroup (Exam prep &amp; subject discussions)</option>
+            <select id="post-tag-select" class="form-select" required>
+              <option value="#HackathonTeam" selected>#HackathonTeam (Hackathon teammate search)</option>
+              <option value="#StudyGroup">#StudyGroup (Exam prep &amp; subject circles)</option>
               <option value="#ProjectCollab">#ProjectCollab (Robotics, Web, or Hardware builds)</option>
-              <option value="#CampusLife">#CampusLife (General campus events &amp; clubs)</option>
+              <option value="#CampusLife">#CampusLife (General campus events &amp; society talk)</option>
             </select>
           </div>
 
           <div class="form-group" style="margin-bottom: 20px;">
-            <label class="form-label">Post Details <span class="required">*</span></label>
-            <textarea id="post-content" class="form-textarea" rows="4" required placeholder="What are you building or looking for? E.g. 'Looking for 1 UI/UX designer and 1 backend developer for Smart India Hackathon 2026...'"></textarea>
+            <label class="form-label">Discussion Details <span class="required">*</span></label>
+            <textarea id="post-content-input" class="form-textarea" rows="4" required placeholder="Describe what you are working on, required skills, and how peers can collaborate..."></textarea>
           </div>
 
           <div style="display: flex; gap: 10px; justify-content: flex-end;">
             <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('create-post-modal').style.display='none'">Cancel</button>
-            <button type="submit" class="btn btn-primary btn-sm">Publish to Network</button>
+            <button type="submit" class="btn btn-cta btn-sm">Publish Discussion</button>
           </div>
         </form>
       </div>
@@ -178,19 +162,18 @@
       <div style="display: flex; gap: 16px; font-size: 13px;">
         <a href="clubs.html" style="color: var(--text-secondary);">Clubs</a>
         <a href="events.html" style="color: var(--text-secondary);">Events</a>
-        <a href="marketplace.html" style="color: var(--text-secondary);">Marketplace</a>
         <a href="network.html" style="color: var(--text-secondary);">Network</a>
-        <a href="recruiters.html" style="color: var(--text-secondary);">Placements</a>
+        <a href="dashboard.html" style="color: var(--text-secondary);">Dashboard</a>
       </div>
     </div>
   </footer>
 
   <!-- Scripts -->
   <script src="js/data.js"></script>
+  <script src="js/api.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/palette.js"></script>
   <script src="js/common.js"></script>
   <script src="js/network.js"></script>
 </body>
 </html>
-

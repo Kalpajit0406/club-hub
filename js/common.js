@@ -127,32 +127,33 @@ function updateNavBadges() {
 // ---------------- NAVBAR AUTH BUTTONS / USER PROFILE ----------------
 function renderNavAuth() {
   const container = document.getElementById("nav-auth-box");
-  if (!container || typeof Storage === "undefined") return;
+  if (!container) return;
 
-  const currentUser = Storage.getCurrentUser();
+  const currentUser = (typeof API !== "undefined") ? API.getCurrentUser() : (typeof Storage !== "undefined" ? Storage.getCurrentUser() : null);
   if (currentUser) {
-    const initials = currentUser.name
-      ? currentUser.name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase()
-      : "CU";
+    const displayName = currentUser.full_name || currentUser.name || "User";
+    const initials = displayName
+      ? displayName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase()
+      : "U";
 
     let roleBadge = "Student";
     let targetDashboard = "dashboard.html";
 
     if (currentUser.role === "admin") {
-      roleBadge = "Club Lead";
+      roleBadge = "Site Admin";
       targetDashboard = "admin.html";
-    } else if (currentUser.role === "recruiter") {
-      roleBadge = "Recruiter";
-      targetDashboard = "recruiter-dashboard.html";
+    } else if (currentUser.role === "coordinator") {
+      roleBadge = "Club Admin";
+      targetDashboard = "admin.html";
     }
 
     container.innerHTML = `
       <div class="nav-user-pill">
-        <a href="${targetDashboard}" class="nav-user-profile" title="View ${roleBadge} Dashboard">
-          <span class="nav-user-avatar">${initials}</span>
+        <a href="${targetDashboard}" class="nav-user-profile" title="View Command Center (${roleBadge})">
+          <span class="nav-user-avatar">${escapeHTML(initials)}</span>
           <div style="display: flex; flex-direction: column; text-align: left; line-height: 1.1;">
-            <span class="nav-user-name" style="font-weight: 600;">${escapeHTML(currentUser.name.split(" ")[0])}</span>
-            <span style="font-size: 10px; color: var(--primary); font-weight: 500;">${roleBadge}</span>
+            <span class="nav-user-name" style="font-weight: 600;">${escapeHTML(displayName.split(" ")[0])}</span>
+            <span style="font-size: 10px; color: var(--warm-accent, #F59E0B); font-weight: 600;">${roleBadge}</span>
           </div>
         </a>
         <button type="button" class="nav-logout-btn" title="Sign Out" onclick="handleNavLogout()" aria-label="Sign Out">
@@ -164,20 +165,37 @@ function renderNavAuth() {
     container.innerHTML = `
       <div class="nav-auth-buttons">
         <a href="login.html" class="btn btn-outline btn-sm">Log In</a>
-        <a href="register.html" class="btn btn-primary btn-sm">Register</a>
+        <a href="register.html" class="btn btn-cta btn-sm">Sign Up</a>
       </div>
     `;
   }
 }
 
 function handleNavLogout() {
+  if (typeof API !== "undefined") {
+    API.logout();
+  }
   if (typeof Storage !== "undefined") {
     Storage.logoutUser();
-    showToast("You have been signed out successfully.", "info");
-    setTimeout(() => {
-      window.location.href = "login.html";
-    }, 450);
   }
+  showToast("You have been signed out successfully.", "info");
+  renderNavAuth();
+  setTimeout(() => {
+    window.location.href = "login.html";
+  }, 450);
+}
+
+function requireAuth(redirectUrl = null) {
+  const user = (typeof API !== "undefined") ? API.getCurrentUser() : (typeof Storage !== "undefined" ? Storage.getCurrentUser() : null);
+  if (!user) {
+    showToast("Please log in to continue.", "warning");
+    setTimeout(() => {
+      const dest = redirectUrl || window.location.pathname.split("/").pop() || "index.html";
+      window.location.href = `login.html?redirect=${encodeURIComponent(dest)}`;
+    }, 450);
+    return null;
+  }
+  return user;
 }
 
 // ---------------- TOAST NOTIFICATION SYSTEM ----------------

@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign In | ClubHub — Smart Campus OS</title>
-  <meta name="description" content="Sign in to your ClubHub account to explore clubs, register for campus events, buy textbooks in marketplace, and apply for internships.">
+  <meta name="description" content="Sign in to your ClubHub account to explore clubs, register for campus events, collaborate with peers, and view verified digital badges.">
 
   <!-- Anti-Flicker Theme & Palette Init -->
   <script>
     (function() {
       var savedTheme = localStorage.getItem("clubhub_theme_mode_v2") || "light";
-      var savedPalette = localStorage.getItem("clubhub_active_palette") || "default";
+      var savedPalette = localStorage.getItem("clubhub_active_palette") || "indigo-steel";
       document.documentElement.setAttribute("data-theme", savedTheme);
       document.documentElement.setAttribute("data-palette", savedPalette);
     })();
@@ -26,45 +26,6 @@
   <link rel="stylesheet" href="css/palette.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/auth.css">
-  <style>
-    .demo-roles-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-top: 14px;
-    }
-    .demo-role-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 10px 8px;
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: all var(--transition-fast);
-      text-align: center;
-    }
-    .demo-role-btn:hover {
-      background: var(--primary-light);
-      border-color: var(--primary);
-      transform: translateY(-2px);
-    }
-    .demo-role-icon {
-      font-size: 18px;
-      margin-bottom: 4px;
-    }
-    .demo-role-title {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-    .demo-role-sub {
-      font-size: 10px;
-      color: var(--text-muted);
-      margin-top: 2px;
-    }
-  </style>
 </head>
 <body class="auth-page">
 
@@ -82,36 +43,12 @@
         <div>Club<span>Hub</span></div>
       </a>
       <h1 class="auth-title">Welcome to ClubHub</h1>
-      <p class="auth-subtitle">The all-in-one smart campus platform for university clubs, events, student marketplace, and internships.</p>
+      <p class="auth-subtitle">The all-in-one smart campus platform for university clubs, events, collab feeds, and digital badges.</p>
     </div>
 
     <!-- AUTH CARD -->
     <div class="auth-card">
       <div id="auth-alert" class="auth-alert" role="alert"></div>
-
-      <!-- 1-CLICK INSTANT DEMO LOGINS -->
-      <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
-        <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary); display: block; margin-bottom: 4px;">
-          ⚡ 1-Click Instant Demo Login:
-        </label>
-        <div class="demo-roles-grid">
-          <button type="button" class="demo-role-btn" data-demo-role="student">
-            <span class="demo-role-icon">🎓</span>
-            <span class="demo-role-title">Student</span>
-            <span class="demo-role-sub">Aditya Verma</span>
-          </button>
-          <button type="button" class="demo-role-btn" data-demo-role="admin">
-            <span class="demo-role-icon">⚡</span>
-            <span class="demo-role-title">Club Lead</span>
-            <span class="demo-role-sub">GDSC Tech</span>
-          </button>
-          <button type="button" class="demo-role-btn" data-demo-role="recruiter">
-            <span class="demo-role-icon">💼</span>
-            <span class="demo-role-title">Recruiter</span>
-            <span class="demo-role-sub">Microsoft Talent</span>
-          </button>
-        </div>
-      </div>
 
       <form id="login-form">
         <div class="form-group">
@@ -120,7 +57,7 @@
             type="email" 
             id="login-email" 
             class="form-input" 
-            placeholder="e.g. aditya@tint.edu.in" 
+            placeholder="e.g. student@campus.edu" 
             required 
             autocomplete="email"
           >
@@ -143,15 +80,7 @@
           </div>
         </div>
 
-        <div class="auth-options-row">
-          <label class="auth-checkbox-label">
-            <input type="checkbox" id="remember-me" checked>
-            <span>Remember session</span>
-          </label>
-          <a href="#" class="auth-link" onclick="if(typeof showToast==='function') showToast('Password reset dispatched to your email.', 'info')">Forgot password?</a>
-        </div>
-
-        <button type="submit" class="btn btn-primary auth-submit-btn" style="width: 100%;">
+        <button type="submit" class="btn btn-primary auth-submit-btn" style="width: 100%; margin-top: 10px;">
           Sign In to ClubHub
         </button>
       </form>
@@ -166,6 +95,7 @@
 
   <!-- Scripts -->
   <script src="js/data.js"></script>
+  <script src="js/api.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/palette.js"></script>
   <script src="js/common.js"></script>

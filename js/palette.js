@@ -60,11 +60,11 @@ const PALETTES = [
 const PALETTE_STORAGE_KEY = "clubhub_active_palette";
 
 function getActivePalette() {
-  return localStorage.getItem(PALETTE_STORAGE_KEY) || "default";
+  return localStorage.getItem(PALETTE_STORAGE_KEY) || "indigo-steel";
 }
 
 function applyPalette(paletteId) {
-  if (!paletteId) paletteId = "default";
+  if (!paletteId) paletteId = "indigo-steel";
   document.documentElement.setAttribute("data-palette", paletteId);
   localStorage.setItem(PALETTE_STORAGE_KEY, paletteId);
 

@@ -85,18 +85,13 @@ CORS_ORIGINS=http://localhost:8000,http://127.0.0.1:8000,https://club-hub-inky.v
 FIREBASE_PROJECT_ID=club-hub-9c2de
 ```
 
-### 4. Seed Initial Demo Accounts & Clubs
-Run the safe seeder script to populate initial users, clubs, and sample events:
+### 4. Database Initialization
+Run the initialization script to ensure all tables are created with a clean, unpopulated database:
 ```bash
 python seed.py
 ```
 
-#### Pre-seeded Demo Credentials:
-| Role | Email | Password | Permissions |
-| :--- | :--- | :--- | :--- |
-| 🎓 **Student** | `aditya@tint.edu.in` | `student123` | Apply to clubs, view memberships, register for events |
-| ⚡ **Coordinator** | `gdsc.lead@tint.edu.in` | `coordinator123` | Manage GDSC, review applications, schedule club events |
-| 🛡️ **Admin** | `admin@tint.edu.in` | `admin123` | Platform-wide Secretariat, assign coordinators, system stats |
+*Note: In accordance with production design, no mock or hardcoded student accounts are pre-seeded. New visitors can immediately register a new real account via `/register.html` or `/auth/register`.*
 
 ### 5. Start the API Server
 From the project root:

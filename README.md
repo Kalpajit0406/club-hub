@@ -1,151 +1,180 @@
-# ClubHub — All-in-One Smart Campus Operating System
+# ClubHub — The All-in-One Smart Campus Operating System
 
-[![Vercel Deployment](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://club-hub-inky.vercel.app)
-[![Firebase Hosting](https://img.shields.io/badge/Hosted%20on-Firebase-orange?style=for-the-badge&logo=firebase)](https://club-hub-9c2de.web.app)
+[![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![SQLite](https://img.shields.io/badge/Database-SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![Theme](https://img.shields.io/badge/Default%20Theme-Indigo%20Steel%20Spectrum-4F46E5?style=for-the-badge)](http://localhost:8000)
 
-* **Vercel Production Demo:** [https://club-hub-inky.vercel.app](https://club-hub-inky.vercel.app)
-* **Firebase Hosting Demo:** [https://club-hub-9c2de.web.app](https://club-hub-9c2de.web.app)
-
-**ClubHub** is an interactive, production-ready smart campus SaaS platform built using pure **HTML5**, **CSS3**, and **Vanilla JavaScript (ES6+)**. It unifies extracurricular club management, central campus event ticketing, student-to-student peer marketplace, collaboration feed, corporate placement drives, and cryptographically verifiable digital achievement badges.
-
----
-
-## 🎨 Live Coolors Theme & Palette Engine
-
-ClubHub features a real-time **Theme & Palette Switcher** in the top navigation bar. When selected, the entire platform updates instantly across all pages with zero lag, persisted automatically to `localStorage`.
-
-### Included Palettes:
-1. **ClubHub Royal Blue** *(Default collegiate royal `#2563EB`, Navy `#1E3A8A`, Light `#F8FAFC`)*
-2. **Olive & Earthy** *(Alabaster `#EFF1ED`, Olive Green `#717744`, Army Dark `#373D20`, Sage `#BCBD8B`, Wood Umber `#766153`)*
-3. **Solar Blue & Amber** *(Teal Cyan `#219EBC`, Prussian Blue `#023047`, Sunburst Gold `#FFB703`, Amber `#FB8500`, Sky `#8ECAE6`)*
-4. **Deep Ocean Gradient** *(Royal Blue `#0077B6`, Deep Navy `#023E8A`, Rich Midnight `#03045E`, Aqua `#00B4D8`, Ice `#CAF0F8`)*
-5. **Nordic Sage & Pine** *(Midnight Green `#124559`, Rich Black `#01161E`, Sage Oat `#AEC3B0`, Air Force `#598392`, Cream `#EFF6E0`)*
-6. **Warm Slate & Cream** *(Oxford Blue `#1D2D44`, Night `#0D1321`, Slate `#3E5C76`, Frost `#748CAB`, Eggshell `#F0EBD8`)*
-7. **Indigo Steel Spectrum** *(Cobalt Blue `#0466C8`, Dark Cobalt `#0353A4`, Midnight `#002855`, Cool Grey `#5C677D`, Steel `#7D8597`)*
-8. **Dusk & Lavender** *(Ultra Violet `#474973`, Deep Night `#161B33`, Rose Quartz `#A69CAC`, Peach Almond `#F1DAC4`)*
-9. **Classic Oxford Blues** *(Prussian `#1D3461`, Lapis Lazuli `#1F487E`, Air Force `#376996`, Carolina `#6290C8`, Shadow `#829CBC`)*
+**ClubHub** is a production-ready, full-stack smart campus operating platform built with **FastAPI**, **SQLAlchemy**, and a responsive modern frontend (**HTML5**, **CSS3**, **Vanilla ES6+ JavaScript**). It unifies extracurricular club management, student candidacy approval workflows, central campus event ticketing with digital entry passes, campus collaboration feeds, and cryptographically verifiable digital achievement badges.
 
 ---
 
-## 🚀 Key Modules & Pages
+## 🚀 Quick Start (Single Command)
 
-### 1. Landing Page (`index.html`)
-* Comprehensive smart campus overview showcasing clubs, upcoming hackathons, marketplace exchange, and corporate internships.
-* High-level statistics: *30+ Active Clubs*, *2,400+ Registered Students*, *₹15L+ Hackathon & Stipend Pool*.
-* Direct routing into all campus suites.
+### 1. Prerequisites
+- **Python 3.10+** installed
+- Git installed
 
-### 2. Campus Events & Workshops Hub (`events.html`)
-* Discover campus hackathons (*HackTINT 2026*), combat robowars, full-stack codelabs, and acoustic cultural concerts.
-* Filter by category chips (*Hackathon*, *Robowars & Contests*, *Workshops*, *Cultural*, *Entrepreneurship*) and real-time search.
-* Interactive **Digital Entry Pass Generator** with unique pass codes (e.g. `PASS-8492-EVT-01`) and simulated QR code matrix for entry verification.
-* Ability for club coordinators and admins to schedule and publish new campus events.
-
-### 3. Student Campus Marketplace (`marketplace.html`)
-* Peer-to-peer student marketplace for engineering essentials:
-  * Textbooks: *Higher Engineering Mathematics (B.S. Grewal)*, *Operating System Concepts (Galvin)*.
-  * Instruments: *Casio FX-991CW Scientific Calculator*, *Omega Precision Mini Drafter*, *Chemistry Lab Apron*.
-  * Electronics: *Arduino UNO Kit with 30+ Sensors*.
-* Filter by categories (*Books*, *Equipment*, *Electronics*) and sort by Price or Recency.
-* Direct **Contact Seller Modal** with instant WhatsApp direct-chat link and email prompts.
-* **"List an Item for Sale" Modal** with immediate persistence.
-
-### 4. Student Peer Network & Collab Feed (`network.html`)
-* Active campus discussion feed with topic chips: `#HackathonTeam`, `#StudyGroup`, `#ProjectCollab`, `#CampusLife`.
-* Find hackathon partners for Smart India Hackathon (SIH 2026), organize MAKAUT exam study circles, or recruit drone/robotics hardware collaborators.
-* Real-time post creation, live upvoting counter, and interactive comment replies.
-
-### 5. Campus Placement & Recruiter Portal (`recruiters.html`)
-* Campus hiring drives from enterprise partners: *Microsoft India*, *Google India*, *Tata Consultancy Services (TCS)*, *Swiggy Engineering*.
-* Detailed listings: Stipends (up to *₹1,25,000/mo*), eligibility, skills, and deadlines.
-* Interactive **"Apply for Internship" Modal** allowing students to attach their verified campus achievement badges alongside their resume and GPA.
-
-### 6. Corporate Recruiter Dashboard (`recruiter-dashboard.html`)
-* Dedicated talent acquisition portal for recruiters (*Priya Raman, Microsoft India*).
-* Live metrics: Active Drives, Total Student Applicants, Shortlisted Candidates.
-* Candidate screening table displaying applicant CGPA, GitHub profiles, verified credential badges, and direct recruitment status updating (*Under Review*, *Shortlisted*, *Accepted*).
-* Modal to post new campus hiring drives.
-
-### 7. Student Command Center (`dashboard.html`)
-* Unified 6-tab student portal:
-  1. **Club Applications**: Candidacy tracking with status badges (*Pending Review*, *Shortlisted*, *Approved*, *Rejected*) and withdrawal option.
-  2. **Registered Event Passes**: Digital pass viewer with simulated QR badges.
-  3. **My Marketplace Items**: Track listed products and mark items as Sold.
-  4. **My Collab Posts**: Monitor post upvotes and replies.
-  5. **Internship Applications**: Track recruiter review notes and interview selections.
-  6. **Verified Credentials & Badges**: Cryptographically verifiable badges (*TINT SIH Winner*, *GDSC Lead*, *Dean's List*) with unique hash IDs.
-
-### 8. Club Admin Secretariat (`admin.html`)
-* Candidate application review table with live status updates and interview notes.
-* Integrated Events Manager to schedule and publish events directly to `events.html`.
-* "Add New Club" modal to charter new student societies dynamically.
-
-### 9. 1-Click Instant Demo Authentication (`login.html` & `register.html`)
-* Role-based routing supporting:
-  * 🎓 **Student Demo**: `aditya@tint.edu.in` &rarr; Redirects to `dashboard.html`
-  * ⚡ **Club Lead Demo**: `gdsc.lead@tint.edu.in` &rarr; Redirects to `admin.html`
-  * 💼 **Recruiter Demo**: `campus.hiring@microsoft.com` &rarr; Redirects to `recruiter-dashboard.html`
-
----
-
-## 💻 How to Run Locally
-
-No build tools, compilation steps, or runtime package managers (`npm`, `pnpm`, `docker`) required!
-
-### Option 1: Direct File Opening
-Double-click `index.html` in your file manager or right-click `index.html` &rarr; **Open with Browser**.
-
-### Option 2: Local HTTP Server (Python)
+### 2. Install Dependencies
 ```bash
-python -m http.server 8000
+pip install -r requirements.txt
 ```
-Open [http://localhost:8000](http://localhost:8000) in any modern web browser.
+
+### 3. Run the Application
+```bash
+python run.py
+```
+
+The application starts on **[http://localhost:8000](http://localhost:8000)**.
+Interactive Swagger API documentation is available at **[http://localhost:8000/docs](http://localhost:8000/docs)**.
 
 ---
 
-## 📂 File Architecture
+## 🎨 Theme: "Indigo Steel Spectrum" (Default)
+
+ClubHub loads with **Indigo Steel Spectrum** as the default theme on first visit for every user:
+- **Primary Indigo:** `#4F46E5` (brand accents, links, active navigation)
+- **Deep Indigo:** `#1E1B4B` (navbar, headers, and footer)
+- **Steel Text:** `#64748B` | **Page Background:** `#F8FAFC` | **Borders:** `#E2E8F0`
+- **Warm Accent Buttons:** Amber `#F59E0B` / Coral `#F97316` (Join Club, Register, Approve)
+- **Status Badges:** Approved/Member `#10B981` | Pending `#F59E0B` | Rejected `#EF4444`
+- **Subtle Gradient:** Indigo-to-violet spectrum header
+- **Category Colors:** Distinct custom tags for Tech, Cultural, Sports, Innovation, etc.
+- **Theme Switcher & Light/Dark Mode:** Persisted in `localStorage` with full dark mode contrast.
+
+---
+
+## 🔑 Key Features & Modules
+
+### 1. Real User Authentication (Zero Default / Mock Users)
+- **Guest Visitor State:** Clean navbar with prominent **"Log In"** and **"Sign Up"** buttons. No hardcoded users (`Aditya Verma` has been removed).
+- **Secure Registration:** Students register with Name, Email, Department, Year, and Password. Passwords are securely hashed with `bcrypt`.
+- **JWT Authorization:** Session management using standard JSON Web Tokens (`Bearer <token>`).
+- **Profile Chip:** Once authenticated, displays the user's real initials, name, and a one-click **Sign Out** option.
+- **Route & Action Guards:** Actions such as chartering a club, requesting to join, registering for events, or posting require authentication and redirect guests automatically to the login page.
+
+### 2. Clubs: Candidacy & Admin Approval Workflow
+- **Charter a Club:** Any logged-in student can create a club and automatically becomes its coordinator/admin.
+- **Join Club Button:** Creates an application with status `"Pending"`. Button state immediately transforms to `"Request Pending"`.
+- **Duplicate Prevention:** Prevents duplicate requests and joining clubs where the student is already a member.
+- **Club Admin Secretariat (`admin.html`):**
+  - Club-specific coordinator access: coordinators can only view and manage join requests for clubs they own.
+  - Approve / Reject action buttons: Approving immediately enrolls the student into the club's member roster; Rejecting updates status and allows re-application.
+- **My Clubs Section (`dashboard.html`):** Real-time reflection of user's active club memberships, coordinated societies, and pending join requests.
+
+### 3. Campus Events & Digital Ticketing (`events.html`)
+- Discover campus workshops, hackathons, and cultural events.
+- Filter by category and search dynamically.
+- Register for events to receive a verified **Digital Entry Pass** (`PASS-XXXXX-EVT-X`) complete with a simulated entry verification QR code.
+- Club coordinators can schedule and publish new events directly from the dashboard.
+
+### 4. Student Peer Collab Feed (`network.html`)
+- Campus-wide collaboration board for hackathons, study groups, and project partner searches.
+- Category tags: `#Collab`, `#HackathonTeam`, `#StudyGroup`, `#ProjectCollab`, `#CampusLife`.
+- Create discussions, upvote posts, and reply with comments in real time.
+
+### 5. Verifiable Digital Badges (`dashboard.html`)
+- Cryptographically verifiable digital achievement badges issued by club coordinators.
+- Includes unique SHA-256 verification hash IDs, issuance timestamps, and issuer details.
+
+### 6. Dynamic Public Statistics
+- No fake or hardcoded metrics (`"30+ clubs"`, `"2,400+ students"` removed).
+- Database starts clean and unpopulated. Empty states (e.g., *"No clubs yet – create the first one"*) guide new visitors.
+- Homepage counters dynamically calculate from real database counts (`/dashboard/public`).
+
+---
+
+## 🛠️ Configuration & Environment Variables
+
+Create a `.env` file in the project root if you wish to override default settings (see `.env.example`):
+
+```ini
+# JWT Configuration
+SECRET_KEY=clubhub-super-secure-production-jwt-secret-key-2025
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
+
+# SQLite Database Location (defaults to ./clubclash.db)
+DATABASE_URL=sqlite:///./clubclash.db
+
+# CORS Allowed Origins
+CORS_ORIGINS=http://localhost:8000,http://127.0.0.1:8000
+```
+
+---
+
+## 🧪 Automated Testing
+
+ClubHub includes a comprehensive end-to-end test suite testing all 18 authentication, club creation, join request, approval, event registration, and collab feed flows:
+
+```bash
+python test_e2e.py
+```
+
+---
+
+## 📁 Project Structure
 
 ```text
 club-hub/
-├── index.html                 # Smart Campus Suite Landing Page
-├── clubs.html                 # University Societies Catalog
-├── club-details.html          # Dynamic Club Profile & Application Modal
-├── events.html                # Campus Events & Digital Pass Ticketing Hub
-├── marketplace.html           # Peer-to-Peer Student Marketplace
-├── network.html               # Collab Feed & Teammate Finder
-├── recruiters.html            # Campus Placements & Internship Drives
-├── recruiter-dashboard.html   # Recruiter Talent Acquisition Portal
-├── dashboard.html             # Unified 6-Tab Student Command Center
-├── admin.html                 # Club Coordinator Secretariat & Event Scheduler
-├── login.html                 # 1-Click Demo & Student Sign In
-├── register.html              # Student Registration Page
+├── run.py                     # Single-command launcher (FastAPI + Static Files)
+├── test_e2e.py                # Automated end-to-end test suite
+├── requirements.txt           # Python dependencies
+├── .env.example               # Environment variables template
+├── index.html                 # Homepage with real dynamic stats
+├── clubs.html                 # Clubs catalog with dynamic join states
+├── club-details.html          # Dynamic club detail page & join request modal
+├── events.html                # Events catalog & digital ticketing
+├── network.html               # Collab discussion feed & comments drawer
+├── dashboard.html             # Student command center (My Clubs, Passes, Badges)
+├── admin.html                 # Club Admin Dashboard (Approve/Reject requests)
+├── login.html                 # Real student authentication sign-in
+├── register.html              # Student registration form
+├── backend/
+│   ├── main.py                # FastAPI app initialization & static mount
+│   ├── database.py            # SQLAlchemy database engine & session maker
+│   ├── models.py              # Database models (Student, Club, Application, etc.)
+│   ├── schemas.py             # Pydantic v2 validation models
+│   ├── auth.py                # Passlib/bcrypt password hashing & JWT utilities
+│   ├── dependencies.py        # Current user & role dependency injection
+│   ├── seed.py                # Clean schema initializer (no mock data)
+│   └── routers/
+│       ├── auth.py            # /auth/register, /auth/login, /auth/me
+│       ├── clubs.py           # /clubs CRUD & join requests table
+│       ├── applications.py    # /applications join requests & approve/reject
+│       ├── events.py          # /events scheduling & pass registration
+│       ├── network.py         # /network posts, upvotes & comments
+│       ├── badges.py          # /badges issuance & verification
+│       ├── dashboard.py       # /dashboard/public dynamic stats
+│       ├── students.py        # /students/my-clubs profile endpoints
+│       └── admin.py           # Admin administrative endpoints
 ├── css/
-│   ├── style.css              # Global variables, typography & layout
-│   ├── palette.css            # 8 Coolors custom palettes & dropdown styling
-│   ├── components.css         # Buttons, badges, modals, form controls
-│   ├── home.css               # Landing page layouts
-│   ├── clubs.css              # Clubs directory styling
+│   ├── palette.css            # Indigo Steel Spectrum theme & Coolors palettes
+│   ├── style.css              # Core typography, reset & layout
+│   ├── components.css         # UI components (buttons, badges, modals, toasts)
+│   ├── home.css               # Homepage layout & cards
+│   ├── clubs.css              # Club directory styling
 │   ├── club-details.css       # Club detail & banner layouts
-│   ├── events.css             # Event cards, date badges & pass cards
-│   ├── marketplace.css        # Product cards & pricing badges
-│   ├── network.css            # Social post feed & comments drawer
-│   ├── recruiters.css         # Job cards, applicant review tables
-│   ├── dashboard.css          # Student command center & badges grid
-│   ├── admin.css              # Secretariat tables & management
-│   └── auth.css               # Sign in & registration layouts
+│   ├── events.css             # Event cards & digital ticket passes
+│   ├── network.css            # Collab feed & comments styling
+│   ├── dashboard.css          # Student command center tabs
+│   ├── admin.css              # Club admin candidate review tables
+│   └── auth.css               # Login & sign-up forms
 └── js/
-    ├── data.js                # Curated TINT/engineering seed data & badges
-    ├── storage.js             # LocalStorage reactive persistence layer
-    ├── palette.js             # Live Coolors theme switcher engine
-    ├── common.js              # Navbar auth, mobile drawer, toasts & formatting
-    ├── home.js                # Landing page interactive logic
-    ├── clubs.js               # Club catalog search & filter controller
-    ├── club-details.js        # Dynamic club profile controller
-    ├── events.js              # Events hub, registration & digital pass logic
-    ├── marketplace.js         # Marketplace filtering, listing & contact logic
-    ├── network.js             # Collab feed upvotes, comments & post creation
-    ├── recruiters.js          # Internship portal & student application logic
-    ├── recruiter-dashboard.js  # Recruiter candidate review & job posting logic
-    ├── dashboard.js           # Student 6-tab command center controller
-    ├── admin.js               # Club secretariat candidate & event manager
-    └── auth.js                # Role authentication & demo switcher
+    ├── api.js                 # Unified frontend API client (fetch + JWT)
+    ├── common.js              # Navbar auth state, toasts, navigation drawer
+    ├── palette.js             # Theme switcher & dark mode controller
+    ├── auth.js                # Login & registration form controller
+    ├── home.js                # Dynamic homepage stats fetcher
+    ├── clubs.js               # Club catalog search, filter & join modal
+    ├── club-details.js        # Club profile & join request controller
+    ├── events.js              # Events catalog & digital pass generator
+    ├── network.js             # Collab feed upvote, post & comment handler
+    ├── dashboard.js           # Student command center controller
+    └── admin.js               # Club Admin Dashboard approval/reject controller
 ```
+
+---
+
+## 📄 License
+This project is open-source under the MIT License.

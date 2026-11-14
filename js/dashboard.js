@@ -1,8 +1,11 @@
-// js/dashboard.js - Logic for Student Dashboard & Campus Life Command Center
+// js/dashboard.js - Student Dashboard & Campus Life Command Center Controller
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  const user = requireAuth();
+  if (!user) return;
+
   initDashboardTabs();
-  refreshDashboard();
+  await refreshDashboard();
 });
 
 function initDashboardTabs() {
@@ -22,7 +25,6 @@ function initDashboardTabs() {
     });
   });
 
-  // Handle URL param ?tab=events or ?tab=marketplace etc.
   const params = new URLSearchParams(window.location.search);
   const tabParam = params.get("tab");
   if (tabParam) {
@@ -31,453 +33,410 @@ function initDashboardTabs() {
   }
 }
 
-function refreshDashboard() {
+async function refreshDashboard() {
   updateUserProfileHeader();
-  renderApplicationsList();
-  renderStudentEvents();
-  renderStudentMarketplace();
-  renderStudentNetworkPosts();
-  renderStudentJobApplications();
-  renderStudentBadges();
-  updateSummaryMetrics();
-  if (typeof updateNavBadges === "function") updateNavBadges();
+  await Promise.all([
+    renderMyClubs(),
+    renderRegisteredEvents(),
+    renderMyCollabPosts(),
+    renderMyBadges()
+  ]);
 }
 
 function updateUserProfileHeader() {
-  if (typeof Storage === "undefined") return;
-  const user = Storage.getCurrentUser();
+  const user = API.getCurrentUser();
   if (!user) return;
 
+  const displayName = user.full_name || user.name || "Student User";
   const nameEl = document.getElementById("dash-user-name");
   const avatarEl = document.getElementById("dash-user-avatar");
-  const rollEl = document.getElementById("dash-user-roll");
   const deptEl = document.getElementById("dash-user-dept");
   const emailEl = document.getElementById("dash-user-email");
+  const roleEl = document.getElementById("dash-user-role");
 
-  if (nameEl) nameEl.textContent = user.name;
+  if (nameEl) nameEl.textContent = displayName;
   if (avatarEl) {
-    const initials = user.name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
+    const initials = displayName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase() || "ST";
     avatarEl.textContent = initials;
   }
-  if (rollEl) rollEl.textContent = `Roll No: ${user.roll || '2023CSB1042'}`;
-  if (deptEl) deptEl.textContent = `${user.branch || 'Computer Science & Engineering'} (${user.year || '2nd Year'})`;
-  if (emailEl) emailEl.textContent = user.email || 'aditya@tint.edu.in';
+  if (deptEl) {
+    const yearStr = user.year ? `${user.year} Year` : "Student";
+    deptEl.textContent = `${user.department || 'Collegiate Engineering'} (${yearStr})`;
+  }
+  if (emailEl) emailEl.textContent = user.email || "";
+  if (roleEl) {
+    let r = "Student";
+    if (user.role === "admin") r = "Site Super Admin";
+    else if (user.role === "coordinator") r = "Club Lead / Admin";
+    roleEl.textContent = r;
+  }
 }
 
-function updateSummaryMetrics() {
-  const user = Storage.getCurrentUser();
-  const userEmail = user ? user.email : "";
+// ---------------- TAB 1: MY CLUBS & JOIN REQUESTS ----------------
+async function renderMyClubs() {
+  const container = document.getElementById("my-clubs-container");
+  const tabBadge = document.getElementById("tab-count-clubs");
+  const metricClubs = document.getElementById("metric-clubs-count");
+  const metricPending = document.getElementById("metric-pending-count");
 
-  const apps = Storage.getApplications();
-  const allRegs = Storage.getEventRegistrations();
-  const userRegs = allRegs.filter(r => r.studentEmail === userEmail);
-
-  const allItems = Storage.getMarketplaceItems();
-  const userItems = allItems.filter(i => i.sellerEmail === userEmail);
-
-  const badges = Storage.getVerifiedBadges(userEmail);
-
-  const appsEl = document.getElementById("metric-apps-count");
-  const eventsEl = document.getElementById("metric-events-count");
-  const mktEl = document.getElementById("metric-mkt-count");
-  const badgesEl = document.getElementById("metric-badges-count");
-
-  if (appsEl) appsEl.textContent = apps.length;
-  if (eventsEl) eventsEl.textContent = userRegs.length;
-  if (mktEl) mktEl.textContent = userItems.length;
-  if (badgesEl) badgesEl.textContent = badges.length;
-}
-
-// ---------------- 1. CLUB APPLICATIONS ----------------
-function renderApplicationsList() {
-  const container = document.getElementById("applications-container");
   if (!container) return;
 
-  const applications = Storage.getApplications();
-  const badgeEl = document.getElementById("tab-count-apps");
-  if (badgeEl) badgeEl.textContent = applications.length;
+  container.innerHTML = `<div style="text-align: center; padding: 36px; color: var(--text-secondary);">Loading your societies...</div>`;
 
-  if (applications.length === 0) {
-    container.innerHTML = `
-      <div style="text-align: center; padding: 48px 20px; background: var(--bg-card); border-radius: var(--radius-card); border: 1px dashed var(--border);">
-        <h3 style="font-size: 16px; margin-bottom: 6px;">No Club Applications Yet</h3>
-        <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 14px;">Browse active university clubs and apply to domains that match your passion.</p>
-        <a href="clubs.html" class="btn btn-primary btn-sm">Explore Clubs</a>
-      </div>
-    `;
-    return;
-  }
+  try {
+    const data = await API.getMyClubs();
+    const memberships = data.memberships || [];
+    const coordinated = data.coordinated || [];
+    const pending = data.pending_requests || [];
+    const rejected = data.rejected_requests || [];
 
-  container.innerHTML = applications.map(app => {
-    let badgeClass = "badge-warning";
-    let badgeLabel = "Pending Review";
+    const totalClubsCount = memberships.length + coordinated.length;
+    if (tabBadge) tabBadge.textContent = totalClubsCount;
+    if (metricClubs) metricClubs.textContent = totalClubsCount;
+    if (metricPending) metricPending.textContent = pending.length;
 
-    if (app.status === "APPROVED" || app.status === "ACCEPTED") {
-      badgeClass = "badge-success";
-      badgeLabel = "Accepted & Onboarded";
-    } else if (app.status === "SHORTLISTED") {
-      badgeClass = "badge-primary";
-      badgeLabel = "Shortlisted for Interview";
-    } else if (app.status === "REJECTED") {
-      badgeClass = "badge-danger";
-      badgeLabel = "Not Shortlisted";
+    let html = "";
+
+    // 1. Coordinated Clubs
+    if (coordinated.length > 0) {
+      html += `
+        <div style="margin-bottom: 24px;">
+          <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 16px; margin: 0 0 12px 0; color: var(--primary);">
+            ⚡ Clubs You Coordinate
+          </h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
+            ${coordinated.map(c => `
+              <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-weight: 700; color: var(--text-main);">${escapeHTML(c.club_name)}</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">${c.member_count} Members &bull; ${c.pending_requests} Pending Requests</div>
+                </div>
+                <a href="admin.html" class="btn btn-outline btn-sm">Secretariat &rarr;</a>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `;
     }
 
-    return `
-      <div class="dash-pass-card">
-        <div>
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-            <h4 style="margin: 0;">${escapeHTML(app.clubName)} (${escapeHTML(app.clubAcronym || '')})</h4>
-            <span class="badge ${badgeClass}">${badgeLabel}</span>
+    // 2. Active Memberships
+    if (memberships.length > 0) {
+      html += `
+        <div style="margin-bottom: 24px;">
+          <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 16px; margin: 0 0 12px 0; color: var(--text-main);">
+            🏛️ Active Society Memberships
+          </h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
+            ${memberships.map(m => `
+              <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-weight: 700; color: var(--text-main);">${escapeHTML(m.club_name)}</div>
+                  <div style="font-size: 12px; color: var(--success); font-weight: 600;">Active Core Member</div>
+                </div>
+                <a href="club-details.html?id=${m.club_id}" class="btn btn-outline btn-sm">View Society</a>
+              </div>
+            `).join("")}
           </div>
-          <div class="dash-pass-meta">
-            Domain: <strong>${escapeHTML(app.domain)}</strong> &bull; Applied on ${formatDate(app.appliedDate)}
+        </div>
+      `;
+    }
+
+    // 3. Pending Requests
+    if (pending.length > 0) {
+      html += `
+        <div style="margin-bottom: 24px;">
+          <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 16px; margin: 0 0 12px 0; color: var(--warm-accent, #F59E0B);">
+            ⏳ Pending Join Requests
+          </h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
+            ${pending.map(p => `
+              <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-weight: 700; color: var(--text-main);">${escapeHTML(p.club_name)}</div>
+                  <div style="font-size: 12px; color: var(--warm-accent, #F59E0B); font-weight: 600;">Under Review by Coordinator</div>
+                </div>
+                <span class="badge-status-pending" style="padding: 4px 10px; border-radius: 999px; font-size: 11px;">Pending</span>
+              </div>
+            `).join("")}
           </div>
-          ${app.interviewNotes ? `
-            <div style="font-size: 12px; color: var(--primary); margin-top: 6px; background: var(--primary-light); padding: 4px 8px; border-radius: var(--radius-xs); display: inline-block;">
-              💬 Coordinator Note: ${escapeHTML(app.interviewNotes)}
-            </div>
-          ` : ''}
         </div>
+      `;
+    }
 
-        <div>
-          <button class="btn btn-outline btn-sm" onclick="withdrawApp('${app.id}')" style="color: var(--danger); border-color: var(--border);">
-            Withdraw
-          </button>
+    // 4. Rejected Requests
+    if (rejected.length > 0) {
+      html += `
+        <div style="margin-bottom: 24px;">
+          <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 16px; margin: 0 0 12px 0; color: var(--danger);">
+            Decision Recorded
+          </h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
+            ${rejected.map(r => `
+              <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-weight: 700; color: var(--text-main);">${escapeHTML(r.club_name)}</div>
+                  <div style="font-size: 12px; color: var(--danger);">Request not accepted</div>
+                </div>
+                <a href="club-details.html?id=${r.club_id}" class="btn btn-outline btn-sm">Re-apply</a>
+              </div>
+            `).join("")}
+          </div>
         </div>
-      </div>
-    `;
-  }).join("");
-}
+      `;
+    }
 
-function withdrawApp(id) {
-  if (confirm("Are you sure you wish to withdraw this club application?")) {
-    Storage.deleteApplication(id);
-    refreshDashboard();
-    showToast("Application withdrawn successfully.", "info");
+    if (!html) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 60px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card);">
+          <div style="font-size: 36px; margin-bottom: 12px;">🏛️</div>
+          <h4 style="font-size: 18px; margin: 0 0 8px; color: var(--text-main);">You haven't joined any clubs yet</h4>
+          <p style="color: var(--text-secondary); font-size: 14px; margin: 0 auto 20px; max-width: 400px;">
+            Explore collegiate societies, technical chapters, and student cells to get involved on campus!
+          </p>
+          <a href="clubs.html" class="btn btn-cta">Explore Campus Societies</a>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = html;
+
+  } catch (err) {
+    container.innerHTML = `<div style="text-align: center; color: var(--danger); padding: 24px;">Failed to load clubs: ${escapeHTML(err.message)}</div>`;
   }
 }
 
-// ---------------- 2. REGISTERED EVENTS & PASSES ----------------
-function renderStudentEvents() {
+// ---------------- TAB 2: REGISTERED EVENTS & PASSES ----------------
+async function renderRegisteredEvents() {
   const container = document.getElementById("dash-events-container");
+  const tabBadge = document.getElementById("tab-count-events");
+  const metricEvents = document.getElementById("metric-events-count");
+
   if (!container) return;
 
-  const user = Storage.getCurrentUser();
-  const userEmail = user ? user.email : "";
-  const allRegs = Storage.getEventRegistrations();
-  const regs = allRegs.filter(r => r.studentEmail === userEmail);
+  container.innerHTML = `<div style="text-align: center; padding: 36px; color: var(--text-secondary);">Loading your event passes...</div>`;
 
-  const badgeEl = document.getElementById("tab-count-events");
-  if (badgeEl) badgeEl.textContent = regs.length;
+  try {
+    const registrations = await API.getMyEventRegistrations();
 
-  if (regs.length === 0) {
+    if (tabBadge) tabBadge.textContent = registrations.length;
+    if (metricEvents) metricEvents.textContent = registrations.length;
+
+    if (!registrations || registrations.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 60px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card);">
+          <div style="font-size: 36px; margin-bottom: 12px;">🎫</div>
+          <h4 style="font-size: 18px; margin: 0 0 8px; color: var(--text-main);">No Event Passes Held</h4>
+          <p style="color: var(--text-secondary); font-size: 14px; margin: 0 auto 20px; max-width: 400px;">
+            Register for upcoming campus hackathons, robowars, and workshops to receive verified QR entry passes.
+          </p>
+          <a href="events.html" class="btn btn-primary">Browse Campus Events</a>
+        </div>
+      `;
+      return;
+    }
+
     container.innerHTML = `
-      <div style="text-align: center; padding: 48px 20px; background: var(--bg-card); border-radius: var(--radius-card); border: 1px dashed var(--border);">
-        <h3 style="font-size: 16px; margin-bottom: 6px;">No Event Passes Registered</h3>
-        <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 14px;">RSVP to campus hackathons, fests, and workshops to receive verified digital entry passes.</p>
-        <a href="events.html" class="btn btn-primary btn-sm">Browse Campus Events</a>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+        ${registrations.map(reg => {
+          const ev = reg.event || {};
+          const clubName = ev.club ? ev.club.name : "Campus Club";
+          const dateStr = ev.event_date ? new Date(ev.event_date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : "Upcoming";
+
+          return `
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                  <span class="badge" style="font-size: 11px;">${escapeHTML(ev.category || 'Workshop')}</span>
+                  <span class="badge-status-approved" style="padding: 3px 8px; border-radius: 999px; font-size: 10px;">Pass Active</span>
+                </div>
+                <h4 style="font-size: 16px; margin: 0 0 6px; color: var(--text-main); font-weight: 700;">${escapeHTML(ev.title || 'Campus Event')}</h4>
+                <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">${escapeHTML(clubName)} &bull; ${escapeHTML(ev.location || 'Campus')}</div>
+                <div style="font-size: 13px; color: var(--text-secondary); font-weight: 500; margin-bottom: 16px;">📅 ${dateStr}</div>
+              </div>
+
+              <div style="border-top: 1px dashed var(--border); padding-top: 14px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Pass Code</div>
+                  <div style="font-family: monospace; font-weight: 700; color: var(--primary); font-size: 13px;">${escapeHTML(reg.pass_code)}</div>
+                </div>
+                <button type="button" class="btn btn-outline btn-sm" onclick="showPassModal('${escapeHTML(ev.title || 'Event')}', '${escapeHTML(clubName)}', '${escapeHTML(reg.pass_code)}', '${dateStr}', '${escapeHTML(ev.location || 'Campus')}')">
+                  View Pass
+                </button>
+              </div>
+            </div>
+          `;
+        }).join("")}
       </div>
     `;
-    return;
+
+  } catch (err) {
+    container.innerHTML = `<div style="text-align: center; color: var(--danger); padding: 24px;">Failed to load events: ${escapeHTML(err.message)}</div>`;
   }
-
-  container.innerHTML = regs.map(reg => {
-    return `
-      <div class="dash-pass-card">
-        <div>
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-            <h4 style="margin: 0;">${escapeHTML(reg.eventTitle)}</h4>
-            <span class="badge badge-success">✓ CONFIRMED PASS</span>
-          </div>
-          <div class="dash-pass-meta">
-            Venue: <strong>${escapeHTML(reg.venue)}</strong> &bull; Pass Code: <code style="font-weight: 700; color: var(--primary);">${escapeHTML(reg.passCode)}</code>
-          </div>
-        </div>
-
-        <div>
-          <button class="btn btn-primary btn-sm" onclick="openPassModal('${reg.id}')">
-            View Digital Pass (QR)
-          </button>
-        </div>
-      </div>
-    `;
-  }).join("");
 }
 
-function openPassModal(regId) {
-  const registrations = Storage.getEventRegistrations();
-  const pass = registrations.find(r => r.id === regId);
-  if (!pass) return;
-
+function showPassModal(title, clubName, passCode, dateStr, location) {
   const modal = document.getElementById("dash-pass-modal");
   const body = document.getElementById("dash-pass-modal-body");
+  if (!modal || !body) return;
 
-  const d = new Date(pass.eventDate);
-  const formattedDate = d.toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  const user = API.getCurrentUser() || {};
+  const attendeeName = user.full_name || user.name || "Attendee";
 
   body.innerHTML = `
-    <div class="pass-ticket-card">
-      <div class="pass-header">
-        <span class="pass-badge">✓ Official Campus Event Pass</span>
-        <h3 style="font-size: 16px; margin: 6px 0 4px 0; color: var(--text-main); font-family: 'Plus Jakarta Sans', sans-serif;">${escapeHTML(pass.eventTitle)}</h3>
-        <p style="font-size: 11px; color: var(--text-muted); margin: 0;">${escapeHTML(pass.venue)} &bull; ${formattedDate}</p>
-      </div>
+    <div style="text-align: center; padding: 10px 0;">
+      <div style="font-size: 12px; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 4px;">OFFICIAL CAMPUS ACCESS PASS</div>
+      <h3 style="font-size: 20px; margin: 0 0 4px; font-weight: 800; color: var(--text-main);">${escapeHTML(title)}</h3>
+      <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 18px;">Hosted by ${escapeHTML(clubName)}</div>
 
-      <div class="pass-code">${escapeHTML(pass.passCode)}</div>
-
-      <div class="pass-qr-sim">
-        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect width="100" height="100" fill="white"/>
-          <rect x="10" y="10" width="24" height="24" fill="#0F172A"/>
-          <rect x="14" y="14" width="16" height="16" fill="white"/>
-          <rect x="18" y="18" width="8" height="8" fill="#0F172A"/>
-          <rect x="66" y="10" width="24" height="24" fill="#0F172A"/>
-          <rect x="70" y="14" width="16" height="16" fill="white"/>
-          <rect x="74" y="18" width="8" height="8" fill="#0F172A"/>
-          <rect x="10" y="66" width="24" height="24" fill="#0F172A"/>
-          <rect x="14" y="70" width="16" height="16" fill="white"/>
-          <rect x="18" y="74" width="8" height="8" fill="#0F172A"/>
-          <rect x="40" y="10" width="8" height="16" fill="#0F172A"/>
-          <rect x="40" y="48" width="20" height="12" fill="#0F172A"/>
-          <rect x="66" y="40" width="24" height="12" fill="#0F172A"/>
-          <rect x="40" y="66" width="12" height="24" fill="#0F172A"/>
+      <!-- QR Simulation Box -->
+      <div style="width: 140px; height: 140px; margin: 0 auto 18px; padding: 10px; background: #FFFFFF; border: 2px solid var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
+          <rect width="100" height="100" fill="#FFFFFF"/>
+          <rect x="10" y="10" width="30" height="30" fill="#0F172A"/>
+          <rect x="15" y="15" width="20" height="20" fill="#FFFFFF"/>
+          <rect x="20" y="20" width="10" height="10" fill="#0F172A"/>
+          <rect x="60" y="10" width="30" height="30" fill="#0F172A"/>
+          <rect x="65" y="15" width="20" height="20" fill="#FFFFFF"/>
+          <rect x="70" y="20" width="10" height="10" fill="#0F172A"/>
+          <rect x="10" y="60" width="30" height="30" fill="#0F172A"/>
+          <rect x="15" y="65" width="20" height="20" fill="#FFFFFF"/>
+          <rect x="20" y="70" width="10" height="10" fill="#0F172A"/>
+          <rect x="46" y="10" width="8" height="20" fill="#0F172A"/>
+          <rect x="46" y="38" width="16" height="8" fill="#0F172A"/>
+          <rect x="60" y="52" width="14" height="14" fill="#0F172A"/>
+          <rect x="80" y="60" width="10" height="24" fill="#0F172A"/>
+          <rect x="46" y="68" width="24" height="10" fill="#0F172A"/>
+          <rect x="48" y="82" width="12" height="8" fill="#0F172A"/>
         </svg>
       </div>
 
-      <div class="pass-meta-grid">
-        <div>
-          <div class="pass-meta-label">Attendee Name</div>
-          <div class="pass-meta-val">${escapeHTML(pass.studentName)}</div>
+      <div style="background: var(--bg-surface); padding: 14px; border-radius: var(--radius-sm); margin-bottom: 16px; text-align: left; font-size: 13px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span style="color: var(--text-muted);">Attendee:</span>
+          <strong>${escapeHTML(attendeeName)}</strong>
         </div>
-        <div>
-          <div class="pass-meta-label">Roll Number</div>
-          <div class="pass-meta-val">${escapeHTML(pass.studentRoll)}</div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span style="color: var(--text-muted);">Pass ID:</span>
+          <strong style="font-family: monospace; color: var(--primary);">${escapeHTML(passCode)}</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span style="color: var(--text-muted);">Schedule:</span>
+          <span>${escapeHTML(dateStr)}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span style="color: var(--text-muted);">Venue:</span>
+          <span>${escapeHTML(location)}</span>
         </div>
       </div>
-    </div>
 
-    <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px;">
-      <button class="btn btn-primary btn-sm" onclick="window.print()">Print Pass</button>
-      <button class="btn btn-outline btn-sm" onclick="document.getElementById('dash-pass-modal').style.display='none'">Close</button>
+      <button type="button" class="btn btn-outline btn-block" onclick="document.getElementById('dash-pass-modal').style.display='none'">Close Pass</button>
     </div>
   `;
 
   modal.style.display = "flex";
 }
 
-// ---------------- 3. MARKETPLACE ITEMS ----------------
-function renderStudentMarketplace() {
-  const container = document.getElementById("dash-mkt-container");
-  if (!container) return;
-
-  const user = Storage.getCurrentUser();
-  const userEmail = user ? user.email : "";
-  const allItems = Storage.getMarketplaceItems();
-  const items = allItems.filter(i => i.sellerEmail === userEmail);
-
-  const badgeEl = document.getElementById("tab-count-mkt");
-  if (badgeEl) badgeEl.textContent = items.length;
-
-  if (items.length === 0) {
-    container.innerHTML = `
-      <div style="text-align: center; padding: 48px 20px; background: var(--bg-card); border-radius: var(--radius-card); border: 1px dashed var(--border);">
-        <h3 style="font-size: 16px; margin-bottom: 6px;">No Items Listed for Sale</h3>
-        <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 14px;">Sell your used engineering semester textbooks, drafters, and calculators to campus juniors.</p>
-        <a href="marketplace.html" class="btn btn-primary btn-sm">Post on Marketplace</a>
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = items.map(item => {
-    const isSold = item.status === "SOLD";
-
-    return `
-      <div class="dash-mkt-item">
-        <div style="display: flex; align-items: center; gap: 14px;">
-          <img src="${item.image || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=100'}" alt="${escapeHTML(item.title)}" style="width: 50px; height: 50px; border-radius: var(--radius-sm); object-fit: cover;">
-          <div>
-            <h4 style="margin: 0 0 2px 0; font-size: 14px;">${escapeHTML(item.title)}</h4>
-            <div style="font-size: 12px; color: var(--text-secondary);">
-              Price: <strong>₹${item.price}</strong> &bull; Condition: ${escapeHTML(item.condition)} &bull; ${escapeHTML(item.location)}
-            </div>
-          </div>
-        </div>
-
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <span class="badge ${isSold ? 'badge-danger' : 'badge-success'}">${isSold ? 'SOLD OUT' : 'ACTIVE LISTING'}</span>
-          <button class="btn btn-outline btn-sm" onclick="toggleItemSoldStatus('${item.id}')">
-            ${isSold ? 'Relist as Available' : 'Mark as Sold'}
-          </button>
-        </div>
-      </div>
-    `;
-  }).join("");
-}
-
-function toggleItemSoldStatus(itemId) {
-  const allItems = Storage.getMarketplaceItems();
-  const item = allItems.find(i => i.id === itemId);
-  if (item) {
-    const newStatus = item.status === "SOLD" ? "AVAILABLE" : "SOLD";
-    Storage.updateMarketplaceItemStatus(itemId, newStatus);
-    refreshDashboard();
-    showToast(`Marketplace item status updated to ${newStatus}`, "info");
-  }
-}
-
-// ---------------- 4. MY COLLAB POSTS ----------------
-function renderStudentNetworkPosts() {
+// ---------------- TAB 3: MY COLLAB POSTS ----------------
+async function renderMyCollabPosts() {
   const container = document.getElementById("dash-network-container");
+  const tabBadge = document.getElementById("tab-count-posts");
+
   if (!container) return;
 
-  const user = Storage.getCurrentUser();
-  const userRoll = user ? user.roll : "";
-  const allPosts = Storage.getNetworkPosts();
-  const posts = allPosts.filter(p => p.authorRoll === userRoll);
+  try {
+    const user = API.getCurrentUser();
+    const allPosts = await API.getNetworkPosts();
+    const myPosts = allPosts.filter(p => p.student_id === user.id);
 
-  const badgeEl = document.getElementById("tab-count-posts");
-  if (badgeEl) badgeEl.textContent = posts.length;
+    if (tabBadge) tabBadge.textContent = myPosts.length;
 
-  if (posts.length === 0) {
-    container.innerHTML = `
-      <div style="text-align: center; padding: 48px 20px; background: var(--bg-card); border-radius: var(--radius-card); border: 1px dashed var(--border);">
-        <h3 style="font-size: 16px; margin-bottom: 6px;">No Collaboration Posts Yet</h3>
-        <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 14px;">Find hackathon teammates, share study group invitations, or seek project collaborators.</p>
-        <a href="network.html" class="btn btn-primary btn-sm">Go to Network Feed</a>
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = posts.map(p => `
-    <div class="dash-pass-card">
-      <div>
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-          <span class="badge badge-primary">${escapeHTML(p.tag)}</span>
-          <span style="font-size: 12px; color: var(--text-muted);">${formatDate(p.timestamp)}</span>
+    if (!myPosts || myPosts.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 60px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card);">
+          <div style="font-size: 36px; margin-bottom: 12px;">💬</div>
+          <h4 style="font-size: 18px; margin: 0 0 8px; color: var(--text-main);">No Published Discussions</h4>
+          <p style="color: var(--text-secondary); font-size: 14px; margin: 0 auto 20px; max-width: 400px;">
+            Start a hackathon team search or study circle on the peer network feed.
+          </p>
+          <a href="network.html" class="btn btn-primary">Go to Collab Feed</a>
         </div>
-        <p style="font-size: 13px; color: var(--text-main); margin: 6px 0 0 0; line-height: 1.4;">
-          ${escapeHTML(p.content)}
-        </p>
-      </div>
-
-      <div style="display: flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 600; color: var(--text-secondary);">
-        <span>▲ ${p.upvotes || 0} Upvotes</span>
-        <span>💬 ${(p.comments || []).length} Replies</span>
-        <a href="network.html" class="btn btn-outline btn-sm">View in Feed</a>
-      </div>
-    </div>
-  `).join("");
-}
-
-// ---------------- 5. INTERNSHIP APPLICATIONS ----------------
-function renderStudentJobApplications() {
-  const container = document.getElementById("dash-jobs-container");
-  if (!container) return;
-
-  const user = Storage.getCurrentUser();
-  const userEmail = user ? user.email : "";
-  const allJobApps = Storage.getJobApplications();
-  const apps = allJobApps.filter(a => a.studentEmail === userEmail);
-
-  const badgeEl = document.getElementById("tab-count-jobs");
-  if (badgeEl) badgeEl.textContent = apps.length;
-
-  if (apps.length === 0) {
-    container.innerHTML = `
-      <div style="text-align: center; padding: 48px 20px; background: var(--bg-card); border-radius: var(--radius-card); border: 1px dashed var(--border);">
-        <h3 style="font-size: 16px; margin-bottom: 6px;">No Internship Applications</h3>
-        <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 14px;">Discover campus recruitment drives from top companies like Microsoft, Google, TCS, and Swiggy.</p>
-        <a href="recruiters.html" class="btn btn-primary btn-sm">Explore Placement Drives</a>
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = apps.map(app => {
-    let statusClass = "badge-warning";
-    let statusLabel = "Application Under Review";
-
-    if (app.status === "SHORTLISTED") {
-      statusClass = "badge-primary";
-      statusLabel = "Shortlisted for Interview";
-    } else if (app.status === "ACCEPTED") {
-      statusClass = "badge-success";
-      statusLabel = "Offer Extended";
-    } else if (app.status === "REJECTED") {
-      statusClass = "badge-danger";
-      statusLabel = "Not Selected";
+      `;
+      return;
     }
 
-    return `
-      <div class="dash-pass-card">
-        <div>
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-            <h4 style="margin: 0;">${escapeHTML(app.role)}</h4>
-            <span class="badge ${statusClass}">${statusLabel}</span>
-          </div>
-          <div class="dash-pass-meta">
-            Company: <strong style="color: var(--primary);">${escapeHTML(app.company)}</strong> &bull; Applied: ${formatDate(app.appliedDate)}
-          </div>
-          ${app.recruiterNotes ? `
-            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px; background: var(--bg-surface); padding: 4px 8px; border-radius: var(--radius-xs); display: inline-block;">
-              💬 Recruiter Update: ${escapeHTML(app.recruiterNotes)}
+    container.innerHTML = `
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        ${myPosts.map(post => `
+          <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 18px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span class="badge" style="font-size: 11px;">${escapeHTML(post.tag)}</span>
+              <span style="font-size: 12px; color: var(--text-muted);">${new Date(post.created_at).toLocaleDateString()}</span>
             </div>
-          ` : ''}
-        </div>
-
-        <div>
-          <a href="${app.resumeUrl || '#'}" target="_blank" class="btn btn-outline btn-sm">
-            View Submitted Resume
-          </a>
-        </div>
+            <h4 style="font-size: 16px; margin: 0 0 6px; color: var(--text-main); font-weight: 700;">${escapeHTML(post.title)}</h4>
+            <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0 0 12px;">${escapeHTML(post.content)}</p>
+            <div style="display: flex; gap: 16px; font-size: 12px; color: var(--text-muted); font-weight: 600;">
+              <span>▲ ${post.upvotes_count} Upvotes</span>
+              <span>💬 ${post.comments_count || 0} Comments</span>
+            </div>
+          </div>
+        `).join("")}
       </div>
     `;
-  }).join("");
+
+  } catch (err) {
+    container.innerHTML = `<div style="text-align: center; color: var(--danger); padding: 24px;">Failed to load posts: ${escapeHTML(err.message)}</div>`;
+  }
 }
 
-// ---------------- 6. VERIFIED BADGES ----------------
-function renderStudentBadges() {
+// ---------------- TAB 4: VERIFIED BADGES ----------------
+async function renderMyBadges() {
   const container = document.getElementById("dash-badges-container");
+  const tabBadge = document.getElementById("tab-count-badges");
+  const metricBadges = document.getElementById("metric-badges-count");
+
   if (!container) return;
 
-  const user = Storage.getCurrentUser();
-  const userEmail = user ? user.email : "";
-  const badges = Storage.getVerifiedBadges(userEmail);
+  try {
+    const badges = await API.getMyBadges();
 
-  const badgeEl = document.getElementById("tab-count-badges");
-  if (badgeEl) badgeEl.textContent = badges.length;
+    if (tabBadge) tabBadge.textContent = badges.length;
+    if (metricBadges) metricBadges.textContent = badges.length;
 
-  if (badges.length === 0) {
-    container.innerHTML = `
-      <div style="grid-column: 1 / -1; text-align: center; padding: 48px 20px; background: var(--bg-card); border-radius: var(--radius-card); border: 1px dashed var(--border);">
-        <h3 style="font-size: 16px; margin-bottom: 6px;">No Verified Badges Earned Yet</h3>
-        <p style="color: var(--text-secondary); font-size: 13px;">Participate in campus hackathons, lead clubs, and achieve semester honors to earn verified digital credentials.</p>
-      </div>
-    `;
-    return;
-  }
+    if (!badges || badges.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 60px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); grid-column: 1 / -1;">
+          <div style="font-size: 36px; margin-bottom: 12px;">🏅</div>
+          <h4 style="font-size: 18px; margin: 0 0 8px; color: var(--text-main);">No Badges Earned Yet</h4>
+          <p style="color: var(--text-secondary); font-size: 14px; margin: 0 auto; max-width: 420px;">
+            Participate in campus hackathons, lead club workshops, and contribute to society projects to receive verifiable cryptographic credentials.
+          </p>
+        </div>
+      `;
+      return;
+    }
 
-  container.innerHTML = badges.map(b => `
-    <div class="badge-cert-card">
-      <div class="badge-top">
-        <div class="badge-icon-box">🏆</div>
-        <div class="badge-title-info">
-          <h4>${escapeHTML(b.title)}</h4>
-          <div class="badge-issuer">Issued by: ${escapeHTML(b.issuer)} &bull; ${escapeHTML(b.issueDate)}</div>
+    container.innerHTML = badges.map(badge => `
+      <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(79, 70, 229, 0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 20px;">
+              🏅
+            </div>
+            <span class="badge-status-approved" style="padding: 3px 8px; border-radius: 999px; font-size: 10px;">Verified Hash</span>
+          </div>
+          <h4 style="font-size: 16px; margin: 0 0 6px; color: var(--text-main); font-weight: 700;">${escapeHTML(badge.title)}</h4>
+          <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0 0 14px;">${escapeHTML(badge.description)}</p>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 12px; font-size: 11px; color: var(--text-muted);">
+          <div>Issued by: <strong>${escapeHTML(badge.issuer_name)}</strong></div>
+          <div style="font-family: monospace; color: var(--primary); margin-top: 4px;">Hash: ${escapeHTML(badge.hash_id)}</div>
         </div>
       </div>
+    `).join("");
 
-      <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5; margin: 0 0 14px 0;">
-        ${escapeHTML(b.description)}
-      </p>
-
-      <div class="badge-hash-row">
-        <span>Verification Hash:</span>
-        <span class="badge-hash-code">${escapeHTML(b.verificationHash)}</span>
-      </div>
-    </div>
-  `).join("");
+  } catch (err) {
+    container.innerHTML = `<div style="text-align: center; color: var(--danger); padding: 24px; grid-column: 1 / -1;">Failed to load badges: ${escapeHTML(err.message)}</div>`;
+  }
 }

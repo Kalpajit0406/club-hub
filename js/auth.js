@@ -1,10 +1,9 @@
-// js/auth.js - ClubHub Smart Campus Authentication Controller
+// js/auth.js - Real User Authentication Controller for ClubHub
 
 document.addEventListener("DOMContentLoaded", () => {
   initLoginForm();
   initRegisterForm();
   initPasswordToggles();
-  initDemoLogins();
 });
 
 // ---------------- LOGIN FORM HANDLER ----------------
@@ -12,9 +11,12 @@ function initLoginForm() {
   const form = document.getElementById("login-form");
   if (!form) return;
 
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     clearAuthAlert();
+
+    const submitBtn = form.querySelector("button[type='submit']");
+    const originalBtnText = submitBtn ? submitBtn.innerHTML : "Sign In";
 
     const email = document.getElementById("login-email").value.trim();
     const password = document.getElementById("login-password").value;
@@ -24,56 +26,38 @@ function initLoginForm() {
       return;
     }
 
-    if (typeof Storage !== "undefined") {
-      const result = Storage.loginUser(email, password);
-      if (result.success) {
-        showAuthAlert(`Signed in as ${result.user.name}. Redirecting...`, "success");
-        redirectByRole(result.user);
-      } else {
-        showAuthAlert(result.message, "error");
+    try {
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = "Authenticating...";
+      }
+
+      const res = await API.login(email, password);
+      showAuthAlert(`Welcome back, ${res.user.full_name}! Redirecting...`, "success");
+
+      // Check redirect URL in query parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectUrl = urlParams.get("redirect");
+
+      setTimeout(() => {
+        if (redirectUrl) {
+          window.location.href = redirectUrl;
+        } else if (res.user.role === "coordinator" || res.user.role === "admin") {
+          window.location.href = "admin.html";
+        } else {
+          window.location.href = "dashboard.html";
+        }
+      }, 500);
+
+    } catch (err) {
+      showAuthAlert(err.message || "Invalid credentials. Please try again.", "error");
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
       }
     }
   });
-}
-
-function redirectByRole(user) {
-  setTimeout(() => {
-    if (user.role === "admin") {
-      window.location.href = "admin.html";
-    } else if (user.role === "recruiter") {
-      window.location.href = "recruiter-dashboard.html";
-    } else {
-      window.location.href = "dashboard.html";
-    }
-  }, 450);
-}
-
-// ---------------- 1-CLICK DEMO LOGINS ----------------
-function initDemoLogins() {
-  document.querySelectorAll("[data-demo-role]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const role = btn.getAttribute("data-demo-role");
-      if (typeof Storage !== "undefined") {
-        const user = Storage.loginAsDemoRole(role);
-        showAuthAlert(`Authenticated as ${user.name} (${user.role.toUpperCase()})! Redirecting...`, "success");
-        redirectByRole(user);
-      }
-    });
-  });
-
-  // Legacy single demo-fill button
-  const oldBtn = document.getElementById("demo-fill-btn");
-  if (oldBtn) {
-    oldBtn.addEventListener("click", () => {
-      const emailInput = document.getElementById("login-email");
-      const passwordInput = document.getElementById("login-password");
-      if (emailInput && passwordInput) {
-        emailInput.value = "aditya@tint.edu.in";
-        passwordInput.value = "password123";
-        showAuthAlert("Demo student credentials loaded. Click 'Sign In' or use 1-Click Demo buttons below.", "info");
-      }
-    });
-  }
 }
 
 // ---------------- REGISTRATION FORM HANDLER ----------------
@@ -81,22 +65,22 @@ function initRegisterForm() {
   const form = document.getElementById("register-form");
   if (!form) return;
 
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     clearAuthAlert();
 
-    const name = document.getElementById("reg-name").value.trim();
-    const roll = document.getElementById("reg-roll") ? document.getElementById("reg-roll").value.trim().toUpperCase() : "";
-    const branch = document.getElementById("reg-branch") ? document.getElementById("reg-branch").value.trim() : "General";
-    const year = document.getElementById("reg-year") ? document.getElementById("reg-year").value : "1st Year";
-    const email = document.getElementById("reg-email").value.trim().toLowerCase();
-    const password = document.getElementById("reg-password").value;
-    const confirmPassword = document.getElementById("reg-confirm-password").value;
-    const role = document.getElementById("reg-role") ? document.getElementById("reg-role").value : "student";
-    const terms = document.getElementById("reg-terms");
+    const submitBtn = form.querySelector("button[type='submit']");
+    const originalBtnText = submitBtn ? submitBtn.innerHTML : "Create Account";
 
-    if (terms && !terms.checked) {
-      showAuthAlert("Please accept the ClubHub Terms & Student Code of Conduct.", "error");
+    const full_name = document.getElementById("reg-name").value.trim();
+    const email = document.getElementById("reg-email").value.trim().toLowerCase();
+    const department = document.getElementById("reg-branch").value.trim();
+    const yearRaw = document.getElementById("reg-year").value;
+    const password = document.getElementById("reg-password").value;
+    const confirmPassword = document.getElementById("reg-confirm-password") ? document.getElementById("reg-confirm-password").value : password;
+
+    if (!full_name || !email || !department || !yearRaw || !password) {
+      showAuthAlert("Please fill in all required fields.", "error");
       return;
     }
 
@@ -110,25 +94,42 @@ function initRegisterForm() {
       return;
     }
 
-    const newUser = {
-      id: "usr-" + Date.now(),
-      name,
-      roll,
-      branch,
-      year,
-      email,
-      role,
-      password,
-      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80"
-    };
+    // Convert year string (e.g. "2nd Year" or "2") to integer
+    let yearNum = parseInt(yearRaw, 10);
+    if (isNaN(yearNum)) {
+      if (yearRaw.includes("1")) yearNum = 1;
+      else if (yearRaw.includes("2")) yearNum = 2;
+      else if (yearRaw.includes("3")) yearNum = 3;
+      else if (yearRaw.includes("4")) yearNum = 4;
+      else yearNum = 1;
+    }
 
-    if (typeof Storage !== "undefined") {
-      const result = Storage.registerUser(newUser);
-      if (result.success) {
-        showAuthAlert("Account created successfully! Redirecting...", "success");
-        redirectByRole(newUser);
-      } else {
-        showAuthAlert(result.message, "error");
+    try {
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = "Creating account...";
+      }
+
+      const res = await API.register({
+        full_name,
+        email,
+        department,
+        year: yearNum,
+        password
+      });
+
+      showAuthAlert("Account created successfully! Welcome to ClubHub. Redirecting...", "success");
+
+      setTimeout(() => {
+        window.location.href = "dashboard.html";
+      }, 500);
+
+    } catch (err) {
+      showAuthAlert(err.message || "Registration failed. Please check your information.", "error");
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
       }
     }
   });

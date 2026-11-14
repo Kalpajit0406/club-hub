@@ -867,7 +867,7 @@ a.btn svg {
   opacity: 1;
 }
 
-/* Metadata row icons across all cards (Events, Recruiters, Clubs, Details) */
+/* Metadata row icons across all cards (Events, Clubs, Details) */
 .event-detail-item svg,
 .job-meta-row svg,
 .club-meta-item svg,

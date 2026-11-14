@@ -1,7 +1,7 @@
 """
 backend/main.py
-FastAPI Application Entry Point for ClubClash (CampusConnect).
-Integrates modular routers, database initialization, CORS, and OpenAPI documentation.
+FastAPI Application Entry Point for ClubHub.
+Integrates modular routers, database initialization, CORS, OpenAPI docs, and static file hosting.
 """
 
 import os
@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 
 from fastapi import FastAPI, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
@@ -27,6 +27,8 @@ from backend.routers import (
     clubs,
     applications,
     events,
+    network,
+    badges,
     dashboard,
     admin
 )
@@ -34,60 +36,26 @@ from backend.routers import (
 # Parse CORS Origins from environment
 raw_cors = os.getenv(
     "CORS_ORIGINS",
-    "http://localhost:8000,http://127.0.0.1:8000,http://localhost:5500,http://127.0.0.1:5500,https://club-hub-inky.vercel.app"
+    "http://localhost:8000,http://127.0.0.1:8000,http://localhost:5500,http://127.0.0.1:5500"
 )
 origins = [origin.strip() for origin in raw_cors.split(",") if origin.strip()]
 
 
-# Lifespan Context Manager for Startup & Shutdown Events
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Ensure database schema is created and initial seed runs
-    print("[STARTUP] Initializing ClubClash Database...")
+    # Startup: Ensure database schema is created
+    print("[STARTUP] Initializing ClubHub Database...")
     init_db()
-    try:
-        seed_data()
-    except Exception as e:
-        print(f"[STARTUP WARNING] Automatic seed failed or was skipped: {e}")
-    print("[STARTUP] ClubClash Backend Ready.")
+    seed_data()
+    print("[STARTUP] ClubHub Backend Ready.")
     yield
-    # Shutdown
-    print("[SHUTDOWN] ClubClash Backend Shutting Down.")
+    print("[SHUTDOWN] ClubHub Backend Shutting Down.")
 
 
-# FastAPI Application Definition with Comprehensive Swagger OpenAPI metadata
 app = FastAPI(
-    title="ClubClash (CampusConnect) API",
-    version="1.0.0",
-    description="""
-## 🎓 Welcome to the ClubClash Smart Campus Backend API!
-
-ClubClash is a unified university platform where students can:
-* 🔍 **Discover & Explore Clubs**: Filter by category, view coordinator contacts, and check recruitment status.
-* 📝 **Apply for Membership**: Submit applications with skills and motivations with duplicate prevention.
-* 🎫 **Participate in Club Events**: View schedules and details for campus hackathons and workshops.
-* 📊 **Role-Based Command Centers**: Dedicated dashboards for **Students**, **Club Coordinators**, and **Secretariat Admins**.
-
-### 🔒 Authentication & Authorization
-Uses standard **JWT (Bearer Token)** authentication with **bcrypt** password hashing.
-* **Student Role**: Access public club discovery, submit applications, view joined memberships.
-* **Coordinator Role**: Manage assigned clubs, review applicant submissions, schedule club events.
-* **Admin Role**: Platform oversight, create coordinators, assign club leads, and overall analytics.
-
-### 📚 Interactive Documentation
-* Swagger UI: `/docs`
-* ReDoc UI: `/redoc`
-* OpenAPI Schema: `/openapi.json`
-    """,
-    openapi_tags=[
-        {"name": "Authentication", "description": "Student registration, JWT token generation, and current profile"},
-        {"name": "Students", "description": "Student profiles, personal memberships, and submitted applications"},
-        {"name": "Clubs", "description": "Public club catalog, search, recruitment management, and member rosters"},
-        {"name": "Applications", "description": "Club membership applications, duplicate checks, and coordinator review workflows"},
-        {"name": "Events", "description": "Campus events, hackathons, codelabs, and workshop management"},
-        {"name": "Dashboard", "description": "Role-specific statistical analytics for students, coordinators, and admins"},
-        {"name": "Admin", "description": "University Secretariat commands: user roles, coordinator provisioning, and system analytics"},
-    ],
+    title="ClubHub Smart Campus API",
+    version="2.0.0",
+    description="Backend REST API for ClubHub Smart Campus Platform",
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc"
@@ -96,45 +64,28 @@ Uses standard **JWT (Bearer Token)** authentication with **bcrypt** password has
 # CORS Middleware Configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=origins if origins else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include Modular Routers
+# Include Modular API Routers
 app.include_router(auth.router)
 app.include_router(students.router)
 app.include_router(clubs.router)
 app.include_router(applications.router)
 app.include_router(events.router)
+app.include_router(network.router)
+app.include_router(badges.router)
 app.include_router(dashboard.router)
 app.include_router(admin.router)
-
-
-# Root Health & Welcome Endpoints
-@app.get(
-    "/",
-    tags=["General"],
-    summary="Root welcome endpoint",
-    description="Returns platform health, version metadata, and links to interactive API documentation."
-)
-def root():
-    return {
-        "platform": "ClubClash (CampusConnect) API",
-        "version": "1.0.0",
-        "status": "online",
-        "documentation": "/docs",
-        "redoc": "/redoc",
-        "supported_roles": ["student", "coordinator", "admin"]
-    }
 
 
 @app.get(
     "/health",
     tags=["General"],
-    summary="Health check endpoint",
-    description="Validates active database connection and system operational status."
+    summary="Health check endpoint"
 )
 def health_check(db: Session = Depends(get_db)):
     try:
@@ -142,14 +93,15 @@ def health_check(db: Session = Depends(get_db)):
         return {
             "status": "healthy",
             "database": "connected (SQLite)",
-            "api_version": "1.0.0"
+            "api_version": "2.0.0"
         }
     except Exception as e:
-        return JSONResponse(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            content={
-                "status": "unhealthy",
-                "database_error": str(e)
-            }
-        )
+        return {
+            "status": "unhealthy",
+            "database_error": str(e)
+        }
 
+
+# Mount Static Files to serve frontend HTML, CSS, JS at root
+project_root = Path(__file__).resolve().parent.parent
+app.mount("/", StaticFiles(directory=str(project_root), html=True), name="static")

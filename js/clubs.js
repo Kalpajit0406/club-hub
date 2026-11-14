@@ -1,47 +1,39 @@
-// js/clubs.js - Catalog, Search, Multi-Filter & Sorting Logic
+// js/clubs.js - Catalog, Search, Multi-Filter, Sorting & Join Request Logic
 
-// Application state for the catalog page
 const catalogState = {
   searchQuery: "",
   category: "all",
-  status: "ALL", // "ALL" | "OPEN" | "CLOSED"
-  sortBy: "recommended" // "recommended" | "name-asc" | "members-desc" | "newest"
+  status: "ALL",
+  sortBy: "RECOMMENDED"
 };
 
 document.addEventListener("DOMContentLoaded", () => {
   parseURLParameters();
   renderCategoryChips();
   initFilterControls();
-  applyFiltersAndRender();
+  initCreateClubModal();
+  loadAndRenderClubs();
 });
 
-// Read initial filters from URL (e.g., clubs.html?category=Technical or ?search=robotics)
 function parseURLParameters() {
   const params = new URLSearchParams(window.location.search);
-  
   if (params.has("search")) {
     catalogState.searchQuery = params.get("search").trim();
-    const searchInput = document.getElementById("catalog-search-input");
-    if (searchInput) {
-      searchInput.value = catalogState.searchQuery;
-      toggleSearchClearBtn(true);
-    }
+    const input = document.getElementById("club-search-input");
+    if (input) input.value = catalogState.searchQuery;
   }
-
   if (params.has("category")) {
     catalogState.category = params.get("category");
   }
-
-  if (params.has("filter") && params.get("filter") === "open") {
-    catalogState.status = "OPEN";
-    const statusSelect = document.getElementById("status-filter-select");
-    if (statusSelect) statusSelect.value = "OPEN";
+  if (params.has("status")) {
+    catalogState.status = params.get("status").toUpperCase();
+    const select = document.getElementById("status-filter");
+    if (select) select.value = catalogState.status;
   }
 }
 
-// Render Category Filter Chips
 function renderCategoryChips() {
-  const container = document.getElementById("category-chips-container");
+  const container = document.getElementById("category-chips-list");
   if (!container || typeof CATEGORIES === "undefined") return;
 
   container.innerHTML = CATEGORIES.map(cat => {
@@ -57,250 +49,328 @@ function renderCategoryChips() {
     `;
   }).join("");
 
-  // Attach click listener for chips
-  container.querySelectorAll(".category-chip").forEach(chip => {
-    chip.addEventListener("click", () => {
-      container.querySelectorAll(".category-chip").forEach(c => c.classList.remove("active"));
-      chip.classList.add("active");
-      catalogState.category = chip.getAttribute("data-category");
-      applyFiltersAndRender();
+  container.querySelectorAll(".category-chip").forEach(btn => {
+    btn.addEventListener("click", () => {
+      container.querySelectorAll(".category-chip").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      catalogState.category = btn.getAttribute("data-category");
+      loadAndRenderClubs();
     });
   });
 }
 
-// Setup input listeners for search, status, and sorting
 function initFilterControls() {
-  const searchInput = document.getElementById("catalog-search-input");
-  const clearBtn = document.getElementById("search-clear-btn") || document.getElementById("catalog-search-clear");
-  const statusSelect = document.getElementById("status-filter-select");
-  const sortSelect = document.getElementById("sort-select");
-  const resetBtn = document.getElementById("reset-filters-btn");
+  const searchInput = document.getElementById("club-search-input");
+  const clearBtn = document.getElementById("search-clear-btn");
+  const statusFilter = document.getElementById("status-filter");
+  const sortFilter = document.getElementById("sort-filter");
+  const resetBtn = document.getElementById("reset-all-filters-btn");
+  const emptyResetBtn = document.getElementById("empty-reset-btn");
 
+  let debounceTimer = null;
   if (searchInput) {
-    let debounceTimer;
-    searchInput.addEventListener("input", (e) => {
+    searchInput.addEventListener("input", () => {
       clearTimeout(debounceTimer);
-      const val = e.target.value.trim();
-      toggleSearchClearBtn(val.length > 0);
+      catalogState.searchQuery = searchInput.value.trim();
+      if (clearBtn) clearBtn.style.display = catalogState.searchQuery ? "block" : "none";
       debounceTimer = setTimeout(() => {
-        catalogState.searchQuery = val;
-        applyFiltersAndRender();
-      }, 200);
+        loadAndRenderClubs();
+      }, 300);
     });
   }
 
-  if (clearBtn && searchInput) {
-    clearBtn.addEventListener("click", () => {
-      searchInput.value = "";
-      catalogState.searchQuery = "";
-      toggleSearchClearBtn(false);
-      applyFiltersAndRender();
-      searchInput.focus();
-    });
-  }
-
-  if (statusSelect) {
-    statusSelect.addEventListener("change", (e) => {
-      catalogState.status = e.target.value;
-      applyFiltersAndRender();
-    });
-  }
-
-  if (sortSelect) {
-    sortSelect.addEventListener("change", (e) => {
-      catalogState.sortBy = e.target.value;
-      applyFiltersAndRender();
-    });
-  }
-
-  if (resetBtn) {
-    resetBtn.addEventListener("click", resetAllFilters);
-  }
-}
-
-function toggleSearchClearBtn(show) {
-  const clearBtn = document.getElementById("search-clear-btn") || document.getElementById("catalog-search-clear");
   if (clearBtn) {
-    if (show) clearBtn.classList.add("visible");
-    else clearBtn.classList.remove("visible");
+    clearBtn.addEventListener("click", () => {
+      if (searchInput) searchInput.value = "";
+      catalogState.searchQuery = "";
+      clearBtn.style.display = "none";
+      loadAndRenderClubs();
+    });
   }
+
+  if (statusFilter) {
+    statusFilter.addEventListener("change", () => {
+      catalogState.status = statusFilter.value;
+      loadAndRenderClubs();
+    });
+  }
+
+  if (sortFilter) {
+    sortFilter.addEventListener("change", () => {
+      catalogState.sortBy = sortFilter.value;
+      loadAndRenderClubs();
+    });
+  }
+
+  const resetAll = () => {
+    catalogState.searchQuery = "";
+    catalogState.category = "all";
+    catalogState.status = "ALL";
+    catalogState.sortBy = "RECOMMENDED";
+    if (searchInput) searchInput.value = "";
+    if (clearBtn) clearBtn.style.display = "none";
+    if (statusFilter) statusFilter.value = "ALL";
+    if (sortFilter) sortFilter.value = "RECOMMENDED";
+    renderCategoryChips();
+    loadAndRenderClubs();
+  };
+
+  if (resetBtn) resetBtn.addEventListener("click", resetAll);
+  if (emptyResetBtn) emptyResetBtn.addEventListener("click", resetAll);
 }
 
-// Filter, Sort, and Render Clubs
-function applyFiltersAndRender() {
-  const gridContainer = document.getElementById("clubs-grid") || document.getElementById("clubs-catalog-grid");
-  const countEl = document.getElementById("results-count-number") || document.querySelector("#results-count-text span");
-  if (!gridContainer || typeof CLUBS_DATA === "undefined") return;
+async function loadAndRenderClubs() {
+  const grid = document.getElementById("clubs-grid");
+  const noResults = document.getElementById("no-results-state");
+  const activeFilterBar = document.getElementById("active-filter-bar");
+  const activeFilterLabel = document.getElementById("active-filter-label");
 
-  let results = [...CLUBS_DATA];
+  if (!grid) return;
 
-  // 1. Category Filter
-  if (catalogState.category && catalogState.category.toLowerCase() !== "all") {
-    results = results.filter(club => 
-      club.category.toLowerCase() === catalogState.category.toLowerCase()
-    );
+  grid.innerHTML = `
+    <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+      <div style="display: inline-block; width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 12px;"></div>
+      <div style="font-weight: 500;">Loading campus societies...</div>
+    </div>
+  `;
+
+  if (noResults) noResults.style.display = "none";
+
+  // Active filter indicator
+  const hasFilter = catalogState.category !== "all" || catalogState.searchQuery || catalogState.status !== "ALL";
+  if (activeFilterBar) {
+    activeFilterBar.style.display = hasFilter ? "flex" : "none";
+    if (activeFilterLabel) {
+      const parts = [];
+      if (catalogState.category !== "all") parts.push(`Category: ${catalogState.category}`);
+      if (catalogState.searchQuery) parts.push(`Query: "${catalogState.searchQuery}"`);
+      if (catalogState.status !== "ALL") parts.push(`Status: ${catalogState.status}`);
+      activeFilterLabel.textContent = parts.join(" • ") || "All Societies";
+    }
   }
 
-  // 2. Recruitment Status Filter
-  if (catalogState.status !== "ALL") {
-    results = results.filter(club => club.status === catalogState.status);
-  }
-
-  // 3. Search Query Filter (Fuzzy matching on name, acronym, description, tags, domains)
-  if (catalogState.searchQuery) {
-    const q = catalogState.searchQuery.toLowerCase();
-    results = results.filter(club => {
-      const matchName = club.name.toLowerCase().includes(q);
-      const matchAcronym = (club.acronym || "").toLowerCase().includes(q);
-      const matchDesc = club.description.toLowerCase().includes(q);
-      const matchTags = (club.tags || []).some(t => t.toLowerCase().includes(q));
-      const matchDomains = (club.domains || []).some(d => d.toLowerCase().includes(q));
-      return matchName || matchAcronym || matchDesc || matchTags || matchDomains;
+  try {
+    const clubs = await API.getClubs({
+      category: catalogState.category,
+      search: catalogState.searchQuery,
+      recruitment_open: catalogState.status,
+      sort: catalogState.sortBy
     });
-  }
 
-  // 4. Sorting
-  if (catalogState.sortBy === "name-asc") {
-    results.sort((a, b) => a.name.localeCompare(b.name));
-  } else if (catalogState.sortBy === "members-desc") {
-    results.sort((a, b) => b.memberCount - a.memberCount);
-  } else if (catalogState.sortBy === "newest") {
-    results.sort((a, b) => b.established - a.established);
-  } else {
-    // Recommended default: Featured clubs first, then by member count
-    results.sort((a, b) => {
-      if (a.featured && !b.featured) return -1;
-      if (!a.featured && b.featured) return 1;
-      return b.memberCount - a.memberCount;
-    });
-  }
+    if (!clubs || clubs.length === 0) {
+      grid.innerHTML = "";
+      if (noResults) {
+        noResults.style.display = "block";
+        const titleEl = noResults.querySelector(".empty-state-title");
+        const descEl = noResults.querySelector(".empty-state-desc");
+        if (!hasFilter) {
+          if (titleEl) titleEl.textContent = "No clubs yet – create the first one!";
+          if (descEl) descEl.textContent = "Your campus directory is ready. Charter the first student society and become its coordinator!";
+        } else {
+          if (titleEl) titleEl.textContent = "No matching societies found";
+          if (descEl) descEl.textContent = "We couldn't find any campus clubs matching your search filters. Try clearing filters or using different keywords.";
+        }
+      }
+      return;
+    }
 
-  // Update counter
-  if (countEl) {
-    countEl.textContent = results.length;
-  }
+    if (noResults) noResults.style.display = "none";
 
-  // Render cards or empty state
-  if (results.length === 0) {
-    gridContainer.innerHTML = `
-      <div class="empty-state" style="grid-column: 1 / -1;">
-        <div class="empty-state-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-        </div>
-        <h3 class="empty-state-title">No clubs found</h3>
-        <p class="empty-state-desc">
-          We couldn't find any clubs matching your current search and filters. Try adjusting your search term or reset all filters.
-        </p>
-        <button type="button" class="btn btn-primary btn-sm" onclick="resetAllFilters()">Reset All Filters</button>
-      </div>
-    `;
-    return;
-  }
+    grid.innerHTML = clubs.map(club => {
+      const isSaved = typeof Storage !== "undefined" && Storage.isBookmarked(club.id);
+      const isRecruiting = club.recruitment_open;
+      const statusBadge = isRecruiting
+        ? `<span class="badge badge-status-open"><span class="badge-dot"></span> Recruiting Now</span>`
+        : `<span class="badge badge-status-closed">Recruitment Closed</span>`;
 
-  gridContainer.innerHTML = results.map(club => {
-    const isSaved = typeof Storage !== "undefined" && Storage.isBookmarked(club.id);
-    const tagsHtml = (club.tags || []).slice(0, 3).map(t => `<span class="club-card-tag">${escapeHTML(t)}</span>`).join("");
+      // Category color class
+      const catClass = getCategoryClass(club.category);
 
-    return `
-      <article class="club-card">
-        <div class="club-card-banner">
-          <img src="${club.banner}" alt="${escapeHTML(club.name)} banner" loading="lazy">
-          <div class="club-card-status-badge">
-            ${getStatusBadge(club.status)}
-          </div>
-          <button 
-            class="club-card-bookmark-btn ${isSaved ? 'saved' : ''}" 
-            data-club-id="${club.id}" 
-            title="${isSaved ? 'Remove from saved' : 'Save club'}"
-            aria-label="Bookmark club"
-          >
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-            </svg>
-          </button>
-        </div>
-        
-        <div class="club-card-body">
-          <img src="${club.logo}" alt="${escapeHTML(club.name)} logo" class="club-card-avatar" loading="lazy">
-          <div class="club-card-header">
-            <div class="club-card-title-row">
-              <h3 class="club-card-title">
-                <a href="club-details.html?id=${club.id}">${escapeHTML(club.name)}</a>
-              </h3>
-              ${getVerifiedBadgeSvg()}
+      // Join button state
+      let actionBtnHtml = "";
+      if (club.user_status === "admin") {
+        actionBtnHtml = `<a href="admin.html" class="btn btn-outline btn-sm" style="font-weight: 700;">Club Admin</a>`;
+      } else if (club.user_status === "member") {
+        actionBtnHtml = `<span class="badge-status-member" style="padding: 6px 14px; border-radius: var(--radius-btn); font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">✓ Member</span>`;
+      } else if (club.user_status === "pending") {
+        actionBtnHtml = `<button type="button" class="btn btn-warning btn-sm" disabled style="opacity: 0.9; cursor: default;">Request Pending</button>`;
+      } else if (club.user_status === "rejected") {
+        actionBtnHtml = `<button type="button" class="btn btn-outline btn-sm" style="color: var(--danger); border-color: var(--danger);" onclick="handleJoinClub(${club.id})">Rejected (Request Again)</button>`;
+      } else {
+        if (isRecruiting) {
+          actionBtnHtml = `<button type="button" class="btn btn-cta btn-sm btn-join-club" onclick="handleJoinClub(${club.id})">Join Club</button>`;
+        } else {
+          actionBtnHtml = `<button type="button" class="btn btn-outline btn-sm" disabled style="opacity: 0.6;">Closed</button>`;
+        }
+      }
+
+      const coordinatorName = club.coordinator ? club.coordinator.full_name : "Campus Secretariat";
+      const membersCount = club.member_count || 0;
+      const bannerImg = club.image_url || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80";
+
+      return `
+        <article class="club-card" style="display: flex; flex-direction: column; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); overflow: hidden; box-shadow: var(--shadow-sm); transition: transform 0.2s, box-shadow 0.2s;">
+          <div style="position: relative; height: 160px; overflow: hidden; background: var(--bg-surface);">
+            <img src="${escapeHTML(bannerImg)}" alt="${escapeHTML(club.name)}" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
+            <div style="position: absolute; top: 12px; left: 12px;">
+              ${statusBadge}
             </div>
-            <div class="club-card-meta">
-              ${getCategoryBadge(club.category)}
-              <span class="club-card-stats">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                ${club.memberCount} members
+            <button 
+              type="button" 
+              class="club-card-save-btn ${isSaved ? 'saved' : ''}" 
+              onclick="handleToggleBookmark(event, ${club.id})"
+              aria-label="Save society"
+              style="position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.4); border: none; border-radius: 50%; width: 34px; height: 34px; color: #FFF; display: flex; align-items: center; justify-content: center; cursor: pointer;"
+            >
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="${isSaved ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+              </svg>
+            </button>
+          </div>
+
+          <div style="padding: 20px; display: flex; flex-direction: column; flex-grow: 1;">
+            <div style="margin-bottom: 10px;">
+              <span class="badge ${catClass}" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">
+                ${escapeHTML(club.category)}
               </span>
             </div>
-          </div>
-          
-          <p class="club-card-desc">${escapeHTML(club.tagline)}</p>
-          
-          <div class="club-card-tags">
-            ${tagsHtml}
-          </div>
-          
-          <div class="club-card-footer">
-            <a href="club-details.html?id=${club.id}" class="btn btn-outline btn-sm">View Details</a>
-            ${club.status === "OPEN" 
-              ? `<a href="club-details.html?id=${club.id}&apply=true" class="btn btn-primary btn-sm">Apply Now</a>` 
-              : `<span class="badge badge-status-closed">Recruitment Closed</span>`
-            }
-          </div>
-        </div>
-      </article>
-    `;
-  }).join("");
 
-  // Attach bookmark toggle listeners
-  gridContainer.querySelectorAll(".club-card-bookmark-btn").forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      e.preventDefault();
-      const clubId = btn.getAttribute("data-club-id");
-      if (typeof Storage !== "undefined") {
-        const isNowSaved = Storage.toggleBookmark(clubId);
-        btn.classList.toggle("saved", isNowSaved);
-        btn.title = isNowSaved ? "Remove from saved" : "Save club";
-        showToast(isNowSaved ? "Club bookmarked successfully!" : "Club removed from bookmarks", "info");
-      }
-    });
-  });
+            <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 18px; font-weight: 700; margin: 0 0 8px 0; color: var(--text-main);">
+              <a href="club-details.html?id=${club.id}" style="color: inherit; text-decoration: none;">${escapeHTML(club.name)}</a>
+            </h3>
+
+            <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0 0 16px 0; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+              ${escapeHTML(club.description)}
+            </p>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 12px; margin-bottom: 16px;">
+              <span><strong>${membersCount}</strong> ${membersCount === 1 ? 'Member' : 'Members'}</span>
+              <span>Lead: <strong>${escapeHTML(coordinatorName)}</strong></span>
+            </div>
+
+            <div style="display: flex; gap: 8px; align-items: center; justify-content: space-between;">
+              <a href="club-details.html?id=${club.id}" class="btn btn-outline btn-sm">View Details</a>
+              ${actionBtnHtml}
+            </div>
+          </div>
+        </article>
+      `;
+    }).join("");
+
+  } catch (err) {
+    grid.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 48px 20px; color: var(--danger);">
+        <p style="font-weight: 600;">Failed to load clubs from backend.</p>
+        <p style="font-size: 13px; color: var(--text-secondary);">${escapeHTML(err.message)}</p>
+        <button class="btn btn-outline btn-sm" onclick="loadAndRenderClubs()" style="margin-top: 12px;">Retry</button>
+      </div>
+    `;
+  }
 }
 
-// Reset all filters
-function resetAllFilters() {
-  catalogState.searchQuery = "";
-  catalogState.category = "all";
-  catalogState.status = "ALL";
-  catalogState.sortBy = "recommended";
+function getCategoryClass(cat) {
+  if (!cat) return "tag-tech";
+  const c = cat.toLowerCase();
+  if (c.includes("tech") || c.includes("cod")) return "tag-tech";
+  if (c.includes("cultur") || c.includes("music") || c.includes("art")) return "tag-cultural";
+  if (c.includes("sport") || c.includes("athlet")) return "tag-sports";
+  if (c.includes("liter") || c.includes("debat")) return "tag-literary";
+  if (c.includes("social") || c.includes("commun")) return "tag-social";
+  if (c.includes("entrepr") || c.includes("cell") || c.includes("biz")) return "tag-ecell";
+  return "tag-tech";
+}
 
-  const searchInput = document.getElementById("catalog-search-input");
-  if (searchInput) searchInput.value = "";
-  toggleSearchClearBtn(false);
+async function handleJoinClub(clubId) {
+  const user = requireAuth();
+  if (!user) return;
 
-  const statusSelect = document.getElementById("status-filter-select");
-  if (statusSelect) statusSelect.value = "ALL";
+  try {
+    showToast("Submitting your join request...", "info");
+    await API.submitJoinRequest(clubId);
+    showToast("Join request submitted successfully! Your status is now Pending.", "success");
+    await loadAndRenderClubs();
+  } catch (err) {
+    showToast(err.message || "Failed to submit join request.", "error");
+  }
+}
 
-  const sortSelect = document.getElementById("sort-select");
-  if (sortSelect) sortSelect.value = "recommended";
+function handleToggleBookmark(e, clubId) {
+  e.preventDefault();
+  e.stopPropagation();
+  if (typeof Storage !== "undefined") {
+    const isAdded = Storage.toggleBookmark(clubId);
+    showToast(isAdded ? "Club saved to bookmarks!" : "Club removed from bookmarks.", "info");
+    loadAndRenderClubs();
+  }
+}
 
-  const container = document.getElementById("category-chips-container");
-  if (container) {
-    container.querySelectorAll(".category-chip").forEach(chip => {
-      if (chip.getAttribute("data-category") === "all") chip.classList.add("active");
-      else chip.classList.remove("active");
+// ---------------- CREATE CLUB MODAL ----------------
+function initCreateClubModal() {
+  const openBtn = document.getElementById("open-create-club-btn");
+  const modal = document.getElementById("create-club-modal");
+  const closeBtn = document.getElementById("close-create-club-btn");
+  const form = document.getElementById("create-club-form");
+
+  if (!openBtn || !modal || !form) return;
+
+  openBtn.addEventListener("click", () => {
+    const user = requireAuth();
+    if (!user) return;
+    modal.style.display = "flex";
+  });
+
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      modal.style.display = "none";
     });
   }
 
-  // Clean URL without reloading
-  window.history.replaceState({}, document.title, window.location.pathname);
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.style.display = "none";
+  });
 
-  applyFiltersAndRender();
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const user = requireAuth();
+    if (!user) return;
+
+    const name = document.getElementById("club-name-input").value.trim();
+    const category = document.getElementById("club-category-input").value;
+    const description = document.getElementById("club-desc-input").value.trim();
+    const imageUrl = document.getElementById("club-image-input") ? document.getElementById("club-image-input").value.trim() : null;
+    const submitBtn = form.querySelector("button[type='submit']");
+
+    if (!name || !category || !description) {
+      showToast("Please fill in all required fields.", "error");
+      return;
+    }
+
+    try {
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = "Chartering Society...";
+      }
+
+      await API.createClub({
+        name,
+        category,
+        description,
+        image_url: imageUrl || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80",
+        recruitment_open: true
+      });
+
+      showToast(`Club '${name}' created! You are now its coordinator.`, "success");
+      modal.style.display = "none";
+      form.reset();
+      await loadAndRenderClubs();
+
+    } catch (err) {
+      showToast(err.message || "Failed to create club.", "error");
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Charter Club";
+      }
+    }
+  });
 }

@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Student Registration | ClubHub — Smart Campus OS</title>
-  <meta name="description" content="Register your verified collegiate profile on ClubHub to apply to societies, register for hackathons, and discover internships.">
+  <meta name="description" content="Register your verified collegiate profile on ClubHub to apply to societies, register for hackathons, and discover campus events.">
 
   <!-- Anti-Flicker Theme & Palette Init -->
   <script>
     (function() {
       var savedTheme = localStorage.getItem("clubhub_theme_mode_v2") || "light";
-      var savedPalette = localStorage.getItem("clubhub_active_palette") || "default";
+      var savedPalette = localStorage.getItem("clubhub_active_palette") || "indigo-steel";
       document.documentElement.setAttribute("data-theme", savedTheme);
       document.documentElement.setAttribute("data-palette", savedPalette);
     })();
@@ -43,7 +43,7 @@
         <div>Club<span>Hub</span></div>
       </a>
       <h1 class="auth-title">Create Your Campus Account</h1>
-      <p class="auth-subtitle">Join thousands of students discovering clubs, attending tech fests, exchanging textbooks, and launching careers.</p>
+      <p class="auth-subtitle">Join fellow students discovering clubs, attending tech fests, and collaborating on projects.</p>
     </div>
 
     <!-- AUTH CARD -->
@@ -59,7 +59,7 @@
               type="text" 
               id="reg-name" 
               class="form-input" 
-              placeholder="e.g. Aditya Verma" 
+              placeholder="e.g. Priya Sharma" 
               required 
               autocomplete="name"
             >
@@ -71,20 +71,9 @@
               type="email" 
               id="reg-email" 
               class="form-input" 
-              placeholder="e.g. aditya@tint.edu.in" 
+              placeholder="e.g. priya@campus.edu" 
               required 
               autocomplete="email"
-            >
-          </div>
-
-          <div class="form-group">
-            <label for="reg-roll" class="form-label">University Roll Number <span class="required">*</span></label>
-            <input 
-              type="text" 
-              id="reg-roll" 
-              class="form-input" 
-              placeholder="e.g. 2023CSB1042" 
-              required
             >
           </div>
 
@@ -105,19 +94,10 @@
           <div class="form-group">
             <label for="reg-year" class="form-label">Academic Year <span class="required">*</span></label>
             <select id="reg-year" class="form-select" required>
-              <option value="1st Year">1st Year (Freshman)</option>
-              <option value="2nd Year" selected>2nd Year (Sophomore)</option>
-              <option value="3rd Year">3rd Year (Junior)</option>
-              <option value="4th Year">4th Year (Senior)</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="reg-role" class="form-label">Primary Account Role <span class="required">*</span></label>
-            <select id="reg-role" class="form-select" required>
-              <option value="student" selected>Student</option>
-              <option value="admin">Club Lead / Coordinator</option>
-              <option value="recruiter">Recruiter / Industry Partner</option>
+              <option value="1">1st Year (Freshman)</option>
+              <option value="2" selected>2nd Year (Sophomore)</option>
+              <option value="3">3rd Year (Junior)</option>
+              <option value="4">4th Year (Senior)</option>
             </select>
           </div>
 
@@ -159,28 +139,22 @@
           </div>
         </div>
 
-        <div class="auth-options-row" style="margin-top: 1.25rem;">
-          <label class="auth-checkbox-label">
-            <input type="checkbox" id="reg-terms" required checked>
-            <span>I agree to the <a href="#" class="auth-link">Campus Honor Code</a> &amp; Terms of Service</span>
-          </label>
-        </div>
-
-        <button type="submit" class="btn btn-primary auth-submit-btn" style="width: 100%;">
-          Complete Registration
+        <button type="submit" class="btn btn-cta auth-submit-btn" style="width: 100%; margin-top: 1.5rem;">
+          Create My Campus Account
         </button>
       </form>
     </div>
 
     <!-- FOOTER LINK -->
     <div class="auth-footer">
-      Already have a verified account? <a href="login.html" class="auth-link">Sign In</a> &bull; <a href="index.html" class="auth-link">Back to Home</a>
+      Already have an account? <a href="login.html" class="auth-link">Sign In to ClubHub</a> &bull; <a href="index.html" class="auth-link">Back to Home</a>
     </div>
 
   </div>
 
   <!-- Scripts -->
   <script src="js/data.js"></script>
+  <script src="js/api.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/palette.js"></script>
   <script src="js/common.js"></script>

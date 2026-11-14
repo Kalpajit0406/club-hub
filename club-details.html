@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Society Profile &amp; Recruitment | ClubHub</title>
-  <meta name="description" content="View club details, leadership, active recruitment wings, and submit your membership application.">
+  <title>Society Profile &amp; Membership | ClubHub</title>
+  <meta name="description" content="View club details, leadership, events, and submit your membership join request.">
 
   <!-- Anti-Flicker Theme & Palette Init -->
   <script>
     (function() {
       var savedTheme = localStorage.getItem("clubhub_theme_mode_v2") || "light";
-      var savedPalette = localStorage.getItem("clubhub_active_palette") || "default";
+      var savedPalette = localStorage.getItem("clubhub_active_palette") || "indigo-steel";
       document.documentElement.setAttribute("data-theme", savedTheme);
       document.documentElement.setAttribute("data-palette", savedPalette);
     })();
@@ -45,9 +45,8 @@
       <nav class="nav-links">
         <a href="clubs.html" class="nav-link active">Clubs</a>
         <a href="events.html" class="nav-link">Events</a>
-        <a href="marketplace.html" class="nav-link">Marketplace</a>
         <a href="network.html" class="nav-link">Network</a>
-        <a href="recruiters.html" class="nav-link">Placements</a>
+        <a href="dashboard.html" class="nav-link">Dashboard</a>
       </nav>
 
       <div class="nav-actions">
@@ -70,7 +69,7 @@
         <!-- Logo & Core Metadata Stack -->
         <div class="hero-header-row">
           <div class="club-avatar-wrap">
-            <img id="club-logo" src="https://images.unsplash.com/photo-1573164713988-8665fc963095?w=160&auto=format&fit=crop&q=80" alt="Club Logo" class="club-logo-img">
+            <img id="club-logo" src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=160&auto=format&fit=crop&q=80" alt="Club Logo" class="club-logo-img">
           </div>
 
           <div class="hero-identity">
@@ -80,23 +79,19 @@
                 <span class="badge-dot"></span>
                 Recruiting Now
               </span>
-              <span id="club-established-badge" class="badge badge-outline">Est. 2019</span>
             </div>
 
-            <h1 id="club-name" class="club-title">Google Developer Student Club</h1>
-            <p id="club-tagline" class="club-tagline">Bridging the gap between theory and industry-grade developer skills.</p>
+            <h1 id="club-name" class="club-title">Loading society...</h1>
+            <p id="club-tagline" class="club-tagline">Collegiate Society at TINT</p>
           </div>
 
           <div class="hero-actions">
-            <button type="button" id="bookmark-btn" class="btn btn-outline bookmark-btn" aria-label="Save to bookmarks">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-              </svg>
-              <span id="bookmark-text">Save Society</span>
-            </button>
-            <a href="#apply-section" id="hero-apply-btn" class="btn btn-primary">
-              Apply for Recruitment
+            <a href="clubs.html" class="btn btn-outline">
+              &larr; All Clubs
             </a>
+            <button type="button" id="hero-apply-btn" class="btn btn-cta">
+              Join Club
+            </button>
           </div>
         </div>
 
@@ -104,14 +99,11 @@
         <div class="hero-meta-bar">
           <div class="meta-item">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            <span id="club-member-count"><strong>260+</strong> Active Members</span>
+            <span id="club-member-count"><strong>0</strong> Active Members</span>
           </div>
           <div class="meta-item">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span id="club-meeting-info">Wednesdays at 5:00 PM | Tech Block Lab 302</span>
-          </div>
-          <div class="meta-item social-links-item" id="club-socials-container">
-            <!-- Injected by js/club-details.js -->
+            <span id="club-meeting-info">Lead Coordinator: <strong>Secretariat</strong></span>
           </div>
         </div>
       </div>
@@ -131,39 +123,12 @@
             </span>
             About the Society
           </h2>
-          <div id="club-description" class="section-text">
+          <div id="club-description" class="section-text" style="font-size: 15px; line-height: 1.7; color: var(--text-secondary);">
             Loading society background and mission statement...
           </div>
         </article>
 
-        <!-- SECTION 2: OPEN DOMAINS / WINGS -->
-        <article class="content-card">
-          <h2 class="section-title">
-            <span class="section-icon">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-            </span>
-            Active Recruitment Wings &amp; Domains
-          </h2>
-          <p class="section-subtext">Click on any wing to target your application during this recruitment drive.</p>
-          <div id="club-domains-list" class="domains-chips-grid">
-            <!-- Injected by js/club-details.js -->
-          </div>
-        </article>
-
-        <!-- SECTION 3: KEY ACHIEVEMENTS -->
-        <article class="content-card">
-          <h2 class="section-title">
-            <span class="section-icon">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
-            </span>
-            Recent Highlights &amp; Track Record
-          </h2>
-          <ul id="club-achievements-list" class="achievements-list">
-            <!-- Injected by js/club-details.js -->
-          </ul>
-        </article>
-
-        <!-- SECTION 4: UPCOMING EVENTS & WORKSHOPS -->
+        <!-- SECTION 2: UPCOMING EVENTS & WORKSHOPS -->
         <article class="content-card">
           <h2 class="section-title">
             <span class="section-icon">
@@ -176,19 +141,6 @@
           </div>
         </article>
 
-        <!-- SECTION 5: LEADERSHIP & COORDINATORS -->
-        <article class="content-card">
-          <h2 class="section-title">
-            <span class="section-icon">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            </span>
-            Executive Board &amp; Coordinators
-          </h2>
-          <div id="club-coordinators-grid" class="coordinators-grid">
-            <!-- Injected by js/club-details.js -->
-          </div>
-        </article>
-
       </div>
 
       <!-- SIDEBAR WIDGET (RIGHT COLUMN) -->
@@ -196,9 +148,9 @@
         
         <div class="recruitment-widget-card">
           <div class="widget-header">
-            <div class="widget-tag">Official Recruitment</div>
+            <div class="widget-tag">Membership Application</div>
             <h3 class="widget-title">Join this Society</h3>
-            <p class="widget-desc">Submit your candidacy to join the collegiate core team for the 2026–2027 academic year.</p>
+            <p class="widget-desc">Submit your candidacy to join this collegiate society. The coordinator will review your request in their secretariat dashboard.</p>
           </div>
 
           <div class="recruitment-meta-box">
@@ -208,28 +160,24 @@
             </div>
             <div class="meta-row">
               <span class="meta-label">Eligibility:</span>
-              <span class="meta-value">All B.Tech Batches</span>
+              <span class="meta-value">All College Students</span>
             </div>
             <div class="meta-row">
-              <span class="meta-label">Selection Format:</span>
-              <span class="meta-value">Application &rarr; Interview</span>
+              <span class="meta-label">Process:</span>
+              <span class="meta-value">Request &rarr; Admin Review</span>
             </div>
           </div>
 
-          <div id="existing-application-banner" class="existing-app-banner" style="display: none;">
-            <div class="banner-icon">✓</div>
-            <div>
-              <div class="banner-title">Application Submitted</div>
-              <div class="banner-sub" id="existing-app-status-text">Your candidacy is currently Pending Review.</div>
-            </div>
+          <div id="existing-application-banner" class="existing-app-banner" style="display: none; padding: 12px; border-radius: var(--radius-sm); background: var(--bg-surface); border: 1px solid var(--border); margin-bottom: 16px;">
+            <div style="font-size: 13px; font-weight: 600;" id="existing-app-status-text">Your candidacy is currently Pending Review.</div>
           </div>
 
-          <button type="button" id="open-apply-modal-btn" class="btn btn-primary btn-block btn-lg">
-            Apply to This Society
+          <button type="button" id="open-apply-modal-btn" class="btn btn-cta btn-block btn-lg">
+            Join This Society
           </button>
 
-          <div class="widget-footer-note">
-            🛡️ Verified collegiate recruitment process. Decisions recorded directly to your Student Dashboard.
+          <div class="widget-footer-note" style="margin-top: 14px; font-size: 11px; color: var(--text-muted); text-align: center;">
+            🛡️ Verified collegiate membership process. Status updates appear directly in your Student Dashboard.
           </div>
         </div>
 
@@ -239,72 +187,42 @@
 
   </main>
 
-  <!-- RECRUITMENT APPLICATION MODAL -->
+  <!-- APPLICATION MODAL -->
   <dialog id="applyModal" class="native-modal">
     <div class="modal-inner">
       <div class="modal-header">
         <div>
-          <h3 class="modal-title" id="modal-club-name">Apply to Society</h3>
-          <p class="modal-subtitle">Candidate screening form &bull; Collegiate Academic Year 2026–27</p>
+          <h3 class="modal-title" id="modal-club-name">Join Society</h3>
+          <p class="modal-subtitle">Submit your membership candidacy to the club coordinator.</p>
         </div>
-        <button type="button" id="close-apply-modal-btn" class="modal-close" aria-label="Close recruitment modal">&times;</button>
+        <button type="button" id="close-apply-modal-btn" class="modal-close" aria-label="Close modal">&times;</button>
       </div>
 
       <form id="recruitment-apply-form" class="modal-form">
-        <div id="modal-alert-box" class="form-alert" style="display: none;"></div>
-
         <div class="form-grid-2">
           <div class="form-group">
             <label for="app-student-name" class="form-label">Full Name <span class="required">*</span></label>
-            <input type="text" id="app-student-name" class="form-input" required placeholder="Aditya Verma">
+            <input type="text" id="app-student-name" class="form-input" readonly>
           </div>
-          <div class="form-group">
-            <label for="app-student-roll" class="form-label">Roll Number <span class="required">*</span></label>
-            <input type="text" id="app-student-roll" class="form-input" required placeholder="2023CSB1042">
-          </div>
-        </div>
-
-        <div class="form-grid-2">
           <div class="form-group">
             <label for="app-branch" class="form-label">Department / Branch <span class="required">*</span></label>
-            <input type="text" id="app-branch" class="form-input" required placeholder="Computer Science & Engineering">
-          </div>
-          <div class="form-group">
-            <label for="app-year" class="form-label">Academic Year <span class="required">*</span></label>
-            <select id="app-year" class="form-select" required>
-              <option value="1st Year">1st Year (Freshman)</option>
-              <option value="2nd Year" selected>2nd Year (Sophomore)</option>
-              <option value="3rd Year">3rd Year (Junior)</option>
-              <option value="4th Year">4th Year (Senior)</option>
-            </select>
+            <input type="text" id="app-branch" class="form-input" readonly>
           </div>
         </div>
 
         <div class="form-group">
-          <label for="app-email" class="form-label">College Email Address <span class="required">*</span></label>
-          <input type="email" id="app-email" class="form-input" required placeholder="aditya@tint.edu.in">
+          <label for="app-motivation" class="form-label">Why do you want to join this club? <span class="required">*</span></label>
+          <textarea id="app-motivation" class="form-textarea" rows="3" required placeholder="Explain your interest, relevant projects, or what you hope to contribute..."></textarea>
         </div>
 
         <div class="form-group">
-          <label for="app-domain-select" class="form-label">Select Recruitment Wing / Domain <span class="required">*</span></label>
-          <select id="app-domain-select" class="form-select" required>
-            <!-- Injected by js/club-details.js -->
-          </select>
+          <label for="app-experience" class="form-label">Skills &amp; Interests</label>
+          <input type="text" id="app-experience" class="form-input" placeholder="e.g. Python, Public Speaking, Video Editing, Robotics">
         </div>
 
-        <div class="form-group">
-          <label for="app-statement" class="form-label">Statement of Purpose &amp; Motivation <span class="required">*</span></label>
-          <textarea id="app-statement" class="form-textarea" rows="3" required placeholder="Explain why you wish to join this wing and what projects or skills you bring..."></textarea>
-        </div>
-
-        <div class="form-group">
-          <label for="app-portfolio" class="form-label">Portfolio, GitHub, or LinkedIn Profile URL</label>
-          <input type="url" id="app-portfolio" class="form-input" placeholder="https://github.com/aditya-tint">
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" id="cancel-apply-modal-btn" class="btn btn-outline">Cancel</button>
-          <button type="submit" class="btn btn-primary">Submit Application</button>
+        <div class="modal-footer-actions">
+          <button type="button" class="btn btn-outline" onclick="document.getElementById('applyModal').close()">Cancel</button>
+          <button type="submit" class="btn btn-cta">Submit Join Request</button>
         </div>
       </form>
     </div>
@@ -317,15 +235,15 @@
       <div style="display: flex; gap: 16px; font-size: 13px;">
         <a href="clubs.html" style="color: var(--text-secondary);">Clubs</a>
         <a href="events.html" style="color: var(--text-secondary);">Events</a>
-        <a href="marketplace.html" style="color: var(--text-secondary);">Marketplace</a>
         <a href="network.html" style="color: var(--text-secondary);">Network</a>
-        <a href="recruiters.html" style="color: var(--text-secondary);">Placements</a>
+        <a href="dashboard.html" style="color: var(--text-secondary);">Dashboard</a>
       </div>
     </div>
   </footer>
 
-  <!-- Core Scripts -->
+  <!-- Scripts -->
   <script src="js/data.js"></script>
+  <script src="js/api.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/palette.js"></script>
   <script src="js/common.js"></script>
