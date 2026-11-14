@@ -1,6 +1,5 @@
-// js/admin.js - Logic for Club Admin Dashboard (Section 9)
+// js/admin.js - Logic for Club Admin Secretariat Dashboard
 
-let adminEvents = [];
 let adminMembers = [];
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -8,13 +7,12 @@ document.addEventListener("DOMContentLoaded", () => {
   initAdminTabs();
   initAdminFilters();
   initCreateEventModal();
+  initAddClubModal();
+  initAppDetailModal();
   refreshAdminDashboard();
 });
 
 function initAdminData() {
-  if (typeof CAMPUS_EVENTS !== "undefined") {
-    adminEvents = [...CAMPUS_EVENTS];
-  }
   if (typeof CAMPUS_MEMBERS !== "undefined") {
     adminMembers = [...CAMPUS_MEMBERS];
   }
@@ -38,6 +36,18 @@ function initAdminTabs() {
   });
 }
 
+function initAdminFilters() {
+  const searchInput = document.getElementById("admin-app-search");
+  const statusFilter = document.getElementById("admin-app-status-filter");
+
+  if (searchInput) {
+    searchInput.addEventListener("input", debounce(renderAdminApplications, 200));
+  }
+  if (statusFilter) {
+    statusFilter.addEventListener("change", renderAdminApplications);
+  }
+}
+
 function refreshAdminDashboard() {
   updateAdminMetrics();
   renderAdminApplications();
@@ -46,9 +56,9 @@ function refreshAdminDashboard() {
 }
 
 function updateAdminMetrics() {
-  if (typeof Storage === "undefined") return;
-
   const applications = Storage.getApplications();
+  const events = Storage.getEvents();
+
   const totalAppsEl = document.getElementById("admin-metric-apps");
   const totalMembersEl = document.getElementById("admin-metric-members");
   const totalEventsEl = document.getElementById("admin-metric-events");
@@ -56,7 +66,7 @@ function updateAdminMetrics() {
 
   if (totalAppsEl) totalAppsEl.textContent = applications.length;
   if (totalMembersEl) totalMembersEl.textContent = adminMembers.length;
-  if (totalEventsEl) totalEventsEl.textContent = adminEvents.length;
+  if (totalEventsEl) totalEventsEl.textContent = events.length;
 
   if (acceptanceRateEl) {
     const accepted = applications.filter(a => a.status === "ACCEPTED" || a.status === "APPROVED").length;
@@ -69,15 +79,13 @@ function updateAdminMetrics() {
   const badgeMembers = document.getElementById("admin-tab-badge-members");
   if (badgeMembers) badgeMembers.textContent = adminMembers.length;
   const badgeEvents = document.getElementById("admin-tab-badge-events");
-  if (badgeEvents) badgeEvents.textContent = adminEvents.length;
+  if (badgeEvents) badgeEvents.textContent = events.length;
 }
 
-// ============================================================
-// APPLICATION MANAGEMENT TABLE & ACTIONS
-// ============================================================
+// ---------------- APPLICATIONS TABLE ----------------
 function renderAdminApplications() {
   const tbody = document.getElementById("admin-apps-tbody");
-  if (!tbody || typeof Storage === "undefined") return;
+  if (!tbody) return;
 
   const applications = Storage.getApplications();
   const searchInput = document.getElementById("admin-app-search");
@@ -98,55 +106,51 @@ function renderAdminApplications() {
   });
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="6" style="text-align: center; padding: 3rem; color: var(--text-secondary);">
-          No candidate applications found matching your criteria.
-        </td>
-      </tr>
-    `;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 32px;">No matching applications found.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = filtered.map(app => {
+    let statusBadge = "badge-warning";
+    let statusText = "Pending Review";
+
+    if (app.status === "APPROVED" || app.status === "ACCEPTED") {
+      statusBadge = "badge-success";
+      statusText = "Approved";
+    } else if (app.status === "SHORTLISTED") {
+      statusBadge = "badge-primary";
+      statusText = "Shortlisted";
+    } else if (app.status === "REJECTED") {
+      statusBadge = "badge-danger";
+      statusText = "Rejected";
+    }
+
     return `
       <tr>
         <td>
-          <div class="candidate-detail-item">
-            <span class="candidate-name">${escapeHTML(app.studentName)}</span>
-            <span class="candidate-roll">${escapeHTML(app.studentRoll || 'N/A')} • ${escapeHTML(app.branch || '')}</span>
-          </div>
+          <div style="font-weight: 700; color: var(--text-main);">${escapeHTML(app.studentName)}</div>
+          <div style="font-size: 11px; color: var(--text-muted);">${escapeHTML(app.studentRoll)} &bull; ${escapeHTML(app.email)}</div>
         </td>
-        <td><strong>${escapeHTML(app.clubName)}</strong></td>
-        <td><span class="badge badge-cat">${escapeHTML(app.domain || 'General')}</span></td>
-        <td>${formatDate(app.appliedDate)}</td>
-        <td>${getApplicationStatusBadge(app.status)}</td>
         <td>
-          <div class="table-action-group">
-            <button 
-              type="button" 
-              class="btn btn-success btn-sm" 
-              title="Approve candidate and induct into society"
-              onclick="handleAdminApprove('${app.id}', '${escapeHTML(app.studentName)}')"
-            >
+          <div style="font-weight: 600;">${escapeHTML(app.clubName)}</div>
+          <div style="font-size: 11px; color: var(--primary); font-weight: 600;">Wing: ${escapeHTML(app.domain)}</div>
+        </td>
+        <td>
+          <div style="font-size: 12px;">${escapeHTML(app.branch)}</div>
+          <div style="font-size: 11px; color: var(--text-muted);">${escapeHTML(app.year)}</div>
+        </td>
+        <td>
+          <span class="badge ${statusBadge}">${statusText}</span>
+        </td>
+        <td>${formatDate(app.appliedDate)}</td>
+        <td>
+          <div style="display: flex; gap: 6px;">
+            <button class="btn btn-outline btn-sm" style="padding: 2px 8px; font-size: 11px;" onclick="viewAppDetail('${app.id}')">
+              Review
+            </button>
+            <button class="btn btn-primary btn-sm" style="padding: 2px 8px; font-size: 11px; background: var(--success); border-color: var(--success);" onclick="quickUpdateStatus('${app.id}', 'APPROVED')">
               Approve
             </button>
-            <button 
-              type="button" 
-              class="btn btn-warning btn-sm" 
-              title="Shortlist for interview rounds"
-              onclick="handleAdminShortlist('${app.id}', '${escapeHTML(app.studentName)}')"
-            >
-              Shortlist
-            </button>
-            <button 
-              type="button" 
-              class="btn btn-danger btn-sm" 
-              title="Reject application"
-              onclick="handleAdminReject('${app.id}', '${escapeHTML(app.studentName)}')"
-            >
-              Reject
-            </button>
           </div>
         </td>
       </tr>
@@ -154,221 +158,252 @@ function renderAdminApplications() {
   }).join("");
 }
 
-function handleAdminApprove(appId, studentName) {
-  if (typeof Storage === "undefined") return;
-  Storage.updateApplicationStatus(appId, "ACCEPTED", "Candidate has been approved and inducted into the collegiate society.");
+function quickUpdateStatus(appId, newStatus) {
+  Storage.updateApplicationStatus(appId, newStatus, `Approved by Club Coordinator on ${new Date().toLocaleDateString()}`);
   refreshAdminDashboard();
-  showToast(`Approved ${studentName}! Induction confirmed.`, "success");
+  showToast(`Application #${appId} marked as ${newStatus}`, "success");
 }
 
-function handleAdminShortlist(appId, studentName) {
-  if (typeof Storage === "undefined") return;
-  Storage.updateApplicationStatus(appId, "SHORTLISTED", "Candidate is shortlisted for Round 1 technical & creative interviews.");
-  refreshAdminDashboard();
-  showToast(`Shortlisted ${studentName} for evaluation rounds.`, "info");
-}
-
-function handleAdminReject(appId, studentName) {
-  const confirmed = window.confirm(`Are you sure you want to decline the candidacy of ${studentName}?`);
-  if (!confirmed) return;
-  if (typeof Storage === "undefined") return;
-  Storage.updateApplicationStatus(appId, "REJECTED", "Thank you for applying. We are unable to offer membership this term.");
-  refreshAdminDashboard();
-  showToast(`Declined application for ${studentName}.`, "error");
-}
-
-// ============================================================
-// MEMBER MANAGEMENT TABLE & ACTIONS
-// ============================================================
-function renderAdminMembers() {
-  const tbody = document.getElementById("admin-members-tbody");
-  if (!tbody) return;
-
-  const searchInput = document.getElementById("admin-member-search");
-  const query = searchInput ? searchInput.value.trim().toLowerCase() : "";
-
-  let filtered = adminMembers.filter(m => {
-    return !query ||
-      m.name.toLowerCase().includes(query) ||
-      m.roll.toLowerCase().includes(query) ||
-      m.clubName.toLowerCase().includes(query) ||
-      m.domain.toLowerCase().includes(query);
-  });
-
-  if (filtered.length === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="6" style="text-align: center; padding: 3rem; color: var(--text-secondary);">
-          No members found matching your search.
-        </td>
-      </tr>
-    `;
-    return;
-  }
-
-  tbody.innerHTML = filtered.map(m => {
-    return `
-      <tr>
-        <td>
-          <div class="candidate-detail-item">
-            <span class="candidate-name">${escapeHTML(m.name)}</span>
-            <span class="candidate-roll">${escapeHTML(m.roll)}</span>
-          </div>
-        </td>
-        <td><strong>${escapeHTML(m.clubName)}</strong></td>
-        <td><span class="badge badge-cat">${escapeHTML(m.role)}</span></td>
-        <td>${escapeHTML(m.domain)}</td>
-        <td><span class="badge badge-status-open">Active Scholar</span></td>
-        <td>
-          <div class="table-action-group">
-            <button 
-              type="button" 
-              class="btn btn-outline btn-sm"
-              onclick="showToast('Member role edit enabled.', 'info')"
-            >
-              Edit Role
-            </button>
-            <button 
-              type="button" 
-              class="btn btn-danger btn-sm"
-              onclick="handleRemoveMember('${m.id}', '${escapeHTML(m.name)}')"
-            >
-              Remove
-            </button>
-          </div>
-        </td>
-      </tr>
-    `;
-  }).join("");
-}
-
-function handleRemoveMember(memberId, name) {
-  const confirmed = window.confirm(`Are you sure you want to revoke active society membership for ${name}?`);
-  if (!confirmed) return;
-
-  adminMembers = adminMembers.filter(m => m.id !== memberId);
-  refreshAdminDashboard();
-  showToast(`Revoked membership for ${name}.`, "info");
-}
-
-// ============================================================
-// EVENT MANAGEMENT TABLE & ACTIONS
-// ============================================================
+// ---------------- EVENTS MANAGER ----------------
 function renderAdminEvents() {
   const tbody = document.getElementById("admin-events-tbody");
   if (!tbody) return;
 
-  if (adminEvents.length === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-secondary);">
-          No scheduled events. Click "Create Event" to schedule an assembly.
-        </td>
-      </tr>
-    `;
+  const events = Storage.getEvents();
+  if (events.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 32px;">No scheduled events.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = adminEvents.map(evt => {
-    const d = new Date(evt.date);
-    const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-
-    return `
-      <tr>
-        <td><strong>${escapeHTML(evt.title)}</strong></td>
-        <td>${escapeHTML(evt.clubName)}</td>
-        <td>${dateStr}</td>
-        <td>📍 ${escapeHTML(evt.venue)}</td>
-        <td>
-          <div class="table-action-group">
-            <button 
-              type="button" 
-              class="btn btn-outline btn-sm"
-              onclick="showToast('Event modification mode opened.', 'info')"
-            >
-              Edit
-            </button>
-            <button 
-              type="button" 
-              class="btn btn-danger btn-sm"
-              onclick="handleDeleteEvent('${evt.id}', '${escapeHTML(evt.title)}')"
-            >
-              Delete
-            </button>
-          </div>
-        </td>
-      </tr>
-    `;
-  }).join("");
+  tbody.innerHTML = events.map(e => `
+    <tr>
+      <td>
+        <div style="font-weight: 700; color: var(--text-main);">${escapeHTML(e.title)}</div>
+        <div style="font-size: 11px; color: var(--primary);">${escapeHTML(e.clubName)}</div>
+      </td>
+      <td><span class="badge badge-primary">${escapeHTML(e.category)}</span></td>
+      <td>
+        <div>${formatDateTime(e.date)}</div>
+        <div style="font-size: 11px; color: var(--text-muted);">${escapeHTML(e.venue)}</div>
+      </td>
+      <td>
+        <strong>${e.registeredCount || 0}</strong> / ${e.capacity || 200}
+      </td>
+      <td>
+        <div style="font-size: 12px;">Fee: ${escapeHTML(e.fee || 'Free')}</div>
+        ${e.prizes ? `<div style="font-size: 11px; color: var(--text-muted);">${escapeHTML(e.prizes)}</div>` : ''}
+      </td>
+      <td>
+        <span class="badge badge-success">ACTIVE &bull; PUBLISHED</span>
+      </td>
+    </tr>
+  `).join("");
 }
 
-function handleDeleteEvent(eventId, title) {
-  const confirmed = window.confirm(`Are you sure you want to cancel the event "${title}"?`);
-  if (!confirmed) return;
+// ---------------- MEMBERS ROSTER ----------------
+function renderAdminMembers() {
+  const tbody = document.getElementById("admin-members-tbody");
+  if (!tbody) return;
 
-  adminEvents = adminEvents.filter(e => e.id !== eventId);
-  refreshAdminDashboard();
-  showToast(`Cancelled event: ${title}`, "info");
+  tbody.innerHTML = adminMembers.map(m => `
+    <tr>
+      <td>
+        <div style="font-weight: 700; color: var(--text-main);">${escapeHTML(m.name)}</div>
+        <div style="font-size: 11px; color: var(--text-muted);">${escapeHTML(m.email)}</div>
+      </td>
+      <td>${escapeHTML(m.roll)}</td>
+      <td>
+        <div style="font-weight: 600;">${escapeHTML(m.clubName)}</div>
+        <div style="font-size: 11px; color: var(--text-secondary);">${escapeHTML(m.domain)}</div>
+      </td>
+      <td><span class="badge badge-primary">${escapeHTML(m.role)}</span></td>
+      <td>${escapeHTML(m.joined)}</td>
+      <td><span class="badge badge-success">ACTIVE</span></td>
+    </tr>
+  `).join("");
 }
 
-// ============================================================
-// CREATE EVENT MODAL
-// ============================================================
+// ---------------- CREATE EVENT MODAL ----------------
 function initCreateEventModal() {
+  const openBtn = document.getElementById("open-create-event-btn");
   const modal = document.getElementById("create-event-modal");
   const form = document.getElementById("create-event-form");
-  const openBtn = document.getElementById("open-create-event-btn");
-  const closeBtn = document.getElementById("modal-event-close-x");
-  const cancelBtn = document.getElementById("modal-event-cancel-btn");
+  const closeBtn = document.getElementById("close-create-event-modal");
 
-  if (!modal || !form) return;
+  if (!openBtn || !modal || !form) return;
 
-  if (openBtn) openBtn.onclick = () => modal.showModal();
-  if (closeBtn) closeBtn.onclick = () => modal.close();
-  if (cancelBtn) cancelBtn.onclick = () => modal.close();
+  openBtn.addEventListener("click", () => {
+    modal.style.display = "flex";
+  });
+
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+  }
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.style.display = "none";
+  });
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
 
-    const title = document.getElementById("evt-title").value.trim();
-    const clubName = document.getElementById("evt-society").value;
-    const date = document.getElementById("evt-date").value;
-    const venue = document.getElementById("evt-venue").value.trim();
-    const type = document.getElementById("evt-type").value;
+    const title = document.getElementById("event-title-input").value.trim();
+    const clubName = document.getElementById("event-club-input").value.trim();
+    const category = document.getElementById("event-type-input").value;
+    const date = document.getElementById("event-date-input").value;
+    const venue = document.getElementById("event-venue-input").value.trim();
+    const fee = document.getElementById("event-fee-input").value.trim() || "Free";
+    const prizes = document.getElementById("event-prizes-input").value.trim();
+    const description = document.getElementById("event-desc-input").value.trim();
 
-    const newEvt = {
-      id: "evt-" + Date.now(),
-      clubId: "gdsc",
-      clubName,
+    Storage.addEvent({
       title,
-      date: date || new Date().toISOString(),
-      venue: venue || "Main Auditorium",
-      type,
-      status: "UPCOMING",
-      attendees: 50,
-      banner: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&auto=format&fit=crop&q=80"
-    };
+      clubName,
+      category,
+      date,
+      venue,
+      fee,
+      prizes,
+      description,
+      banner: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800",
+      tags: [category, "Campus Event"]
+    });
 
-    adminEvents.unshift(newEvt);
-    modal.close();
-    form.reset();
     refreshAdminDashboard();
-    showToast(`Published event "${title}" successfully!`, "success");
+    modal.style.display = "none";
+    form.reset();
+    showToast("Event published! Now live on the Campus Events page.", "success");
   });
 }
 
-function initAdminFilters() {
-  const appSearch = document.getElementById("admin-app-search");
-  const appStatus = document.getElementById("admin-app-status-filter");
-  const memberSearch = document.getElementById("admin-member-search");
+// ---------------- ADD NEW CLUB MODAL ----------------
+function initAddClubModal() {
+  const openBtn = document.getElementById("open-add-club-btn");
+  const modal = document.getElementById("add-club-modal");
+  const form = document.getElementById("add-club-form");
+  const closeBtn = document.getElementById("close-add-club-modal");
 
-  if (appSearch) {
-    appSearch.addEventListener("input", renderAdminApplications);
+  if (!openBtn || !modal || !form) return;
+
+  openBtn.addEventListener("click", () => {
+    modal.style.display = "flex";
+  });
+
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
   }
-  if (appStatus) {
-    appStatus.addEventListener("change", renderAdminApplications);
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.style.display = "none";
+  });
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("new-club-name").value.trim();
+    const acronym = document.getElementById("new-club-acronym").value.trim();
+    const category = document.getElementById("new-club-category").value;
+    const tagline = document.getElementById("new-club-tagline").value.trim();
+    const description = document.getElementById("new-club-desc").value.trim();
+    const meetingInfo = document.getElementById("new-club-meeting").value.trim();
+    const domains = document.getElementById("new-club-domains").value.split(",").map(d => d.trim()).filter(Boolean);
+
+    const newClub = {
+      id: "club-" + Date.now(),
+      name,
+      acronym,
+      category,
+      tagline,
+      description,
+      meetingInfo,
+      domains,
+      memberCount: 20,
+      established: 2026,
+      status: "OPEN",
+      logo: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=160",
+      banner: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1200",
+      achievements: ["Newly chartered campus student society"],
+      coordinators: [{ name: "Core Coordinator", role: "Club Lead", email: "coordinator@tint.edu.in" }],
+      socials: { linkedin: "https://linkedin.com" },
+      tags: [category, "New Club"],
+      featured: true
+    };
+
+    Storage.addClub(newClub);
+    modal.style.display = "none";
+    form.reset();
+    showToast(`Society '${name}' officially chartered and added to the Clubs catalog!`, "success");
+  });
+}
+
+// ---------------- APP DETAIL MODAL ----------------
+function initAppDetailModal() {
+  const modal = document.getElementById("admin-app-detail-modal");
+  const closeBtn = document.getElementById("admin-modal-close");
+
+  if (!modal) return;
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
   }
-  if (memberSearch) {
-    memberSearch.addEventListener("input", renderAdminMembers);
-  }
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.style.display = "none";
+  });
+}
+
+function viewAppDetail(appId) {
+  const app = Storage.getApplicationById(appId);
+  if (!app) return;
+
+  const modal = document.getElementById("admin-app-detail-modal");
+  const nameEl = document.getElementById("admin-modal-applicant-name");
+  const body = document.getElementById("admin-modal-applicant-body");
+
+  nameEl.textContent = `${app.studentName} — Application Review`;
+  body.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
+      <div>
+        <div style="color: var(--text-muted); font-size: 11px;">Target Society &amp; Wing:</div>
+        <div style="font-weight: 700; color: var(--primary);">${escapeHTML(app.clubName)} &bull; ${escapeHTML(app.domain)}</div>
+      </div>
+      <div>
+        <div style="color: var(--text-muted); font-size: 11px;">Candidate Statement of Purpose:</div>
+        <div style="background: var(--bg-surface); padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); line-height: 1.5;">
+          ${escapeHTML(app.statement || 'No statement provided.')}
+        </div>
+      </div>
+      ${app.portfolioUrl ? `
+        <div>
+          <div style="color: var(--text-muted); font-size: 11px;">Portfolio / GitHub:</div>
+          <a href="${escapeHTML(app.portfolioUrl)}" target="_blank" style="color: var(--primary); font-weight: 600;">${escapeHTML(app.portfolioUrl)}</a>
+        </div>
+      ` : ''}
+
+      <div style="margin-top: 10px;">
+        <label class="form-label">Coordinator Feedback / Interview Notes:</label>
+        <textarea id="modal-app-notes" class="form-textarea" rows="2">${escapeHTML(app.interviewNotes || '')}</textarea>
+      </div>
+
+      <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px;">
+        <button class="btn btn-outline btn-sm" onclick="saveAppReview('${app.id}', 'REJECTED')">Reject</button>
+        <button class="btn btn-outline btn-sm" onclick="saveAppReview('${app.id}', 'SHORTLISTED')">Shortlist</button>
+        <button class="btn btn-primary btn-sm" style="background: var(--success); border-color: var(--success);" onclick="saveAppReview('${app.id}', 'APPROVED')">Approve Candidate</button>
+      </div>
+    </div>
+  `;
+
+  modal.style.display = "flex";
+}
+
+function saveAppReview(appId, status) {
+  const notes = document.getElementById("modal-app-notes") ? document.getElementById("modal-app-notes").value.trim() : "";
+  Storage.updateApplicationStatus(appId, status, notes);
+  document.getElementById("admin-app-detail-modal").style.display = "none";
+  refreshAdminDashboard();
+  showToast(`Candidate application updated to ${status}`, "success");
 }

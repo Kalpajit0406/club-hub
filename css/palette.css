@@ -1,0 +1,474 @@
+/* css/palette.css - Live Color Palettes & Palette Switcher UI */
+
+/* 1. Olive & Earthy (eff1ed - 373d20 - 717744 - bcbd8b - 766153) */
+:root[data-palette="olive-earthy"] {
+  --primary: #717744;
+  --primary-hover: #373D20;
+  --primary-light: rgba(188, 189, 139, 0.25);
+  --primary-border: #BCBD8B;
+  --maroon: #717744;
+  --maroon-dark: #373D20;
+  --maroon-hover: #373D20;
+  --bg-page: #EFF1ED;
+  --bg-card: #FFFFFF;
+  --bg-surface: #E6E8E2;
+  --bg-surface-hover: #DADCD4;
+  --text-main: #373D20;
+  --text-secondary: #766153;
+  --text-muted: #766153;
+  --border: #D8DACF;
+  --border-focus: #717744;
+  --gold: #BCBD8B;
+  --gold-light: #EFF1ED;
+}
+:root[data-palette="olive-earthy"][data-theme="dark"] {
+  --primary: #BCBD8B;
+  --primary-hover: #EFF1ED;
+  --primary-light: rgba(113, 119, 68, 0.3);
+  --primary-border: #717744;
+  --bg-page: #1C2012;
+  --bg-card: #272C1A;
+  --bg-surface: #333923;
+  --text-main: #EFF1ED;
+  --text-secondary: #BCBD8B;
+  --border: #3D442B;
+}
+
+/* 2. Solar Blue & Amber (8ecae6 - 219ebc - 023047 - ffb703 - fb8500) */
+:root[data-palette="solar-blue"] {
+  --primary: #219EBC;
+  --primary-hover: #023047;
+  --primary-light: rgba(142, 202, 230, 0.25);
+  --primary-border: #8ECAE6;
+  --maroon: #219EBC;
+  --maroon-dark: #023047;
+  --maroon-hover: #023047;
+  --bg-page: #F0F7FB;
+  --bg-card: #FFFFFF;
+  --bg-surface: #E1EFF6;
+  --bg-surface-hover: #D0E4EE;
+  --text-main: #023047;
+  --text-secondary: #335C6E;
+  --text-muted: #557989;
+  --border: #CDE2EC;
+  --border-focus: #219EBC;
+  --gold: #FB8500;
+  --gold-light: #FFF8EE;
+  --warning: #FB8500;
+  --warning-bg: #FFF7EB;
+}
+:root[data-palette="solar-blue"][data-theme="dark"] {
+  --primary: #8ECAE6;
+  --primary-hover: #FFB703;
+  --primary-light: rgba(33, 158, 188, 0.25);
+  --primary-border: #219EBC;
+  --bg-page: #011824;
+  --bg-card: #042436;
+  --bg-surface: #08324A;
+  --text-main: #F0F7FB;
+  --text-secondary: #8ECAE6;
+  --border: #0C4666;
+}
+
+/* 3. Deep Ocean Gradient (03045e - 023e8a - 0077b6 - 0096c7 - 00b4d8 - 48cae4 - 90e0ef - ade8f4 - caf0f8) */
+:root[data-palette="deep-ocean"] {
+  --primary: #0077B6;
+  --primary-hover: #023E8A;
+  --primary-light: #E0F4FB;
+  --primary-border: #90E0EF;
+  --maroon: #0077B6;
+  --maroon-dark: #03045E;
+  --maroon-hover: #023E8A;
+  --bg-page: #F3FAFD;
+  --bg-card: #FFFFFF;
+  --bg-surface: #E5F5FB;
+  --bg-surface-hover: #D5EFF8;
+  --text-main: #03045E;
+  --text-secondary: #023E8A;
+  --text-muted: #386498;
+  --border: #CAEBF6;
+  --border-focus: #0077B6;
+  --gold: #00B4D8;
+  --gold-light: #CAF0F8;
+}
+:root[data-palette="deep-ocean"][data-theme="dark"] {
+  --primary: #48CAE4;
+  --primary-hover: #90E0EF;
+  --primary-light: rgba(0, 150, 199, 0.25);
+  --primary-border: #0096C7;
+  --bg-page: #02032B;
+  --bg-card: #040942;
+  --bg-surface: #07155B;
+  --text-main: #CAF0F8;
+  --text-secondary: #90E0EF;
+  --border: #0F277A;
+}
+
+/* 4. Nordic Sage & Pine (01161e - 124559 - 598392 - aec3b0 - eff6e0) */
+:root[data-palette="nordic-sage"] {
+  --primary: #124559;
+  --primary-hover: #01161E;
+  --primary-light: rgba(174, 195, 176, 0.3);
+  --primary-border: #AEC3B0;
+  --maroon: #124559;
+  --maroon-dark: #01161E;
+  --maroon-hover: #01161E;
+  --bg-page: #EFF6E0;
+  --bg-card: #FFFFFF;
+  --bg-surface: #E3ECD0;
+  --bg-surface-hover: #D6E1C0;
+  --text-main: #01161E;
+  --text-secondary: #3B5B67;
+  --text-muted: #598392;
+  --border: #C8D7C0;
+  --border-focus: #124559;
+  --gold: #598392;
+  --gold-light: #EFF6E0;
+}
+:root[data-palette="nordic-sage"][data-theme="dark"] {
+  --primary: #AEC3B0;
+  --primary-hover: #EFF6E0;
+  --primary-light: rgba(18, 69, 89, 0.35);
+  --primary-border: #598392;
+  --bg-page: #020D12;
+  --bg-card: #071A21;
+  --bg-surface: #0E2933;
+  --text-main: #EFF6E0;
+  --text-secondary: #AEC3B0;
+  --border: #183C4A;
+}
+
+/* 5. Warm Slate & Cream (0d1321 - 1d2d44 - 3e5c76 - 748cab - f0ebd8) */
+:root[data-palette="warm-slate"] {
+  --primary: #1D2D44;
+  --primary-hover: #0D1321;
+  --primary-light: rgba(116, 140, 171, 0.2);
+  --primary-border: #748CAB;
+  --maroon: #1D2D44;
+  --maroon-dark: #0D1321;
+  --maroon-hover: #0D1321;
+  --bg-page: #F3EFE2;
+  --bg-card: #FFFFFF;
+  --bg-surface: #E8E2D1;
+  --bg-surface-hover: #DCD4BF;
+  --text-main: #0D1321;
+  --text-secondary: #3E5C76;
+  --text-muted: #5C768F;
+  --border: #D5CEBD;
+  --border-focus: #1D2D44;
+  --gold: #748CAB;
+  --gold-light: #F0EBD8;
+}
+:root[data-palette="warm-slate"][data-theme="dark"] {
+  --primary: #748CAB;
+  --primary-hover: #F0EBD8;
+  --primary-light: rgba(29, 45, 68, 0.4);
+  --primary-border: #3E5C76;
+  --bg-page: #080C14;
+  --bg-card: #111824;
+  --bg-surface: #1B2433;
+  --text-main: #F0EBD8;
+  --text-secondary: #748CAB;
+  --border: #263447;
+}
+
+/* 6. Indigo Steel Spectrum (0466c8 - 0353a4 - 023e7d - 002855 - 001845 - 001233 - 33415c - 5c677d - 7d8597 - 979dac) */
+:root[data-palette="indigo-steel"] {
+  --primary: #0466C8;
+  --primary-hover: #0353A4;
+  --primary-light: #E4EEFB;
+  --primary-border: #7D8597;
+  --maroon: #0466C8;
+  --maroon-dark: #002855;
+  --maroon-hover: #023E7D;
+  --bg-page: #F6F8FB;
+  --bg-card: #FFFFFF;
+  --bg-surface: #EAEFF6;
+  --bg-surface-hover: #DEE6F0;
+  --text-main: #001233;
+  --text-secondary: #33415C;
+  --text-muted: #5C677D;
+  --border: #D3DBE6;
+  --border-focus: #0466C8;
+  --gold: #0353A4;
+  --gold-light: #E4EEFB;
+}
+:root[data-palette="indigo-steel"][data-theme="dark"] {
+  --primary: #4A97EB;
+  --primary-hover: #81B9F5;
+  --primary-light: rgba(4, 102, 200, 0.25);
+  --primary-border: #0353A4;
+  --bg-page: #000B1A;
+  --bg-card: #001533;
+  --bg-surface: #00214D;
+  --text-main: #F6F8FB;
+  --text-secondary: #979DAC;
+  --border: #143566;
+}
+
+/* 7. Dusk & Lavender (f1dac4 - a69cac - 474973 - 161b33 - 0d0c1d) */
+:root[data-palette="dusk-lavender"] {
+  --primary: #474973;
+  --primary-hover: #161B33;
+  --primary-light: #F4EFF6;
+  --primary-border: #A69CAC;
+  --maroon: #474973;
+  --maroon-dark: #0D0C1D;
+  --maroon-hover: #161B33;
+  --bg-page: #FAF5F0;
+  --bg-card: #FFFFFF;
+  --bg-surface: #F2E7DC;
+  --bg-surface-hover: #E7D8CA;
+  --text-main: #0D0C1D;
+  --text-secondary: #474973;
+  --text-muted: #6C6C8A;
+  --border: #DFD2C7;
+  --border-focus: #474973;
+  --gold: #A69CAC;
+  --gold-light: #F1DAC4;
+}
+:root[data-palette="dusk-lavender"][data-theme="dark"] {
+  --primary: #A69CAC;
+  --primary-hover: #F1DAC4;
+  --primary-light: rgba(71, 73, 115, 0.35);
+  --primary-border: #474973;
+  --bg-page: #080712;
+  --bg-card: #121021;
+  --bg-surface: #1B1830;
+  --text-main: #F5EAE1;
+  --text-secondary: #A69CAC;
+  --border: #2D274D;
+}
+
+/* 8. Classic Oxford Blues (1d3461 - 1f487e - 376996 - 6290c8 - 829cbc) */
+:root[data-palette="oxford-blues"] {
+  --primary: #1F487E;
+  --primary-hover: #1D3461;
+  --primary-light: #EBF2F9;
+  --primary-border: #6290C8;
+  --maroon: #1F487E;
+  --maroon-dark: #1D3461;
+  --maroon-hover: #1D3461;
+  --bg-page: #F5F8FC;
+  --bg-card: #FFFFFF;
+  --bg-surface: #E8EFF7;
+  --bg-surface-hover: #DAE4F0;
+  --text-main: #1D3461;
+  --text-secondary: #376996;
+  --text-muted: #537FA7;
+  --border: #CDDAEB;
+  --border-focus: #1F487E;
+  --gold: #6290C8;
+  --gold-light: #EBF2F9;
+}
+:root[data-palette="oxford-blues"][data-theme="dark"] {
+  --primary: #6290C8;
+  --primary-hover: #829CBC;
+  --primary-light: rgba(31, 72, 126, 0.3);
+  --primary-border: #376996;
+  --bg-page: #0A1324;
+  --bg-card: #11203A;
+  --bg-surface: #192D4E;
+  --text-main: #F5F8FC;
+  --text-secondary: #829CBC;
+  --border: #243E66;
+}
+
+/* Default ClubHub Royal Blue */
+:root[data-palette="default"], :root:not([data-palette]) {
+  --primary: #2563EB;
+  --primary-hover: #1D4ED8;
+  --primary-light: #EFF6FF;
+  --primary-border: #BFDBFE;
+  --maroon: #2563EB;
+  --maroon-dark: #1E3A8A;
+  --maroon-hover: #1D4ED8;
+  --bg-page: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --bg-surface: #F1F5F9;
+  --bg-surface-hover: #E2E8F0;
+  --text-main: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  --border: #E2E8F0;
+  --border-focus: #2563EB;
+  --gold: #3B82F6;
+  --gold-light: #EFF6FF;
+}
+:root[data-palette="default"][data-theme="dark"], :root:not([data-palette])[data-theme="dark"] {
+  --primary: #3B82F6;
+  --primary-hover: #60A5FA;
+  --primary-light: rgba(37, 99, 235, 0.2);
+  --primary-border: #1D4ED8;
+  --bg-page: #0B0F19;
+  --bg-card: #131B2E;
+  --bg-surface: #1B2640;
+  --text-main: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --border: #223152;
+}
+
+/* ============================================================
+   PALETTE SWITCHER DROPDOWN & WIDGET UI
+   ============================================================ */
+.palette-switcher-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.palette-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-btn);
+  color: var(--text-main);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.palette-btn:hover {
+  background: var(--bg-surface);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.palette-btn-dots {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.palette-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  display: inline-block;
+}
+
+.palette-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 290px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xl);
+  padding: 8px;
+  z-index: 1000;
+  display: none;
+  animation: paletteFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.palette-dropdown-menu.active {
+  display: block;
+}
+
+@keyframes paletteFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.palette-dropdown-header {
+  padding: 8px 10px 6px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+
+.palette-dropdown-header h4 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin: 0 0 2px 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.palette-dropdown-header p {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.palette-item-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.palette-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  border: 1px solid transparent;
+}
+
+.palette-item:hover {
+  background: var(--bg-surface);
+}
+
+.palette-item.selected {
+  background: var(--primary-light);
+  border-color: var(--primary-border);
+}
+
+.palette-item-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.palette-item-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.palette-item-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.palette-swatches {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.palette-swatch-chip {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+/* Floating quick switcher for pages without top navbar */
+.palette-floating-trigger {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 999;
+}
+
