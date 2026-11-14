@@ -45,7 +45,7 @@ function renderJobs() {
   if (filtered.length === 0) {
     grid.innerHTML = `
       <div style="grid-column: 1 / -1; text-align: center; padding: 64px 20px; background: var(--bg-card); border-radius: var(--radius-card); border: 1px dashed var(--border);">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--text-muted); margin-bottom: 12px;"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="color: var(--primary); opacity: 0.85; margin-bottom: 12px;"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
         <h3 style="font-size: 18px; margin-bottom: 6px;">No internship openings match your search</h3>
         <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">Try searching by company name (Microsoft, Google, TCS) or role keywords.</p>
         <button class="btn btn-outline btn-sm" onclick="resetJobSearch()">View All Openings</button>

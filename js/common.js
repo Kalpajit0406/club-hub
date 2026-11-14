@@ -162,7 +162,7 @@ function renderNavAuth() {
     `;
   } else {
     container.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <div class="nav-auth-buttons">
         <a href="login.html" class="btn btn-outline btn-sm">Log In</a>
         <a href="register.html" class="btn btn-primary btn-sm">Register</a>
       </div>

@@ -251,7 +251,8 @@
 }
 
 .event-detail-item svg {
-  color: var(--text-muted);
+  color: var(--primary);
+  stroke: currentColor;
   flex-shrink: 0;
 }
 

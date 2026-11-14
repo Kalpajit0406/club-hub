@@ -38,7 +38,7 @@ function renderPosts() {
   if (filtered.length === 0) {
     list.innerHTML = `
       <div style="text-align: center; padding: 48px 20px; background: var(--bg-card); border-radius: var(--radius-card); border: 1px dashed var(--border);">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--text-muted); margin-bottom: 12px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="color: var(--primary); opacity: 0.85; margin-bottom: 12px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         <h3 style="font-size: 16px; margin-bottom: 6px;">No posts under ${escapeHTML(selectedTag)} yet</h3>
         <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 14px;">Be the first campus scholar to initiate a collaboration discussion.</p>
         <button class="btn btn-outline btn-sm" onclick="resetTagFilter()">View All Posts</button>

@@ -166,7 +166,8 @@
   transform: translateY(-50%);
   width: 17px;
   height: 17px;
-  color: var(--gold);
+  color: var(--primary);
+  stroke: currentColor;
 }
 
 .admin-search-box input {
@@ -175,17 +176,17 @@
   padding-left: 2.35rem;
   padding-right: 1rem;
   border-radius: var(--radius-btn);
-  border: 1px solid var(--border-champagne);
-  background: #FAF7F0;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
   font-size: 0.875rem;
   color: var(--text-main);
 }
 
 .admin-search-box input:focus {
   outline: none;
-  border-color: var(--gold);
-  background: #FFFFFF;
-  box-shadow: 0 0 0 3px rgba(197, 161, 91, 0.25);
+  border-color: var(--primary);
+  background: var(--bg-card);
+  box-shadow: 0 0 0 3px var(--primary-light);
 }
 
 /* Action Buttons Table Cell */

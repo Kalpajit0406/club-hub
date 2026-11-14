@@ -463,39 +463,54 @@
 .palette-btn {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  justify-content: center;
+  gap: 8px;
   height: 38px;
-  padding: 0 12px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  padding: 0 13px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: var(--radius-btn);
-  color: var(--text-main);
-  font-size: 13px;
-  font-weight: 500;
+  color: var(--header-text, #FFFFFF);
+  font-size: 0.85rem;
+  font-weight: 600;
   font-family: 'Inter', sans-serif;
   cursor: pointer;
   transition: all var(--transition-fast);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .palette-btn:hover {
-  background: var(--bg-surface);
-  border-color: var(--primary);
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #FFFFFF;
   transform: translateY(-1px);
 }
 
 .palette-btn-dots {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 3px;
 }
 
 .palette-dot {
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   display: inline-block;
+}
+
+.palette-btn svg {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  vertical-align: middle;
+  flex-shrink: 0;
+  transition: transform var(--transition-fast);
+}
+
+.palette-btn[aria-expanded="true"] svg {
+  transform: rotate(180deg);
 }
 
 .palette-dropdown-menu {

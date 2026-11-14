@@ -106,9 +106,9 @@
 }
 
 .stat-icon-wrapper.maroon {
-  background: #FAF7F0;
-  color: #641E32;
-  border: 1px solid var(--border-champagne);
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid var(--primary-border);
 }
 
 .stat-icon-wrapper.amber {

@@ -35,20 +35,20 @@
   pointer-events: none;
 }
 
-/* PRIMARY ACTION – MAROON: Login, Register, Explore Clubs, Apply Now, Join Club, Submit */
+/* PRIMARY ACTION – DYNAMIC THEME: Login, Register, Explore Clubs, Apply Now, Join Club, Submit */
 .btn-primary,
 .btn-maroon {
-  background-color: #641E32;
+  background-color: var(--primary, #2563EB);
   color: #FFFFFF !important;
-  border-color: #641E32;
-  box-shadow: 0 2px 4px rgba(100, 30, 50, 0.25);
+  border-color: var(--primary, #2563EB);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .btn-primary:hover,
 .btn-maroon:hover {
-  background-color: #3B1422;
-  border-color: #3B1422;
-  box-shadow: 0 4px 10px rgba(59, 20, 34, 0.35);
+  background-color: var(--primary-hover, #1D4ED8);
+  border-color: var(--primary-hover, #1D4ED8);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
   transform: translateY(-1px);
 }
 
@@ -102,47 +102,44 @@
   transform: translateY(-1px);
 }
 
-/* CREATION ACTION – GOLD: Create Event, Add New Club, Publish Announcement, Featured */
+/* CREATION ACTION – GOLD/THEME ACCENT: Create Event, Add New Club, Publish Announcement, Featured */
 .btn-gold,
 .btn-creation {
-  background-color: #C5A15B;
-  color: #3B1422 !important;
-  border-color: #C5A15B;
+  background-color: var(--gold, #C5A15B);
+  color: #FFFFFF !important;
+  border-color: var(--gold, #C5A15B);
   font-weight: 700;
-  box-shadow: 0 2px 5px rgba(197, 161, 91, 0.3);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
 }
 
 .btn-gold:hover,
 .btn-creation:hover {
-  background-color: #AF8845;
-  border-color: #AF8845;
-  color: #3B1422 !important;
-  box-shadow: 0 4px 12px rgba(175, 136, 69, 0.4);
+  filter: brightness(0.92);
   transform: translateY(-1px);
 }
 
 /* SECONDARY ACTION: View Details, Edit Profile, Cancel, Back */
 .btn-outline,
 .btn-secondary {
-  background-color: #FFFFFF;
-  color: #641E32 !important;
-  border: 1px solid #D6C5B5;
+  background-color: var(--bg-card);
+  color: var(--primary, #2563EB) !important;
+  border: 1.5px solid var(--border-focus, var(--primary-border, var(--border)));
   box-shadow: var(--shadow-xs);
 }
 
 .btn-outline:hover,
 .btn-secondary:hover {
-  border-color: #641E32;
-  background-color: var(--bg-surface);
-  color: #3B1422 !important;
+  border-color: var(--primary, #2563EB);
+  background-color: var(--primary-light);
+  color: var(--primary-hover, var(--primary, #2563EB)) !important;
   transform: translateY(-1px);
 }
 
 /* Sizing Modifiers */
 .btn-sm {
-  height: 34px;
-  font-size: 0.8125rem;
-  padding: 0 0.95rem;
+  height: 38px;
+  font-size: 0.825rem;
+  padding: 0 1rem;
   border-radius: var(--radius-sm);
 }
 
@@ -158,6 +155,9 @@
   height: 38px;
   padding: 0;
   border-radius: var(--radius-btn);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ============================================================

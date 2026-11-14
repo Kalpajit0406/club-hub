@@ -126,7 +126,8 @@
 .club-meta-item svg {
   width: 16px;
   height: 16px;
-  color: var(--gold);
+  color: var(--primary);
+  stroke: currentColor;
 }
 
 .club-social-links {
@@ -140,25 +141,26 @@
   width: 36px;
   height: 36px;
   border-radius: var(--radius-btn);
-  background: #FFFFFF;
-  color: var(--maroon);
+  background: var(--bg-card);
+  color: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all var(--transition-fast);
-  border: 1px solid var(--border-champagne);
+  border: 1px solid var(--border);
 }
 
 .club-social-link:hover {
-  background: var(--maroon);
+  background: var(--primary);
   color: #FFFFFF;
-  border-color: var(--maroon);
+  border-color: var(--primary);
   transform: translateY(-1px);
 }
 
 .club-social-link svg {
   width: 17px;
   height: 17px;
+  stroke: currentColor;
 }
 
 /* ============================================================
