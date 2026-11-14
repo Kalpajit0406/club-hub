@@ -311,3 +311,4 @@ Project console: [https://console.firebase.google.com/project/club-hub-9c2de/](h
    pip install firebase-admin
    ```
 6. The provided `backend/firebase_auth.py` will automatically initialize and verify Firebase tokens.
+
