@@ -145,6 +145,12 @@ const Storage = {
     return club;
   },
 
+  saveClubs(clubs) {
+    this.init();
+    localStorage.setItem(STORAGE_KEYS.CLUBS, JSON.stringify(clubs));
+    return clubs;
+  },
+
   getClubById(id) {
     const clubs = this.getClubs();
     return clubs.find(c => c.id === id) || null;
@@ -252,6 +258,12 @@ const Storage = {
     }
   },
 
+  saveEvents(events) {
+    this.init();
+    localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(events));
+    return events;
+  },
+
   getEventById(id) {
     const events = this.getEvents();
     return events.find(e => e.id === id) || null;
@@ -280,26 +292,42 @@ const Storage = {
     }
   },
 
-  registerForEvent(eventId, studentData) {
+  registerForEvent(eventIdOrRecord, maybeStudentData) {
+    let eventId = eventIdOrRecord;
+    let studentData = maybeStudentData;
+
+    // Handle single record object passed from events.js
+    if (typeof eventIdOrRecord === "object" && eventIdOrRecord !== null) {
+      const rec = eventIdOrRecord;
+      eventId = rec.eventId;
+      studentData = {
+        studentName: rec.studentName,
+        studentRoll: rec.rollNumber || rec.studentRoll,
+        studentEmail: rec.email || rec.studentEmail,
+        passCode: rec.passCode
+      };
+    }
+
     const registrations = this.getEventRegistrations();
     const event = this.getEventById(eventId);
     if (!event) return { success: false, message: "Event not found" };
 
-    const existing = registrations.find(r => r.eventId === eventId && r.studentEmail === studentData.studentEmail);
+    const email = (studentData && studentData.studentEmail) || "";
+    const existing = registrations.find(r => r.eventId === eventId && (r.studentEmail || "").toLowerCase() === email.toLowerCase());
     if (existing) {
       return { success: false, message: "You are already registered for this event!", pass: existing };
     }
 
-    const passCode = "PASS-" + Math.floor(1000 + Math.random() * 9000) + "-" + event.id.toUpperCase();
+    const passCode = (studentData && studentData.passCode) || ("PASS-" + Math.floor(1000 + Math.random() * 9000) + "-" + event.id.toUpperCase());
     const newReg = {
       id: "reg-" + Date.now(),
       eventId: event.id,
       eventTitle: event.title,
       eventDate: event.date,
       venue: event.venue,
-      studentName: studentData.studentName,
-      studentRoll: studentData.studentRoll,
-      studentEmail: studentData.studentEmail,
+      studentName: studentData ? studentData.studentName : "Student",
+      studentRoll: studentData ? studentData.studentRoll : "N/A",
+      studentEmail: email,
       passCode,
       registeredAt: new Date().toISOString(),
       status: "CONFIRMED"
@@ -320,8 +348,9 @@ const Storage = {
   },
 
   isRegisteredForEvent(eventId, studentEmail) {
+    if (!studentEmail) return false;
     const registrations = this.getEventRegistrations();
-    return registrations.some(r => r.eventId === eventId && r.studentEmail === studentEmail);
+    return registrations.some(r => r.eventId === eventId && (r.studentEmail || r.email || "").toLowerCase() === studentEmail.toLowerCase());
   },
 
   // ---------------- MARKETPLACE ----------------
@@ -333,6 +362,12 @@ const Storage = {
     } catch (e) {
       return [];
     }
+  },
+
+  saveMarketplaceItems(items) {
+    this.init();
+    localStorage.setItem(STORAGE_KEYS.MARKETPLACE, JSON.stringify(items));
+    return items;
   },
 
   addMarketplaceItem(itemData) {
@@ -368,6 +403,12 @@ const Storage = {
     } catch (e) {
       return [];
     }
+  },
+
+  saveNetworkPosts(posts) {
+    this.init();
+    localStorage.setItem(STORAGE_KEYS.NETWORK_POSTS, JSON.stringify(posts));
+    return posts;
   },
 
   createNetworkPost(postData) {
@@ -430,6 +471,12 @@ const Storage = {
     }
   },
 
+  saveJobs(jobs) {
+    this.init();
+    localStorage.setItem(STORAGE_KEYS.JOBS, JSON.stringify(jobs));
+    return jobs;
+  },
+
   getJobById(id) {
     const jobs = this.getJobs();
     return jobs.find(j => j.id === id) || null;
@@ -455,6 +502,12 @@ const Storage = {
     } catch (e) {
       return [];
     }
+  },
+
+  saveJobApplications(applications) {
+    this.init();
+    localStorage.setItem(STORAGE_KEYS.JOB_APPLICATIONS, JSON.stringify(applications));
+    return applications;
   },
 
   applyForJob(jobId, applicationData) {

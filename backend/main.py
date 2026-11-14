@@ -34,7 +34,7 @@ from backend.routers import (
 # Parse CORS Origins from environment
 raw_cors = os.getenv(
     "CORS_ORIGINS",
-    "http://localhost:8000,http://127.0.0.1:8000,http://localhost:5500,http://127.0.0.1:5500,https://club-hub-inky.vercel.app"
+    "http://localhost:8000,http://127.0.0.1:8000,http://localhost:5500,http://127.0.0.1:5500,https://club-hub-inky.vercel.app,https://club-hub-9c2de.web.app,https://club-hub-9c2de.firebaseapp.com"
 )
 origins = [origin.strip() for origin in raw_cors.split(",") if origin.strip()]
 

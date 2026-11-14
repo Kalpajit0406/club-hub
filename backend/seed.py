@@ -21,13 +21,13 @@ def seed_data():
     try:
         print("[SEED] Checking and seeding users...")
 
-        # 1. Demo Student
+        # 1. Demo Students
         student = db.query(Student).filter(Student.email == "aditya@tint.edu.in").first()
         if not student:
             student = Student(
                 full_name="Aditya Verma",
                 email="aditya@tint.edu.in",
-                password_hash=get_password_hash("student123"),
+                password_hash=get_password_hash("password123"),
                 department="Computer Science & Engineering",
                 year=3,
                 role="student"
@@ -35,9 +35,24 @@ def seed_data():
             db.add(student)
             db.commit()
             db.refresh(student)
-            print(f"  + Created Student: {student.email} (pass: student123)")
+            print(f"  + Created Student: {student.email} (pass: password123)")
         else:
             print(f"  = Student exists: {student.email}")
+
+        student_sec = db.query(Student).filter(Student.email == "aditya.cs23@campus.edu").first()
+        if not student_sec:
+            student_sec = Student(
+                full_name="Aditya Verma",
+                email="aditya.cs23@campus.edu",
+                password_hash=get_password_hash("password123"),
+                department="Computer Science & Engineering",
+                year=2,
+                role="student"
+            )
+            db.add(student_sec)
+            db.commit()
+            db.refresh(student_sec)
+            print(f"  + Created Student: {student_sec.email} (pass: password123)")
 
         # 2. Demo Coordinator
         coordinator = db.query(Student).filter(Student.email == "gdsc.lead@tint.edu.in").first()
