@@ -242,16 +242,39 @@ function initApplicationModal() {
         submitBtn.innerHTML = "Submitting...";
       }
 
-      await API.submitJoinRequest(currentClub.id, motivation, skills);
-      showToast("Join request submitted successfully! Your status is now Pending.", "success");
+      const res = await API.submitJoinRequest(currentClub.id, motivation, skills);
 
       if (typeof modal.close === "function") modal.close();
       else modal.style.display = "none";
 
+      if (res && res.status === "Approved") {
+        currentClub.user_status = "member";
+        showToast("You are an active member of this society!", "success");
+      } else {
+        currentClub.user_status = "pending";
+        showToast("Join request submitted successfully! Your status is now Pending.", "success");
+      }
+
+      updateJoinButtonState();
       await loadClubData();
 
     } catch (err) {
-      showToast(err.message || "Failed to submit application.", "error");
+      const msg = err.message || "";
+      if (msg.includes("already an active member")) {
+        currentClub.user_status = "member";
+        if (typeof modal.close === "function") modal.close();
+        else modal.style.display = "none";
+        updateJoinButtonState();
+        showToast("You are already an active member of this society.", "info");
+      } else if (msg.includes("already have a pending") || msg.includes("already pending")) {
+        currentClub.user_status = "pending";
+        if (typeof modal.close === "function") modal.close();
+        else modal.style.display = "none";
+        updateJoinButtonState();
+        showToast("You already have a pending join request for this society.", "info");
+      } else {
+        showToast(msg || "Failed to submit application.", "error");
+      }
     } finally {
       if (submitBtn) {
         submitBtn.disabled = false;

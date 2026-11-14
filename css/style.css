@@ -107,49 +107,52 @@
 }
 
 /* ============================================================
-   DARK THEME (Midnight Navy Enterprise Mode)
+   DARK THEME (Humanized Modern Collegiate Mode)
    ============================================================ */
 [data-theme="dark"] {
-  --primary: #4F75F2;
+  --primary: #6366F1;
   --primary-color: var(--primary);
-  --primary-hover: #6B8CF6;
-  --primary-light: rgba(79, 117, 242, 0.16);
-  --primary-border: rgba(79, 117, 242, 0.35);
+  --primary-hover: #818CF8;
+  --primary-light: rgba(99, 102, 241, 0.15);
+  --primary-border: rgba(99, 102, 241, 0.4);
 
-  --bg-page: #0B1220;
-  --bg-card: #111A2E;
-  --bg-surface: #17223B;
-  --bg-surface-hover: #1E2D4D;
+  --bg-page: #0B0F17;
+  --bg-card: #131B2A;
+  --bg-surface: #1A2336;
+  --bg-surface-hover: #222E46;
 
-  --text-main: #FFFFFF;
+  --text-main: #F1F5F9;
   --text-primary: var(--text-main);
   --text-secondary: #94A3B8;
   --text-muted: #64748B;
   --text-light: #475569;
-  --text-inverse: #0B1220;
+  --text-inverse: #0B0F17;
 
-  --border: #1E293B;
+  --border: rgba(255, 255, 255, 0.08);
   --border-color: var(--border);
-  --border-strong: #334155;
-  --border-focus: #4F75F2;
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --border-focus: #6366F1;
 
-  --header-bg: #0B1220;
-  --header-border: #1E293B;
-  --footer-bg: #060A12;
-  --footer-border: #1E293B;
+  --header-bg: rgba(11, 15, 23, 0.88);
+  --header-border: rgba(255, 255, 255, 0.08);
+  --footer-bg: #080C14;
+  --footer-border: rgba(255, 255, 255, 0.08);
 
-  --success-bg: rgba(21, 128, 61, 0.2);
-  --success-border: rgba(21, 128, 61, 0.4);
-  --warning-bg: rgba(180, 83, 9, 0.2);
-  --warning-border: rgba(180, 83, 9, 0.4);
-  --danger-bg: rgba(185, 28, 28, 0.2);
-  --danger-border: rgba(185, 28, 28, 0.4);
+  --success: #34D399;
+  --success-bg: rgba(16, 185, 129, 0.12);
+  --success-border: rgba(16, 185, 129, 0.28);
+  --warning: #FBBF24;
+  --warning-bg: rgba(245, 158, 11, 0.12);
+  --warning-border: rgba(245, 158, 11, 0.28);
+  --danger: #F87171;
+  --danger-bg: rgba(239, 68, 68, 0.12);
+  --danger-border: rgba(239, 68, 68, 0.28);
 
   --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
   --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.45);
   --shadow-md: 0 4px 10px 0 rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 10px 20px 0 rgba(0, 0, 0, 0.55);
-  --shadow-card-hover: 0 12px 28px -4px rgba(0, 0, 0, 0.65);
+  --shadow-card-hover: 0 12px 28px -4px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 /* ============================================================

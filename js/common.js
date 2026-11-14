@@ -113,14 +113,15 @@ function highlightActiveNavLink() {
 // ---------------- NAVIGATION COUNTER BADGES ----------------
 function updateNavBadges() {
   const badgeEl = document.getElementById("nav-app-count");
-  if (badgeEl && typeof Storage !== "undefined") {
-    const apps = Storage.getApplications();
-    if (apps.length > 0) {
-      badgeEl.textContent = apps.length;
-      badgeEl.style.display = "inline-flex";
-    } else {
-      badgeEl.style.display = "none";
-    }
+  if (!badgeEl) return;
+  const count = (typeof API !== "undefined" && typeof API.getLocalApplications === "function")
+    ? API.getLocalApplications().length
+    : (typeof Storage !== "undefined" && typeof Storage.getApplications === "function" ? Storage.getApplications().length : 0);
+  if (count > 0) {
+    badgeEl.textContent = count;
+    badgeEl.style.display = "inline-flex";
+  } else {
+    badgeEl.style.display = "none";
   }
 }
 

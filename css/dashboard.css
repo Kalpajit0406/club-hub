@@ -318,7 +318,8 @@
 [data-theme="dark"] .profile-info h1,
 [data-theme="dark"] .app-club-title,
 [data-theme="dark"] .profile-details-card h3 {
-  color: var(--gold);
+  color: var(--text-main);
+  font-weight: 700;
 }
 
 [data-theme="dark"] .dashboard-stat-card,
@@ -326,6 +327,7 @@
 [data-theme="dark"] .profile-details-card {
   background: var(--bg-card);
   border-color: var(--border);
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.4);
 }
 
 [data-theme="dark"] .app-details-grid {
@@ -334,18 +336,20 @@
 }
 
 [data-theme="dark"] .stat-icon-wrapper.maroon {
-  background: var(--bg-surface);
-  color: var(--gold);
-  border-color: var(--border);
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--primary-hover);
+  border-color: rgba(99, 102, 241, 0.25);
 }
 
 [data-theme="dark"] .dashboard-tab-btn.active {
-  color: var(--gold);
+  color: var(--primary-hover);
+  border-bottom-color: var(--primary);
 }
 
 [data-theme="dark"] .dashboard-tab-btn.active .tab-badge {
-  background: var(--gold);
-  color: #3B1422;
+  background: rgba(99, 102, 241, 0.18);
+  color: var(--primary-hover);
+  border: 1px solid rgba(99, 102, 241, 0.3);
 }
 
 

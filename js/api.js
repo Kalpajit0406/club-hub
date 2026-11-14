@@ -247,6 +247,48 @@ const API = {
     };
   },
 
+  // Client Applications Cache (Local persistence for offline/serverless resilience)
+  getLocalApplications() {
+    try {
+      const data = localStorage.getItem("clubhub_local_applications");
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      return [];
+    }
+  },
+
+  saveLocalApplication(app) {
+    if (!app || !app.club_id) return;
+    const apps = this.getLocalApplications();
+    const existingIdx = apps.findIndex(a => Number(a.club_id) === Number(app.club_id));
+    if (existingIdx > -1) {
+      apps[existingIdx] = { ...apps[existingIdx], ...app };
+    } else {
+      apps.push(app);
+    }
+    try {
+      localStorage.setItem("clubhub_local_applications", JSON.stringify(apps));
+    } catch (e) {}
+  },
+
+  getUserClubStatus(clubId, defaultStatus = "none") {
+    const user = this.getCurrentUser();
+    if (!user) return "none";
+    if (user.role === "admin") return "admin";
+
+    const localApps = this.getLocalApplications();
+    const match = localApps.find(a => Number(a.club_id) === Number(clubId));
+    if (match) {
+      const s = (match.status || "").toLowerCase();
+      if (s === "approved") return "member";
+      if (s === "pending") return "pending";
+      if (s === "rejected") return "rejected";
+    }
+
+    if (defaultStatus && defaultStatus !== "none") return defaultStatus;
+    return "none";
+  },
+
   // Clubs
   async getClubs(params = {}) {
     const query = new URLSearchParams();
@@ -258,17 +300,23 @@ const API = {
     if (params.sort) query.set("sort", params.sort);
 
     const qs = query.toString() ? `?${query.toString()}` : "";
+    let result = [];
     try {
       const data = await this.request(`/clubs${qs}`);
-      if (Array.isArray(data) && data.length > 0) return data;
+      if (Array.isArray(data) && data.length > 0) result = data;
     } catch (e) {
       console.warn("Backend /clubs endpoint unavailable, using collegiate seed catalog:", e.message || e);
     }
 
-    if (typeof CLUBS_DATA !== "undefined" && CLUBS_DATA.length > 0) {
-      return this.filterFallbackClubs(CLUBS_DATA, params);
+    if (result.length === 0 && typeof CLUBS_DATA !== "undefined" && CLUBS_DATA.length > 0) {
+      result = this.filterFallbackClubs(CLUBS_DATA, params);
     }
-    return [];
+
+    // Enhance every club with user status
+    return result.map(c => {
+      const status = this.getUserClubStatus(c.id, c.user_status);
+      return { ...c, user_status: status };
+    });
   },
 
   filterFallbackClubs(clubs, params = {}) {
@@ -291,15 +339,17 @@ const API = {
   },
 
   async getClub(id) {
+    let club = null;
     try {
-      return await this.request(`/clubs/${id}`);
+      club = await this.request(`/clubs/${id}`);
     } catch (e) {
       if (typeof CLUBS_DATA !== "undefined") {
-        const found = CLUBS_DATA.find(c => String(c.id) === String(id));
-        if (found) return found;
+        club = CLUBS_DATA.find(c => String(c.id) === String(id));
       }
-      throw e;
     }
+    if (!club) throw new Error("Society not found.");
+    const status = this.getUserClubStatus(club.id, club.user_status);
+    return { ...club, user_status: status };
   },
 
   async createClub(payload) {
@@ -340,18 +390,99 @@ const API = {
 
   // Join Requests / Applications
   async submitJoinRequest(clubId, reason = "", skills = "") {
-    return await this.request("/applications", {
-      method: "POST",
-      body: {
+    const user = this.getCurrentUser();
+    if (!user) {
+      throw new Error("Please log in to submit a join request.");
+    }
+
+    // Pre-check if already pending or member locally
+    const currentStatus = this.getUserClubStatus(clubId);
+    if (currentStatus === "member") {
+      throw new Error("You are already an active member of this society.");
+    }
+    if (currentStatus === "pending") {
+      return {
+        id: Date.now(),
         club_id: Number(clubId),
-        reason_for_joining: reason || "Interested in joining society",
-        skills: skills || "General"
+        student_id: user.id,
+        status: "Pending",
+        is_existing: true,
+        message: "You already have a pending join request."
+      };
+    }
+
+    const payload = {
+      club_id: Number(clubId),
+      reason_for_joining: reason || "Interested in participating in society events and projects",
+      skills: skills || "General"
+    };
+
+    try {
+      const res = await this.request("/applications", {
+        method: "POST",
+        body: payload
+      });
+      this.saveLocalApplication(res);
+      return res;
+    } catch (err) {
+      const errMsg = (err.message || "").toLowerCase();
+      if (errMsg.includes("already have a pending") || errMsg.includes("already pending")) {
+        const app = {
+          id: Date.now(),
+          club_id: Number(clubId),
+          student_id: user.id,
+          status: "Pending",
+          reason_for_joining: payload.reason_for_joining,
+          skills: payload.skills,
+          applied_at: new Date().toISOString()
+        };
+        this.saveLocalApplication(app);
+        return app;
       }
-    });
+      if (errMsg.includes("already an active member") || errMsg.includes("already approved")) {
+        const app = {
+          id: Date.now(),
+          club_id: Number(clubId),
+          student_id: user.id,
+          status: "Approved",
+          applied_at: new Date().toISOString()
+        };
+        this.saveLocalApplication(app);
+        throw new Error("You are already an active member of this society.");
+      }
+
+      // Offline / Serverless fallback: persist application locally
+      const localApp = {
+        id: Date.now(),
+        club_id: Number(clubId),
+        student_id: user.id,
+        status: "Pending",
+        reason_for_joining: payload.reason_for_joining,
+        skills: payload.skills,
+        applied_at: new Date().toISOString()
+      };
+      this.saveLocalApplication(localApp);
+      return localApp;
+    }
   },
 
   async getMyApplications() {
-    return await this.request("/applications/my");
+    let remoteApps = [];
+    try {
+      const data = await this.request("/applications/my");
+      if (Array.isArray(data)) remoteApps = data;
+    } catch (e) {
+      console.warn("Backend /applications/my endpoint unavailable, using local applications:", e.message || e);
+    }
+    const localApps = this.getLocalApplications();
+    const mergedMap = new Map();
+    remoteApps.forEach(a => mergedMap.set(Number(a.club_id), a));
+    localApps.forEach(a => {
+      if (!mergedMap.has(Number(a.club_id))) {
+        mergedMap.set(Number(a.club_id), a);
+      }
+    });
+    return Array.from(mergedMap.values());
   },
 
   async updateApplicationStatus(applicationId, status) {

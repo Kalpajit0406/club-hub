@@ -998,40 +998,57 @@ dialog.modal::backdrop {
 }
 
 /* ============================================================
-   DARK MODE OVERRIDES FOR COMPONENTS
+   DARK MODE OVERRIDES FOR COMPONENTS (Humanized, Elevated Slate)
    ============================================================ */
 [data-theme="dark"] .club-card {
   background-color: var(--bg-card);
   border-color: var(--border);
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .club-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 [data-theme="dark"] .club-card-avatar {
   border-color: var(--bg-card);
-  background-color: var(--bg-card);
+  background-color: var(--bg-surface);
 }
 
 [data-theme="dark"] .club-card-bookmark-btn {
-  background: rgba(35, 27, 30, 0.9);
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
   border-color: var(--border);
   color: var(--text-secondary);
 }
 
+[data-theme="dark"] .club-card-bookmark-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+}
+
 [data-theme="dark"] .club-card-title {
-  color: var(--gold);
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+[data-theme="dark"] .club-card:hover .club-card-title {
+  color: var(--primary-hover);
 }
 
 [data-theme="dark"] .btn-outline,
 [data-theme="dark"] .btn-secondary {
-  background-color: var(--bg-card);
+  background-color: rgba(255, 255, 255, 0.04);
   color: var(--text-main) !important;
   border-color: var(--border);
 }
 
 [data-theme="dark"] .btn-outline:hover,
 [data-theme="dark"] .btn-secondary:hover {
-  background-color: var(--bg-surface);
-  border-color: var(--gold);
-  color: var(--gold) !important;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--border-strong);
+  color: #FFFFFF !important;
 }
 
 [data-theme="dark"] .form-input,
@@ -1042,9 +1059,19 @@ dialog.modal::backdrop {
   border-color: var(--border);
 }
 
-[data-theme="dark"] dialog.modal {
+[data-theme="dark"] .form-input:focus,
+[data-theme="dark"] .form-select:focus,
+[data-theme="dark"] .form-textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+  background-color: var(--bg-card);
+}
+
+[data-theme="dark"] dialog.modal,
+[data-theme="dark"] .modal-inner {
   background: var(--bg-card);
   border-color: var(--border);
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 [data-theme="dark"] .modal-header,
@@ -1054,7 +1081,8 @@ dialog.modal::backdrop {
 }
 
 [data-theme="dark"] .modal-title {
-  color: var(--gold);
+  color: var(--text-main);
+  font-weight: 700;
 }
 
 [data-theme="dark"] .table-responsive {
@@ -1064,16 +1092,18 @@ dialog.modal::backdrop {
 
 [data-theme="dark"] .data-table th {
   background-color: var(--bg-surface);
-  color: var(--gold);
+  color: var(--text-secondary);
+  font-weight: 600;
   border-bottom-color: var(--border);
 }
 
 [data-theme="dark"] .data-table td {
   border-bottom-color: var(--border);
+  color: var(--text-main);
 }
 
 [data-theme="dark"] .data-table tbody tr:hover td {
-  background-color: var(--bg-surface);
+  background-color: var(--bg-surface-hover);
 }
 
 [data-theme="dark"] .empty-state {
@@ -1082,13 +1112,15 @@ dialog.modal::backdrop {
 }
 
 [data-theme="dark"] .empty-state-title {
-  color: var(--gold);
+  color: var(--text-main);
+  font-weight: 700;
 }
 
 [data-theme="dark"] .toast {
   background: var(--bg-card);
   border-color: var(--border);
   color: var(--text-main);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 /* ============================================================

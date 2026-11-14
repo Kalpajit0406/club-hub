@@ -195,10 +195,10 @@ async function loadAndRenderClubs() {
       } else if (club.user_status === "pending") {
         actionBtnHtml = `<button type="button" class="btn btn-warning btn-sm" disabled style="opacity: 0.9; cursor: default;">Request Pending</button>`;
       } else if (club.user_status === "rejected") {
-        actionBtnHtml = `<button type="button" class="btn btn-outline btn-sm" style="color: var(--danger); border-color: var(--danger);" onclick="handleJoinClub(${club.id})">Rejected (Request Again)</button>`;
+        actionBtnHtml = `<button type="button" class="btn btn-outline btn-sm" style="color: var(--danger); border-color: var(--danger);" onclick="handleJoinClub(${club.id}, event)">Rejected (Request Again)</button>`;
       } else {
         if (isRecruiting) {
-          actionBtnHtml = `<button type="button" class="btn btn-cta btn-sm btn-join-club" onclick="handleJoinClub(${club.id})">Join Club</button>`;
+          actionBtnHtml = `<button type="button" class="btn btn-cta btn-sm btn-join-club" onclick="handleJoinClub(${club.id}, event)">Join Club</button>`;
         } else {
           actionBtnHtml = `<button type="button" class="btn btn-outline btn-sm" disabled style="opacity: 0.6;">Closed</button>`;
         }
@@ -280,17 +280,53 @@ function getCategoryClass(cat) {
   return "tag-tech";
 }
 
-async function handleJoinClub(clubId) {
+async function handleJoinClub(clubId, event) {
   const user = requireAuth();
   if (!user) return;
 
+  const btn = event ? (event.currentTarget || event.target) : null;
+  const originalHtml = btn ? btn.innerHTML : "Join Club";
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner" style="display:inline-block; width:12px; height:12px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:spin 0.6s linear infinite; vertical-align:middle; margin-right:4px;"></span> Submitting...`;
+  }
+
   try {
     showToast("Submitting your join request...", "info");
-    await API.submitJoinRequest(clubId);
-    showToast("Join request submitted successfully! Your status is now Pending.", "success");
+    const res = await API.submitJoinRequest(clubId);
+    
+    if (res && res.status === "Approved") {
+      showToast("You are an active member of this society!", "success");
+      if (btn) {
+        btn.outerHTML = `<span class="badge-status-member" style="padding: 6px 14px; border-radius: var(--radius-btn); font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">✓ Member</span>`;
+      }
+    } else {
+      showToast("Join request submitted! Status is now Pending.", "success");
+      if (btn) {
+        btn.outerHTML = `<button type="button" class="btn btn-warning btn-sm" disabled style="opacity: 0.9; cursor: default;">Request Pending</button>`;
+      }
+    }
     await loadAndRenderClubs();
   } catch (err) {
-    showToast(err.message || "Failed to submit join request.", "error");
+    const msg = err.message || "";
+    if (msg.includes("already an active member")) {
+      showToast("You are already an active member of this society.", "info");
+      if (btn) {
+        btn.outerHTML = `<span class="badge-status-member" style="padding: 6px 14px; border-radius: var(--radius-btn); font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">✓ Member</span>`;
+      }
+    } else if (msg.includes("already have a pending") || msg.includes("already pending")) {
+      showToast("You already have a pending join request for this society.", "info");
+      if (btn) {
+        btn.outerHTML = `<button type="button" class="btn btn-warning btn-sm" disabled style="opacity: 0.9; cursor: default;">Request Pending</button>`;
+      }
+    } else {
+      showToast(msg || "Failed to submit join request.", "error");
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+      }
+    }
   }
 }
 
