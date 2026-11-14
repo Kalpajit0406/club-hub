@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign In | ClubHub — Smart Campus OS</title>
-  <meta name="description" content="Sign in to your ClubHub account to explore clubs, register for campus events, buy textbooks in marketplace, and apply for internships.">
+  <meta name="description" content="Sign in to your ClubHub account to explore clubs, register for campus events, collaborate with peers, and view verified digital badges.">
 
   <!-- Anti-Flicker Theme & Palette Init -->
   <script>
     (function() {
       var savedTheme = localStorage.getItem("clubhub_theme_mode_v2") || "light";
-      var savedPalette = localStorage.getItem("clubhub_active_palette") || "default";
+      var savedPalette = localStorage.getItem("clubhub_active_palette") || "indigo-steel";
       document.documentElement.setAttribute("data-theme", savedTheme);
       document.documentElement.setAttribute("data-palette", savedPalette);
     })();
@@ -37,41 +37,12 @@
         <span class="brand-name">Club<span>Hub</span></span>
       </a>
       <h1 class="auth-title">Welcome to ClubHub</h1>
-      <p class="auth-subtitle">The all-in-one university campus operating system for societies, hackathons, marketplace, and placements.</p>
+      <p class="auth-subtitle">The all-in-one smart campus platform for university clubs, events, collab feeds, and digital badges.</p>
     </div>
 
     <!-- AUTH CARD -->
     <div class="auth-card">
       <div id="auth-alert" class="auth-alert" role="alert"></div>
-
-      <!-- 1-CLICK INSTANT DEMO LOGINS -->
-      <div class="demo-login-box">
-        <label class="demo-login-label">
-          ⚡ 1-Click Instant Demo Access:
-        </label>
-        <div class="demo-roles-grid">
-          <button type="button" class="demo-role-btn" data-demo-role="student">
-            <span class="demo-role-icon">🎓</span>
-            <span class="demo-role-title">Student</span>
-            <span class="demo-role-sub">Aditya</span>
-          </button>
-          <button type="button" class="demo-role-btn" data-demo-role="admin">
-            <span class="demo-role-icon">⚡</span>
-            <span class="demo-role-title">Lead</span>
-            <span class="demo-role-sub">GDSC</span>
-          </button>
-          <button type="button" class="demo-role-btn" data-demo-role="recruiter">
-            <span class="demo-role-icon">💼</span>
-            <span class="demo-role-title">Recruiter</span>
-            <span class="demo-role-sub">Microsoft</span>
-          </button>
-          <button type="button" class="demo-role-btn" data-demo-role="secretariat">
-            <span class="demo-role-icon">🏛️</span>
-            <span class="demo-role-title">Admin</span>
-            <span class="demo-role-sub">Office</span>
-          </button>
-        </div>
-      </div>
 
       <form id="login-form">
         <div class="form-group" style="margin-bottom: 16px;">
@@ -80,7 +51,7 @@
             type="email" 
             id="login-email" 
             class="form-input" 
-            placeholder="e.g. aditya@tint.edu.in" 
+            placeholder="e.g. student@campus.edu" 
             required 
             autocomplete="email"
           >
@@ -103,15 +74,7 @@
           </div>
         </div>
 
-        <div class="auth-options-row">
-          <label class="auth-checkbox-label">
-            <input type="checkbox" id="remember-me" checked>
-            <span>Remember session</span>
-          </label>
-          <a href="#" class="auth-link" onclick="if(typeof UIStates!=='undefined') UIStates.showToast('Password reset link sent to registered email.', 'info')">Forgot password?</a>
-        </div>
-
-        <button type="submit" class="btn btn-primary btn-block btn-lg">
+        <button type="submit" class="btn btn-primary auth-submit-btn" style="width: 100%; margin-top: 10px;">
           Sign In to ClubHub
         </button>
 
@@ -135,6 +98,7 @@
   <script src="js/states.js"></script>
   <script src="js/brand.js"></script>
   <script src="js/data.js"></script>
+  <script src="js/api.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/palette.js"></script>
   <script src="js/common.js"></script>

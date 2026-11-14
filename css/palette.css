@@ -1,5 +1,185 @@
 /* css/palette.css - Live Color Palettes & Palette Switcher UI */
 
+/* ============================================================
+   INDIGO STEEL SPECTRUM (DEFAULT CAMPUS THEME)
+   ============================================================ */
+:root,
+:root[data-palette="indigo-steel"],
+:root[data-palette="default"] {
+  --primary: #4F46E5;
+  --primary-hover: #4338CA;
+  --primary-light: rgba(79, 70, 229, 0.12);
+  --primary-border: #818CF8;
+
+  --deep-indigo: #1E1B4B;
+  --maroon: #4F46E5;
+  --maroon-dark: #1E1B4B;
+  --maroon-hover: #4338CA;
+
+  --bg-page: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --bg-surface: #F1F5F9;
+  --bg-surface-hover: #E2E8F0;
+
+  --text-main: #0F172A;
+  --text-secondary: #64748B;
+  --text-muted: #64748B;
+  --steel-text: #64748B;
+
+  --border: #E2E8F0;
+  --border-focus: #4F46E5;
+
+  /* Warm accent (Main CTAs: Join Club, Register, Approve) */
+  --warm-accent: #F59E0B;
+  --warm-accent-hover: #D97706;
+  --coral-accent: #F97316;
+
+  /* Status Colors */
+  --status-member: #10B981;
+  --status-pending: #F59E0B;
+  --status-rejected: #EF4444;
+
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+
+  /* Header & Footer */
+  --header-bg: #1E1B4B;
+  --header-border: rgba(255, 255, 255, 0.12);
+  --header-text: #FFFFFF;
+  --header-nav-link: #CBD5E1;
+  --header-nav-link-hover: #FFFFFF;
+  --footer-bg: #1E1B4B;
+  --footer-border: rgba(255, 255, 255, 0.12);
+  --footer-text: #FFFFFF;
+  --footer-muted: #94A3B8;
+}
+
+:root[data-theme="dark"],
+:root[data-palette="indigo-steel"][data-theme="dark"],
+:root[data-palette="default"][data-theme="dark"] {
+  --primary: #818CF8;
+  --primary-hover: #A5B4FC;
+  --primary-light: rgba(99, 102, 241, 0.2);
+  --primary-border: #6366F1;
+
+  --bg-page: #0F172A;
+  --bg-card: #1E293B;
+  --bg-surface: #1E1B4B;
+  --bg-surface-hover: #312E81;
+
+  --text-main: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #94A3B8;
+  --steel-text: #94A3B8;
+
+  --border: #334155;
+  --border-focus: #818CF8;
+
+  --header-bg: #0F172A;
+  --header-border: #334155;
+  --footer-bg: #0F172A;
+  --footer-border: #334155;
+}
+
+/* Warm Action CTA Buttons (Join Club, Register, Approve) */
+.btn-cta, .btn-warm, .btn-join-club {
+  background: linear-gradient(135deg, #F59E0B 0%, #F97316 100%) !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3) !important;
+  transition: all var(--transition-fast) !important;
+}
+.btn-cta:hover, .btn-warm:hover, .btn-join-club:hover {
+  background: linear-gradient(135deg, #D97706 0%, #EA580C 100%) !important;
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.45) !important;
+  transform: translateY(-2px);
+}
+
+/* Status Badges */
+.badge-status-member, .badge-status-approved {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #10B981 !important;
+  border: 1px solid rgba(16, 185, 129, 0.35) !important;
+  font-weight: 700 !important;
+}
+.badge-status-pending {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #F59E0B !important;
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+  font-weight: 700 !important;
+}
+.badge-status-rejected {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #EF4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.35) !important;
+  font-weight: 700 !important;
+}
+
+/* Subtle indigo-to-violet gradient on hero heading and navbar */
+.hero-gradient-title {
+  background: linear-gradient(135deg, #1E1B4B 0%, #4F46E5 50%, #7C3AED 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+:root[data-theme="dark"] .hero-gradient-title {
+  background: linear-gradient(135deg, #FFFFFF 0%, #818CF8 50%, #C084FC 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Navbar Spectrum Feel */
+.navbar {
+  background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #4338CA 100%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+.navbar .brand-name {
+  color: #FFFFFF !important;
+}
+.navbar .brand-name span {
+  color: #F59E0B !important;
+}
+.navbar .nav-link {
+  color: #CBD5E1 !important;
+}
+.navbar .nav-link:hover, .navbar .nav-link.active {
+  color: #FFFFFF !important;
+  background: rgba(255, 255, 255, 0.14) !important;
+}
+
+/* Category Tags with Distinct Colors */
+.tag-tech, .badge-category-technical, [data-category="Technical"] {
+  background: rgba(79, 70, 229, 0.12) !important;
+  color: #4F46E5 !important;
+  border: 1px solid rgba(79, 70, 229, 0.3) !important;
+}
+.tag-cultural, .badge-category-cultural, [data-category="Cultural"] {
+  background: rgba(168, 85, 247, 0.12) !important;
+  color: #9333EA !important;
+  border: 1px solid rgba(168, 85, 247, 0.3) !important;
+}
+.tag-sports, .badge-category-sports, [data-category="Sports"] {
+  background: rgba(16, 185, 129, 0.12) !important;
+  color: #059669 !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+.tag-literary, .badge-category-literary, [data-category="Literary"] {
+  background: rgba(14, 165, 233, 0.12) !important;
+  color: #0284C7 !important;
+  border: 1px solid rgba(14, 165, 233, 0.3) !important;
+}
+.tag-social, .badge-category-social, [data-category="Social"] {
+  background: rgba(244, 63, 94, 0.12) !important;
+  color: #E11D48 !important;
+  border: 1px solid rgba(244, 63, 94, 0.3) !important;
+}
+.tag-ecell, .badge-category-entrepreneurship, [data-category="Entrepreneurship"] {
+  background: rgba(245, 158, 11, 0.12) !important;
+  color: #D97706 !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+}
+
 /* 1. Olive & Earthy (eff1ed - 373d20 - 717744 - bcbd8b - 766153) */
 :root[data-palette="olive-earthy"] {
   --primary: #717744;

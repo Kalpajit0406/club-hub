@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Student Command Center &amp; Tracker | ClubHub</title>
-  <meta name="description" content="Track your club applications, view digital event passes, manage your listed marketplace items, and inspect verified achievement badges.">
+  <meta name="description" content="Track your club memberships, pending join requests, event access passes, and verified achievement badges.">
 
   <!-- Anti-Flicker Theme & Palette Init -->
   <script>
     (function() {
       var savedTheme = localStorage.getItem("clubhub_theme_mode_v2") || "light";
-      var savedPalette = localStorage.getItem("clubhub_active_palette") || "default";
+      var savedPalette = localStorage.getItem("clubhub_active_palette") || "indigo-steel";
       document.documentElement.setAttribute("data-theme", savedTheme);
       document.documentElement.setAttribute("data-palette", savedPalette);
     })();
@@ -39,9 +39,8 @@
       <nav class="nav-links">
         <a href="clubs.html" class="nav-link">Clubs</a>
         <a href="events.html" class="nav-link">Events</a>
-        <a href="marketplace.html" class="nav-link">Marketplace</a>
         <a href="network.html" class="nav-link">Network</a>
-        <a href="recruiters.html" class="nav-link">Placements</a>
+        <a href="dashboard.html" class="nav-link active">Dashboard</a>
       </nav>
 
       <div class="nav-actions">
@@ -58,25 +57,23 @@
     <div class="container">
       <div class="profile-card">
         <div class="profile-identity">
-          <div class="profile-avatar" id="dash-user-avatar">AV</div>
+          <div class="profile-avatar" id="dash-user-avatar">ST</div>
           <div class="profile-info">
-            <h1 id="dash-user-name">Aditya Verma</h1>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <h1 id="dash-user-name" style="margin: 0;">Student User</h1>
+              <span id="dash-user-role" class="badge badge-primary" style="font-size: 11px;">Student</span>
+            </div>
             <div class="profile-meta">
-              <span>
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                <span id="dash-user-roll">Roll No: 23/CS/104</span>
-              </span>
+              <span id="dash-user-dept">Engineering Department</span>
               <span>&bull;</span>
-              <span id="dash-user-dept">Computer Science &amp; Engineering (2nd Year)</span>
-              <span>&bull;</span>
-              <span id="dash-user-email">aditya@tint.edu.in</span>
+              <span id="dash-user-email">student@tint.edu.in</span>
             </div>
           </div>
         </div>
 
         <div class="profile-actions">
           <a href="clubs.html" class="btn btn-outline btn-sm">Explore Clubs</a>
-          <a href="events.html" class="btn btn-primary btn-sm">Campus Events</a>
+          <a href="events.html" class="btn btn-cta btn-sm">Campus Events</a>
         </div>
       </div>
     </div>
@@ -87,106 +84,83 @@
     
     <!-- 4 Key Summary Metrics -->
     <div class="dashboard-stats-grid">
-      <div class="dash-stat-tile">
-        <div class="dash-stat-number" id="metric-apps-count">0</div>
-        <div class="dash-stat-label">Society Applications</div>
+      <div class="stat-card">
+        <div class="stat-number" id="metric-clubs-count" style="color: var(--primary);">0</div>
+        <div class="stat-label">My Society Memberships</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="metric-pending-count" style="color: var(--warm-accent, #F59E0B);">0</div>
+        <div class="stat-label">Pending Join Requests</div>
       </div>
       <div class="dash-stat-tile">
         <div class="dash-stat-number" id="metric-events-count">0</div>
         <div class="dash-stat-label">Event Passes Issued</div>
       </div>
-      <div class="dash-stat-tile">
-        <div class="dash-stat-number" id="metric-mkt-count">0</div>
-        <div class="dash-stat-label">Marketplace Items</div>
-      </div>
-      <div class="dash-stat-tile">
-        <div class="dash-stat-number" id="metric-badges-count" style="color: var(--primary-color);">0</div>
-        <div class="dash-stat-label">Verified Credentials</div>
+      <div class="stat-card">
+        <div class="stat-number" id="metric-badges-count" style="color: var(--success);">0</div>
+        <div class="stat-label">Verified Digital Badges</div>
       </div>
     </div>
 
-    <!-- Tab Navigation (6 Tabs) -->
-    <div class="dashboard-tabs-nav" role="tablist">
-      <button class="dashboard-tab-btn active" data-tab="applications">
-        Society Applications (<span id="tab-count-apps">0</span>)
+    <!-- Tab Navigation (4 Tabs) -->
+    <div class="dashboard-tabs" style="display: flex; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--border); margin-bottom: 24px;">
+      <button class="dashboard-tab-btn active btn btn-outline btn-sm" data-tab="clubs">
+        My Clubs &amp; Memberships (<span id="tab-count-clubs">0</span>)
       </button>
       <button class="dashboard-tab-btn" data-tab="events">
         Registered Events (<span id="tab-count-events">0</span>)
       </button>
-      <button class="dashboard-tab-btn" data-tab="marketplace">
-        My Marketplace Items (<span id="tab-count-mkt">0</span>)
-      </button>
-      <button class="dashboard-tab-btn" data-tab="network">
+      <button class="dashboard-tab-btn btn btn-outline btn-sm" data-tab="network">
         My Collab Posts (<span id="tab-count-posts">0</span>)
       </button>
-      <button class="dashboard-tab-btn" data-tab="internships">
-        Internship Applications (<span id="tab-count-jobs">0</span>)
-      </button>
-      <button class="dashboard-tab-btn" data-tab="badges">
+      <button class="dashboard-tab-btn btn btn-outline btn-sm" data-tab="badges">
         Verified Badges (<span id="tab-count-badges">0</span>)
       </button>
     </div>
 
-    <!-- PANE 1: Club Applications -->
-    <div id="pane-applications" class="dashboard-tab-pane">
-      <div id="applications-container" class="applications-list">
-        <!-- Injected by dashboard.js -->
+    <!-- PANE 1: My Clubs & Applications -->
+    <div id="pane-clubs" class="dashboard-tab-pane">
+      <div id="my-clubs-container">
+        <!-- Injected by js/dashboard.js -->
       </div>
     </div>
 
     <!-- PANE 2: Registered Events -->
     <div id="pane-events" class="dashboard-tab-pane" style="display: none;">
       <div id="dash-events-container">
-        <!-- Injected by dashboard.js -->
+        <!-- Injected by js/dashboard.js -->
       </div>
     </div>
 
-    <!-- PANE 3: Marketplace Items -->
-    <div id="pane-marketplace" class="dashboard-tab-pane" style="display: none;">
-      <div id="dash-mkt-container">
-        <!-- Injected by dashboard.js -->
-      </div>
-    </div>
-
-    <!-- PANE 4: Collab Posts -->
+    <!-- PANE 3: Collab Posts -->
     <div id="pane-network" class="dashboard-tab-pane" style="display: none;">
       <div id="dash-network-container">
-        <!-- Injected by dashboard.js -->
+        <!-- Injected by js/dashboard.js -->
       </div>
     </div>
 
-    <!-- PANE 5: Internship Applications -->
-    <div id="pane-internships" class="dashboard-tab-pane" style="display: none;">
-      <div id="dash-jobs-container">
-        <!-- Injected by dashboard.js -->
-      </div>
-    </div>
-
-    <!-- PANE 6: Verified Credentials & Badges -->
+    <!-- PANE 4: Verified Credentials & Badges -->
     <div id="pane-badges" class="dashboard-tab-pane" style="display: none;">
       <div style="margin-bottom: 20px;">
-        <h3 style="font-size: 1.125rem; font-weight: 700; margin: 0 0 6px 0; color: var(--text-primary);">Verified Collegiate Credentials &amp; Badges</h3>
-        <p style="font-size: 0.8125rem; color: var(--text-secondary); margin: 0;">These digital achievements are cryptographically verified by the university administration and automatically shared with campus recruiters.</p>
+        <h3 style="font-size: 18px; margin: 0 0 6px 0; font-family: 'Plus Jakarta Sans', sans-serif;">Verified Collegiate Credentials &amp; Badges</h3>
+        <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">These digital achievements are cryptographically verified with unique cryptographic hash IDs.</p>
       </div>
-      <div id="dash-badges-container" class="badges-grid">
-        <!-- Injected by dashboard.js -->
+      <div id="dash-badges-container" class="badges-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+        <!-- Injected by js/dashboard.js -->
       </div>
     </div>
 
   </main>
 
-  <!-- DIGITAL PASS POPUP MODAL (FOR VIEWING TICKETS) -->
-  <dialog id="dash-pass-modal" class="native-modal">
-    <div class="modal-inner" style="max-width: 500px;">
+  <!-- DIGITAL PASS POPUP MODAL -->
+  <div id="dash-pass-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="max-width: 480px;">
       <div class="modal-header">
-        <div>
-          <h3 class="modal-title">Event Digital Entry Pass</h3>
-          <p class="modal-subtitle">Official Student Entry Pass</p>
-        </div>
-        <button class="modal-close" id="dash-pass-close" aria-label="Close modal">&times;</button>
+        <h3 style="margin: 0; font-size: 18px; font-family: 'Plus Jakarta Sans', sans-serif;">Event Access Pass</h3>
+        <button class="modal-close" onclick="document.getElementById('dash-pass-modal').style.display='none'">&times;</button>
       </div>
-      <div id="dash-pass-modal-body">
-        <!-- Injected by dashboard.js -->
+      <div id="dash-pass-modal-body" class="modal-body">
+        <!-- Injected by js/dashboard.js -->
       </div>
     </div>
   </dialog>
@@ -241,9 +215,8 @@
       <div style="display: flex; gap: 16px; font-size: 13px;">
         <a href="clubs.html" style="color: var(--text-secondary);">Societies</a>
         <a href="events.html" style="color: var(--text-secondary);">Events</a>
-        <a href="marketplace.html" style="color: var(--text-secondary);">Exchange</a>
         <a href="network.html" style="color: var(--text-secondary);">Network</a>
-        <a href="dashboard.html" style="color: var(--text-secondary);">Command Center</a>
+        <a href="dashboard.html" style="color: var(--text-secondary);">Dashboard</a>
       </div>
     </div>
   </footer>
@@ -253,6 +226,7 @@
   <script src="js/states.js"></script>
   <script src="js/brand.js"></script>
   <script src="js/data.js"></script>
+  <script src="js/api.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/palette.js"></script>
   <script src="js/common.js"></script>

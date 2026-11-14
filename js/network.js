@@ -1,19 +1,12 @@
 // js/network.js - Student Peer Network & Collab Feed Controller
 
-let currentPosts = [];
 let selectedTag = "all";
 
-document.addEventListener("DOMContentLoaded", () => {
-  initNetworkPage();
-});
-
-function initNetworkPage() {
-  currentPosts = typeof Storage !== "undefined" ? Storage.getNetworkPosts() : [];
-  renderTrendingTopics();
+document.addEventListener("DOMContentLoaded", async () => {
   setupFilterChips();
   setupCreatePostModal();
-  renderPosts();
-}
+  await loadAndRenderPosts();
+});
 
 function setupFilterChips() {
   const chips = document.querySelectorAll(".net-chip");
@@ -22,282 +15,263 @@ function setupFilterChips() {
       chips.forEach(c => c.classList.remove("active"));
       chip.classList.add("active");
       selectedTag = chip.getAttribute("data-tag") || "all";
-      renderPosts();
+      loadAndRenderPosts();
     });
   });
 }
 
-function renderTrendingTopics() {
-  const container = document.getElementById("net-trending-topics");
-  if (!container) return;
-
-  // Calculate tag counts from current posts
-  const tagCounts = {};
-  currentPosts.forEach(p => {
-    if (p.tag) {
-      tagCounts[p.tag] = (tagCounts[p.tag] || 0) + 1;
-    }
-  });
-
-  // Ensure default trending topics
-  const defaults = {
-    "#HackathonTeam": 12,
-    "#SmartIndiaHackathon": 8,
-    "#ProjectCollab": 9,
-    "#StudyGroup": 5
-  };
-
-  const merged = { ...defaults };
-  Object.keys(tagCounts).forEach(tag => {
-    merged[tag] = (merged[tag] || 0) + tagCounts[tag];
-  });
-
-  const sortedTags = Object.entries(merged).sort((a, b) => b[1] - a[1]).slice(0, 5);
-
-  container.innerHTML = sortedTags.map(([tag, count]) => `
-    <div class="net-trend-item">
-      <span class="net-trend-tag" onclick="filterByTag('${escapeHTML(tag)}')">${escapeHTML(tag)}</span>
-      <span class="net-trend-count">${count} posts</span>
-    </div>
-  `).join("");
-}
-
-function filterByTag(tag) {
-  selectedTag = tag;
-  const chips = document.querySelectorAll(".net-chip");
-  chips.forEach(c => {
-    if (c.getAttribute("data-tag") === tag) c.classList.add("active");
-    else c.classList.remove("active");
-  });
-  renderPosts();
-}
-
-function renderPosts() {
+async function loadAndRenderPosts() {
   const list = document.getElementById("net-feed-list");
   if (!list) return;
 
-  let filtered = currentPosts.filter(p => {
-    if (selectedTag === "all") return true;
-    return (p.tag || "").toLowerCase() === selectedTag.toLowerCase();
-  });
+  list.innerHTML = `
+    <div style="text-align: center; padding: 48px; color: var(--text-secondary);">
+      <div style="display: inline-block; width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 12px;"></div>
+      <div>Loading discussions...</div>
+    </div>
+  `;
 
-  if (filtered.length === 0) {
-    if (typeof UIStates !== "undefined") {
-      UIStates.renderNoResultsState(list, {
-        query: selectedTag,
-        onClear: "resetTagFilter()"
-      });
-    } else {
+  try {
+    const posts = await API.getNetworkPosts({ tag: selectedTag });
+
+    if (!posts || posts.length === 0) {
       list.innerHTML = `
-        <div class="empty-state">
-          <h3 class="empty-state-title">No posts under ${escapeHTML(selectedTag)} yet</h3>
-          <p class="empty-state-desc">Be the first campus scholar to initiate a collaboration discussion.</p>
-          <button class="btn btn-outline btn-sm" onclick="resetTagFilter()">View All Posts</button>
+        <div style="text-align: center; padding: 60px 20px; background: var(--bg-card); border-radius: var(--radius-card); border: 1px dashed var(--border);">
+          <div style="font-size: 36px; margin-bottom: 12px;">💬</div>
+          <h3 style="font-size: 18px; margin: 0 0 8px; color: var(--text-main); font-weight: 700;">No discussions yet</h3>
+          <p style="color: var(--text-secondary); font-size: 14px; margin: 0 auto 20px; max-width: 420px;">
+            Be the first campus scholar to initiate a project collaboration, form a study group, or find hackathon teammates!
+          </p>
+          <button type="button" class="btn btn-cta btn-sm" onclick="openCreatePostModal()">
+            Start a Discussion
+          </button>
         </div>
       `;
+      return;
     }
-    return;
-  }
 
-  const messageIcon = typeof Icons !== "undefined" ? Icons.render("message-square", { width: 14, height: 14 }) : "";
+    list.innerHTML = posts.map(post => {
+      const author = post.author || {};
+      const authorName = author.full_name || "Campus Peer";
+      const authorDept = author.department ? `${author.department} (${author.year} Year)` : "Collegiate Engineering";
+      const authorInitials = authorName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase() || "CP";
+      const timeStr = new Date(post.created_at).toLocaleDateString([], { month: "short", day: "numeric" });
+      const upvoted = post.has_upvoted;
 
-  list.innerHTML = filtered.map(post => {
-    const d = new Date(post.timestamp);
-    const timeFormatted = d.toLocaleDateString("en-IN", { month: "short", day: "numeric" });
-    const commentsCount = (post.comments || []).length;
-
-    const commentsHtml = (post.comments || []).map(c => `
-      <div class="net-comment-item">
-        <div class="net-comment-meta">
-          <span class="net-comment-author">${escapeHTML(c.author)}</span>
-          <span class="net-comment-time">${escapeHTML(c.time || 'Recently')}</span>
-        </div>
-        <div>${escapeHTML(c.text)}</div>
-      </div>
-    `).join("");
-
-    return `
-      <article class="net-card" id="post-card-${post.id}">
-        <div class="net-card-header">
-          <div class="net-author-wrap">
-            <img src="${post.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'}" alt="${escapeHTML(post.authorName)}" class="net-avatar" loading="lazy">
-            <div class="net-author-info">
-              <span class="net-author-name">${escapeHTML(post.authorName)}</span>
-              <span class="net-author-meta">${escapeHTML(post.authorBranch || 'TINT Student')} &bull; ${timeFormatted}</span>
+      return `
+        <article class="net-post-card" id="post-${post.id}" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 22px; margin-bottom: 16px; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;">
+                ${escapeHTML(authorInitials)}
+              </div>
+              <div>
+                <div style="font-weight: 700; color: var(--text-main); font-size: 15px;">${escapeHTML(authorName)}</div>
+                <div style="font-size: 12px; color: var(--text-muted);">${escapeHTML(authorDept)} &bull; ${timeStr}</div>
+              </div>
             </div>
-          </div>
-          <span class="net-tag-pill">${escapeHTML(post.tag)}</span>
-        </div>
-
-        <div class="net-body">${escapeHTML(post.content)}</div>
-
-        <div class="net-card-actions">
-          <button class="net-action-btn ${post.userUpvoted ? 'upvoted' : ''}" onclick="handleUpvote('${post.id}')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
-            <span>${post.upvotes || 0} Upvotes</span>
-          </button>
-
-          <button class="net-action-btn" onclick="toggleComments('${post.id}')">
-            ${messageIcon}
-            <span>${commentsCount} ${commentsCount === 1 ? 'Reply' : 'Replies'}</span>
-          </button>
-        </div>
-
-        <!-- Comments Drawer -->
-        <div id="comments-box-${post.id}" class="net-comments-box" style="display: none;">
-          <div id="comments-list-${post.id}">
-            ${commentsHtml}
+            <span class="badge" style="font-size: 11px;">${escapeHTML(post.tag)}</span>
           </div>
 
-          <form class="net-comment-form" onsubmit="submitComment(event, '${post.id}')">
-            <input type="text" class="net-comment-input" id="comment-input-${post.id}" placeholder="Write a supportive reply or connect with author..." required autocomplete="off">
-            <button type="submit" class="btn btn-primary btn-sm">Reply</button>
-          </form>
-        </div>
-      </article>
+          <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 17px; font-weight: 700; margin: 0 0 8px; color: var(--text-main);">
+            ${escapeHTML(post.title)}
+          </h3>
+
+          <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin: 0 0 16px;">
+            ${escapeHTML(post.content)}
+          </p>
+
+          <div style="display: flex; gap: 12px; border-top: 1px solid var(--border); padding-top: 12px;">
+            <button 
+              type="button" 
+              class="btn btn-outline btn-sm ${upvoted ? 'btn-primary' : ''}" 
+              onclick="handleUpvote(${post.id})"
+              style="display: inline-flex; align-items: center; gap: 6px;"
+            >
+              ▲ <span>${post.upvotes_count}</span> Upvotes
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-outline btn-sm" 
+              onclick="toggleCommentsDrawer(${post.id})"
+              style="display: inline-flex; align-items: center; gap: 6px;"
+            >
+              💬 <span id="comments-count-${post.id}">${post.comments_count || 0}</span> Comments
+            </button>
+          </div>
+
+          <!-- Comments Drawer -->
+          <div id="comments-drawer-${post.id}" style="display: none; margin-top: 16px; border-top: 1px solid var(--border); padding-top: 14px;">
+            <div id="comments-list-${post.id}" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px;">
+              <div style="font-size: 12px; color: var(--text-muted);">Loading comments...</div>
+            </div>
+
+            <form onsubmit="handleAddComment(event, ${post.id})" style="display: flex; gap: 8px;">
+              <input type="text" id="comment-input-${post.id}" class="form-input" placeholder="Write a constructive reply..." required style="height: 38px;">
+              <button type="submit" class="btn btn-primary btn-sm">Reply</button>
+            </form>
+          </div>
+        </article>
+      `;
+    }).join("");
+
+  } catch (err) {
+    list.innerHTML = `
+      <div style="text-align: center; color: var(--danger); padding: 36px;">
+        Failed to load feed: ${escapeHTML(err.message)}
+        <div style="margin-top: 10px;"><button class="btn btn-outline btn-sm" onclick="loadAndRenderPosts()">Retry</button></div>
+      </div>
     `;
-  }).join("");
-}
+  }
 
-function resetTagFilter() {
-  selectedTag = "all";
-  const chips = document.querySelectorAll(".net-chip");
-  chips.forEach(c => {
-    if ((c.getAttribute("data-tag") || "all") === "all") c.classList.add("active");
-    else c.classList.remove("active");
-  });
+  if (typeof Storage !== "undefined") {
+    Storage.saveNetworkPosts(currentPosts);
+  }
+
   renderPosts();
 }
 
-function handleUpvote(postId) {
-  const post = currentPosts.find(p => p.id === postId);
-  if (!post) return;
+async function handleUpvote(postId) {
+  const user = requireAuth();
+  if (!user) return;
 
-  if (post.userUpvoted) {
-    post.upvotes = Math.max(0, (post.upvotes || 1) - 1);
-    post.userUpvoted = false;
+  try {
+    await API.toggleUpvote(postId);
+    await loadAndRenderPosts();
+  } catch (err) {
+    showToast(err.message || "Could not upvote.", "error");
+  }
+}
+
+async function toggleCommentsDrawer(postId) {
+  const drawer = document.getElementById(`comments-drawer-${postId}`);
+  if (!drawer) return;
+
+  if (drawer.style.display === "none") {
+    drawer.style.display = "block";
+    await loadPostComments(postId);
   } else {
-    post.upvotes = (post.upvotes || 0) + 1;
-    post.userUpvoted = true;
-    if (typeof UIStates !== "undefined") {
-      UIStates.showToast("Upvoted post!", "success");
+    drawer.style.display = "none";
+  }
+}
+
+async function loadPostComments(postId) {
+  const container = document.getElementById(`comments-list-${postId}`);
+  if (!container) return;
+
+  try {
+    const comments = await API.getComments(postId);
+    if (!comments || comments.length === 0) {
+      container.innerHTML = `<div style="font-size: 12px; color: var(--text-muted);">No replies yet. Be the first to reply!</div>`;
+      return;
     }
-  }
 
-  if (typeof Storage !== "undefined") {
-    Storage.saveNetworkPosts(currentPosts);
-  }
+    container.innerHTML = comments.map(c => {
+      const a = c.author || {};
+      const authorName = a.full_name || "Peer";
+      const timeStr = new Date(c.created_at).toLocaleDateString([], { month: "short", day: "numeric" });
+      return `
+        <div style="background: var(--bg-surface); padding: 10px 12px; border-radius: var(--radius-sm); font-size: 13px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <strong style="color: var(--text-main);">${escapeHTML(authorName)}</strong>
+            <span style="font-size: 11px; color: var(--text-muted);">${timeStr}</span>
+          </div>
+          <div style="color: var(--text-secondary);">${escapeHTML(c.content)}</div>
+        </div>
+      `;
+    }).join("");
 
-  renderPosts();
+  } catch (err) {
+    container.innerHTML = `<div style="font-size: 12px; color: var(--danger);">Failed to load comments.</div>`;
+  }
 }
 
-function toggleComments(postId) {
-  const box = document.getElementById(`comments-box-${postId}`);
-  if (!box) return;
-  box.style.display = box.style.display === "none" ? "flex" : "none";
-}
+async function handleAddComment(e, postId) {
+  e.preventDefault();
+  const user = requireAuth();
+  if (!user) return;
 
-function submitComment(event, postId) {
-  event.preventDefault();
   const input = document.getElementById(`comment-input-${postId}`);
-  if (!input) return;
+  if (!input || !input.value.trim()) return;
 
-  const text = input.value.trim();
-  if (!text) return;
+  const content = input.value.trim();
 
-  const post = currentPosts.find(p => p.id === postId);
-  if (!post) return;
+  try {
+    await API.addComment(postId, content);
+    input.value = "";
+    showToast("Reply published!", "success");
+    await loadPostComments(postId);
 
-  const user = typeof Storage !== "undefined" ? Storage.getCurrentUser() : null;
-  const authorName = user ? user.name : "Aditya Verma";
-
-  if (!post.comments) post.comments = [];
-  post.comments.push({
-    author: authorName,
-    text: text,
-    time: "Just now"
-  });
-
-  if (typeof Storage !== "undefined") {
-    Storage.saveNetworkPosts(currentPosts);
-  }
-
-  input.value = "";
-  renderPosts();
-
-  // Re-open comment drawer
-  const box = document.getElementById(`comments-box-${postId}`);
-  if (box) box.style.display = "flex";
-
-  if (typeof UIStates !== "undefined") {
-    UIStates.showToast("Reply published!", "info");
+    const countEl = document.getElementById(`comments-count-${postId}`);
+    if (countEl) {
+      const cur = parseInt(countEl.textContent, 10) || 0;
+      countEl.textContent = cur + 1;
+    }
+  } catch (err) {
+    showToast(err.message || "Failed to post comment.", "error");
   }
 }
 
+// ---------------- CREATE POST MODAL ----------------
 function setupCreatePostModal() {
-  const triggerBtn = document.getElementById("create-post-trigger");
+  const trigger = document.getElementById("create-post-trigger");
   const modal = document.getElementById("create-post-modal");
   const closeBtn = document.getElementById("create-post-close");
-  const cancelBtn = document.getElementById("cancel-post-btn");
   const form = document.getElementById("create-post-form");
 
-  if (triggerBtn && modal) {
-    triggerBtn.onclick = () => {
-      if (typeof modal.showModal === "function") modal.showModal();
-      else modal.style.display = "block";
-    };
+  if (trigger) trigger.addEventListener("click", openCreatePostModal);
+  if (closeBtn && modal) closeBtn.addEventListener("click", () => { modal.style.display = "none"; });
+
+  if (modal) {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) modal.style.display = "none";
+    });
   }
 
-  const closePost = () => {
-    if (!modal) return;
-    if (typeof modal.close === "function") modal.close();
-    else modal.style.display = "none";
-  };
-
-  if (closeBtn) closeBtn.onclick = closePost;
-  if (cancelBtn) cancelBtn.onclick = closePost;
-
   if (form) {
-    form.onsubmit = (e) => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const tag = document.getElementById("post-tag").value;
-      const content = document.getElementById("post-content").value.trim();
+      const user = requireAuth();
+      if (!user) return;
 
-      if (!tag || !content) {
-        if (typeof UIStates !== "undefined") {
-          UIStates.showToast("Please provide content for your collaboration post.", "warning");
-        }
+      const title = document.getElementById("post-title-input").value.trim();
+      const tag = document.getElementById("post-tag-select").value;
+      const content = document.getElementById("post-content-input").value.trim();
+      const submitBtn = form.querySelector("button[type='submit']");
+
+      if (!title || !content) {
+        showToast("Please fill in both title and content.", "error");
         return;
       }
 
-      const user = typeof Storage !== "undefined" ? Storage.getCurrentUser() : null;
+      try {
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = "Publishing...";
+        }
 
-      const newPost = {
-        id: "post-" + Date.now(),
-        authorName: user ? user.name : "Aditya Verma",
-        authorBranch: user ? `${user.department || 'CSE'} ${user.year || 2}nd Year` : "CSE 2nd Year",
-        avatar: user && user.avatar ? user.avatar : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100",
-        tag: tag,
-        content: content,
-        timestamp: new Date().toISOString(),
-        upvotes: 1,
-        userUpvoted: true,
-        comments: []
-      };
+        await API.createNetworkPost({ title, tag, content });
+        showToast("Collaboration post published to feed!", "success");
+        if (modal) modal.style.display = "none";
+        form.reset();
+        await loadAndRenderPosts();
 
-      currentPosts.unshift(newPost);
-      if (typeof Storage !== "undefined") {
-        Storage.saveNetworkPosts(currentPosts);
+      } catch (err) {
+        showToast(err.message || "Failed to publish post.", "error");
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = "Publish Discussion";
+        }
       }
-
-      closePost();
-      form.reset();
-      renderTrendingTopics();
-      renderPosts();
-
-      if (typeof UIStates !== "undefined") {
-        UIStates.showToast("Collaboration posted successfully to campus feed!", "success");
-      }
-    };
+    });
   }
+}
+
+function openCreatePostModal() {
+  const user = requireAuth();
+  if (!user) return;
+
+  const modal = document.getElementById("create-post-modal");
+  if (modal) modal.style.display = "flex";
 }

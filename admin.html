@@ -10,7 +10,7 @@
   <script>
     (function() {
       var savedTheme = localStorage.getItem("clubhub_theme_mode_v2") || "light";
-      var savedPalette = localStorage.getItem("clubhub_active_palette") || "default";
+      var savedPalette = localStorage.getItem("clubhub_active_palette") || "indigo-steel";
       document.documentElement.setAttribute("data-theme", savedTheme);
       document.documentElement.setAttribute("data-palette", savedPalette);
     })();
@@ -39,9 +39,8 @@
       <nav class="nav-links">
         <a href="clubs.html" class="nav-link">Clubs</a>
         <a href="events.html" class="nav-link">Events</a>
-        <a href="marketplace.html" class="nav-link">Marketplace</a>
         <a href="network.html" class="nav-link">Network</a>
-        <a href="recruiters.html" class="nav-link">Placements</a>
+        <a href="dashboard.html" class="nav-link">Dashboard</a>
       </nav>
 
       <div class="nav-actions">
@@ -54,289 +53,271 @@
   </header>
 
   <!-- ADMIN HEADER -->
-  <section class="page-header">
-    <div class="container page-title-row">
-      <div>
-        <div class="page-category-eyebrow">⚡ Club Lead &amp; Secretariat Portal</div>
-        <h1 class="page-title">Society Secretariat &amp; Admin</h1>
-        <p class="page-description">
-          Review candidate recruitment forms, shortlist talent, publish campus tech fests, and manage inducted club rosters.
-        </p>
-      </div>
-      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <button type="button" id="open-add-club-btn" class="btn btn-outline btn-sm">
-          + Add New Club
-        </button>
-        <button type="button" id="open-create-event-btn" class="btn btn-primary btn-sm">
-          + Schedule Event
-        </button>
+  <section class="admin-header">
+    <div class="container">
+      <div class="admin-header-row" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 20px;">
+        <div class="admin-title-box">
+          <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: var(--primary-light); border: 1px solid var(--primary-border); border-radius: var(--radius-full); font-size: 11px; font-weight: 700; color: var(--primary); margin-bottom: 8px;">
+            ⚡ CLUB LEAD &amp; COORDINATOR SECRETARIAT
+          </div>
+          <h1>Collegiate Society Secretariat</h1>
+          <p>Review candidate join requests, approve memberships, schedule events, and issue verifiable achievement credentials.</p>
+        </div>
+        <div class="admin-top-actions" style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button type="button" id="open-add-club-btn" class="btn btn-outline btn-sm">
+            + Charter New Club
+          </button>
+          <button type="button" id="open-create-event-btn" class="btn btn-cta btn-sm">
+            + Schedule Event
+          </button>
+        </div>
       </div>
     </div>
   </section>
 
   <main class="container admin-main-content">
 
-    <!-- METRIC STATS -->
-    <div class="admin-stats-grid">
-      <div class="admin-stat-card">
-        <div class="admin-stat-num" id="admin-metric-apps">0</div>
-        <div class="admin-stat-label">Pending Reviews</div>
-      </div>
-      <div class="admin-stat-card">
-        <div class="admin-stat-num" id="admin-metric-members">0</div>
-        <div class="admin-stat-label">Active Core Members</div>
-      </div>
-      <div class="admin-stat-card">
-        <div class="admin-stat-num" id="admin-metric-events">0</div>
-        <div class="admin-stat-label">Scheduled Campus Events</div>
-      </div>
-      <div class="admin-stat-card">
-        <div class="admin-stat-num" id="admin-metric-rate" style="color: var(--primary-color);">0%</div>
-        <div class="admin-stat-label">Acceptance Rate</div>
-      </div>
-    </div>
-
-    <!-- TABS -->
-    <div class="admin-tabs-nav" role="tablist">
-      <button class="admin-tab-btn active" data-tab="applications">
-        Review Applications (<span id="admin-tab-badge-apps">0</span>)
-      </button>
-      <button class="admin-tab-btn" data-tab="events">
-        Events Manager (<span id="admin-tab-badge-events">0</span>)
-      </button>
-      <button class="admin-tab-btn" data-tab="members">
-        Club Members Roster (<span id="admin-tab-badge-members">0</span>)
+    <!-- NO CLUBS EMPTY STATE VIEW -->
+    <div id="admin-no-clubs-view" style="display: none; text-align: center; padding: 80px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); margin-top: 24px;">
+      <div style="font-size: 48px; margin-bottom: 16px;">🏛️</div>
+      <h2 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">
+        You are not currently an Admin of any Club
+      </h2>
+      <p style="color: var(--text-secondary); max-width: 480px; margin: 0 auto 24px; font-size: 14px;">
+        Charter a new campus society to automatically become its Coordinator and manage membership workflows!
+      </p>
+      <button type="button" id="empty-create-club-btn" class="btn btn-cta btn-lg">
+        + Charter a New Club
       </button>
     </div>
 
-    <!-- PANE 1: APPLICATIONS -->
-    <div id="admin-pane-applications" class="admin-tab-pane">
-      <div class="admin-filter-bar">
-        <input type="text" id="admin-app-search" class="form-input" placeholder="Search candidate by name, roll, club, or domain..." autocomplete="off">
-        <select id="admin-app-status-filter" class="form-select" style="max-width: 220px;">
-          <option value="ALL">All Application States</option>
-          <option value="PENDING">Pending Review</option>
-          <option value="SHORTLISTED">Shortlisted</option>
-          <option value="APPROVED">Approved / Accepted</option>
-          <option value="REJECTED">Not Shortlisted</option>
-        </select>
+    <!-- MAIN ADMIN DASHBOARD VIEW -->
+    <div id="admin-main-view">
+      
+      <!-- CLUB SELECTOR & RECRUITMENT TOOLBAR -->
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin: 24px 0 20px; padding: 16px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card);">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <label for="admin-club-select" style="font-size: 13px; font-weight: 700; color: var(--text-main);">Active Society:</label>
+          <select id="admin-club-select" class="form-select" style="min-width: 240px; font-weight: 600;">
+            <!-- Injected by js/admin.js -->
+          </select>
+        </div>
+        <div>
+          <button type="button" id="toggle-recruitment-btn" class="btn btn-outline btn-sm">
+            Toggle Recruitment
+          </button>
+        </div>
       </div>
 
-      <div class="admin-table-wrap">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Applicant</th>
-              <th>Target Society &amp; Wing</th>
-              <th>Academic Info</th>
-              <th>Status</th>
-              <th>Applied Date</th>
-              <th>Review Actions</th>
-            </tr>
-          </thead>
-          <tbody id="admin-apps-tbody">
-            <!-- Injected by admin.js -->
-          </tbody>
-        </table>
+      <!-- METRIC STATS -->
+      <div class="admin-stats-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 28px;">
+        <div class="admin-stat-card">
+          <div class="admin-stat-num" id="admin-metric-apps" style="color: var(--warm-accent, #F59E0B);">0</div>
+          <div class="admin-stat-label">Pending Join Requests</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-num" id="admin-metric-members" style="color: var(--primary);">0</div>
+          <div class="admin-stat-label">Active Core Members</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-num" id="admin-metric-events">0</div>
+          <div class="admin-stat-label">Scheduled Campus Events</div>
+        </div>
       </div>
-    </div>
 
-    <!-- PANE 2: EVENTS MANAGER -->
-    <div id="admin-pane-events" class="admin-tab-pane" style="display: none;">
-      <div class="admin-table-wrap">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Event Title</th>
-              <th>Category</th>
-              <th>Date &amp; Venue</th>
-              <th>Confirmed RSVPs</th>
-              <th>Fee &amp; Prizes</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="admin-events-tbody">
-            <!-- Injected by admin.js -->
-          </tbody>
-        </table>
+      <!-- TABS -->
+      <div class="admin-tabs" style="display: flex; gap: 8px; border-bottom: 1px solid var(--border); margin-bottom: 24px;">
+        <button class="admin-tab-btn active btn btn-outline btn-sm" data-tab="applications">
+          Review Join Requests (<span id="admin-tab-badge-apps">0</span>)
+        </button>
+        <button class="admin-tab-btn btn btn-outline btn-sm" data-tab="events">
+          Events Manager (<span id="admin-tab-badge-events">0</span>)
+        </button>
+        <button class="admin-tab-btn btn btn-outline btn-sm" data-tab="members">
+          Club Members Roster (<span id="admin-tab-badge-members">0</span>)
+        </button>
       </div>
-    </div>
 
-    <!-- PANE 3: MEMBERS ROSTER -->
-    <div id="admin-pane-members" class="admin-tab-pane" style="display: none;">
-      <div class="admin-table-wrap">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Member Name</th>
-              <th>Roll Number</th>
-              <th>Club &amp; Domain</th>
-              <th>Leadership Role</th>
-              <th>Joined Date</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="admin-members-tbody">
-            <!-- Injected by admin.js -->
-          </tbody>
-        </table>
+      <!-- PANE 1: APPLICATIONS -->
+      <div id="admin-pane-applications" class="admin-tab-pane">
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); overflow-x: auto;">
+          <table class="admin-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="border-bottom: 1px solid var(--border); background: var(--bg-surface); text-align: left; font-size: 12px; color: var(--text-secondary);">
+                <th style="padding: 12px 16px;">Applicant</th>
+                <th style="padding: 12px 16px;">Department</th>
+                <th style="padding: 12px 16px;">Year</th>
+                <th style="padding: 12px 16px;">Date Applied</th>
+                <th style="padding: 12px 16px;">Motivation &amp; Skills</th>
+                <th style="padding: 12px 16px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-requests-tbody">
+              <!-- Injected by js/admin.js -->
+            </tbody>
+          </table>
+        </div>
       </div>
+
+      <!-- PANE 2: EVENTS -->
+      <div id="admin-pane-events" class="admin-tab-pane" style="display: none;">
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); overflow-x: auto;">
+          <table class="admin-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="border-bottom: 1px solid var(--border); background: var(--bg-surface); text-align: left; font-size: 12px; color: var(--text-secondary);">
+                <th style="padding: 12px 16px;">Event Title</th>
+                <th style="padding: 12px 16px;">Category</th>
+                <th style="padding: 12px 16px;">Date &amp; Time</th>
+                <th style="padding: 12px 16px;">Campus Location</th>
+                <th style="padding: 12px 16px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-events-tbody">
+              <!-- Injected by js/admin.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PANE 3: MEMBERS -->
+      <div id="admin-pane-members" class="admin-tab-pane" style="display: none;">
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); overflow-x: auto;">
+          <table class="admin-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="border-bottom: 1px solid var(--border); background: var(--bg-surface); text-align: left; font-size: 12px; color: var(--text-secondary);">
+                <th style="padding: 12px 16px;">Member Name</th>
+                <th style="padding: 12px 16px;">Email</th>
+                <th style="padding: 12px 16px;">Department</th>
+                <th style="padding: 12px 16px;">Inducted Date</th>
+                <th style="padding: 12px 16px;">Credentials</th>
+              </tr>
+            </thead>
+            <tbody id="admin-members-tbody">
+              <!-- Injected by js/admin.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
 
   </main>
 
-  <!-- CREATE EVENT MODAL -->
-  <dialog id="create-event-modal" class="native-modal">
-    <div class="modal-inner" style="max-width: 580px;">
+  <!-- MODAL: ADD CLUB -->
+  <div id="add-club-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="max-width: 520px;">
       <div class="modal-header">
-        <div>
-          <h3 class="modal-title">Schedule &amp; Publish Campus Event</h3>
-          <p class="modal-subtitle">Official Society Calendar Announcement</p>
-        </div>
-        <button id="close-create-event-modal" class="modal-close" aria-label="Close modal">&times;</button>
+        <h3 style="margin: 0; font-size: 18px; font-family: 'Plus Jakarta Sans', sans-serif;">Charter New Society</h3>
+        <button type="button" id="close-add-club-btn" class="modal-close">&times;</button>
       </div>
-      <div>
-        <form id="create-event-form" class="modal-body-form">
-          <div class="form-group">
-            <label class="form-label" for="event-title-input">Event Title <span class="required">*</span></label>
-            <input type="text" id="event-title-input" class="form-input" required placeholder="e.g. HackTINT 2026: 36h National Hackathon">
+      <div class="modal-body">
+        <form id="add-club-form">
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label">Club Name <span class="required">*</span></label>
+            <input type="text" id="new-club-name" class="form-input" required placeholder="e.g. Cybersecurity &amp; Ethical Hacking Club">
           </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="event-club-input">Organizing Club <span class="required">*</span></label>
-              <input type="text" id="event-club-input" class="form-input" required placeholder="e.g. Google Developer Student Club">
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="event-type-input">Category <span class="required">*</span></label>
-              <select id="event-type-input" class="form-select" required>
-                <option value="Hackathon">Hackathon</option>
-                <option value="Competition">Robowars &amp; Contests</option>
-                <option value="Workshop">Workshop</option>
-                <option value="Cultural">Cultural</option>
-                <option value="Entrepreneurship">Entrepreneurship</option>
-              </select>
-            </div>
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label">Category <span class="required">*</span></label>
+            <select id="new-club-category" class="form-select" required>
+              <option value="Technical" selected>Technical &amp; Coding</option>
+              <option value="Cultural">Cultural &amp; Arts</option>
+              <option value="Sports">Sports &amp; Athletics</option>
+              <option value="Literary">Literary &amp; Debating</option>
+              <option value="Social">Social &amp; Community</option>
+              <option value="Entrepreneurship">Entrepreneurship &amp; E-Cell</option>
+            </select>
           </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="event-date-input">Date &amp; Time <span class="required">*</span></label>
-              <input type="datetime-local" id="event-date-input" class="form-input" required>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="event-venue-input">Campus Venue <span class="required">*</span></label>
-              <input type="text" id="event-venue-input" class="form-input" required placeholder="Main Auditorium">
-            </div>
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label">Description <span class="required">*</span></label>
+            <textarea id="new-club-desc" class="form-textarea" rows="3" required placeholder="Outline activities, workshops, and core vision..."></textarea>
           </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="event-fee-input">Registration Fee</label>
-              <input type="text" id="event-fee-input" class="form-input" placeholder="Free">
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="event-prizes-input">Prize Pool</label>
-              <input type="text" id="event-prizes-input" class="form-input" placeholder="₹50,000 Cash Pool">
-            </div>
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label class="form-label">Cover Image URL (Optional)</label>
+            <input type="url" id="new-club-image" class="form-input" placeholder="https://images.unsplash.com/...">
           </div>
-
-          <div class="form-group">
-            <label class="form-label" for="event-desc-input">Description &amp; Rules</label>
-            <textarea id="event-desc-input" class="form-textarea" rows="3" placeholder="Overview of tracks, rules, and schedule..."></textarea>
+          <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" class="btn btn-outline" onclick="document.getElementById('add-club-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-cta">Charter Society</button>
           </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
-          <div class="modal-footer">
-            <button type="button" class="btn btn-outline" id="cancel-create-event-btn">Cancel</button>
-            <button type="submit" class="btn btn-primary">Publish to Campus</button>
+  <!-- MODAL: CREATE EVENT -->
+  <div id="create-event-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 style="margin: 0; font-size: 18px; font-family: 'Plus Jakarta Sans', sans-serif;">Schedule Campus Event</h3>
+        <button type="button" id="close-create-event-btn" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="create-event-form">
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label">Event Title <span class="required">*</span></label>
+            <input type="text" id="event-title-input" class="form-input" required placeholder="e.g. 24-Hour Winter Hackathon">
+          </div>
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label">Category <span class="required">*</span></label>
+            <select id="event-category-input" class="form-select" required>
+              <option value="Hackathon" selected>Hackathon</option>
+              <option value="Competition">Competition / Contest</option>
+              <option value="Workshop">Workshop &amp; Codelab</option>
+              <option value="Cultural">Cultural Fest &amp; Music</option>
+              <option value="Entrepreneurship">Entrepreneurship &amp; Pitch</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label">Date &amp; Time <span class="required">*</span></label>
+            <input type="datetime-local" id="event-date-input" class="form-input" required>
+          </div>
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label">Venue / Location <span class="required">*</span></label>
+            <input type="text" id="event-location-input" class="form-input" required placeholder="e.g. Auditorium / Computer Lab 4">
+          </div>
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label class="form-label">Event Description <span class="required">*</span></label>
+            <textarea id="event-desc-input" class="form-textarea" rows="3" required placeholder="Event agenda, eligibility, prizes..."></textarea>
+          </div>
+          <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" class="btn btn-outline" onclick="document.getElementById('create-event-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-cta">Schedule Event</button>
           </div>
         </form>
       </div>
     </div>
   </dialog>
 
-  <!-- ADD NEW CLUB MODAL -->
-  <dialog id="add-club-modal" class="native-modal">
-    <div class="modal-inner" style="max-width: 580px;">
+  <!-- MODAL: ISSUE BADGE -->
+  <div id="issue-badge-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="max-width: 480px;">
       <div class="modal-header">
         <div>
-          <h3 class="modal-title">Register New Student Society</h3>
-          <p class="modal-subtitle">Add official chartered chapter to directory</p>
+          <h3 style="margin: 0; font-size: 18px; font-family: 'Plus Jakarta Sans', sans-serif;">Award Verifiable Badge</h3>
+          <p id="badge-recipient-name" style="margin: 2px 0 0; font-size: 12px; color: var(--text-muted);"></p>
         </div>
-        <button id="close-add-club-modal" class="modal-close" aria-label="Close modal">&times;</button>
+        <button type="button" id="close-issue-badge-btn" class="modal-close">&times;</button>
       </div>
-      <div>
-        <form id="add-club-form" class="modal-body-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="new-club-name">Club Full Name <span class="required">*</span></label>
-              <input type="text" id="new-club-name" class="form-input" required placeholder="e.g. AI &amp; Quantum Society">
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="new-club-acronym">Acronym <span class="required">*</span></label>
-              <input type="text" id="new-club-acronym" class="form-input" required placeholder="e.g. AQS">
-            </div>
+      <div class="modal-body">
+        <form id="issue-badge-form">
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label">Badge Title <span class="required">*</span></label>
+            <input type="text" id="badge-title-input" class="form-input" required placeholder="e.g. Outstanding Core Contributor">
           </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="new-club-category">Category <span class="required">*</span></label>
-              <select id="new-club-category" class="form-select" required>
-                <option value="Technical">Technical &amp; Coding</option>
-                <option value="Cultural">Cultural &amp; Arts</option>
-                <option value="Sports">Sports &amp; Athletics</option>
-                <option value="Literary">Literary &amp; Debating</option>
-                <option value="Social">Social &amp; Community</option>
-                <option value="Entrepreneurship">E-Cell &amp; Business</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="new-club-meeting">Meeting Info</label>
-              <input type="text" id="new-club-meeting" class="form-input" placeholder="Fridays at 5:00 PM | Tech Lab 2">
-            </div>
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label class="form-label">Achievement Description <span class="required">*</span></label>
+            <textarea id="badge-desc-input" class="form-textarea" rows="3" required placeholder="Detail the contributions or contest performance..."></textarea>
           </div>
-
-          <div class="form-group">
-            <label class="form-label" for="new-club-tagline">Tagline <span class="required">*</span></label>
-            <input type="text" id="new-club-tagline" class="form-input" required placeholder="e.g. Exploring quantum frontiers and intelligent architectures.">
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="new-club-desc">Detailed Description</label>
-            <textarea id="new-club-desc" class="form-textarea" rows="3" placeholder="Tell students about activities, workshops, and recruitment expectations..."></textarea>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="new-club-domains">Recruitment Wings (Comma separated) <span class="required">*</span></label>
-            <input type="text" id="new-club-domains" class="form-input" required placeholder="AI Research, Quantum Computing, Web Dev, PR &amp; Media">
-          </div>
-
-          <div class="modal-footer">
-            <button type="button" class="btn btn-outline" id="cancel-add-club-btn">Cancel</button>
-            <button type="submit" class="btn btn-primary">Register Society</button>
+          <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" class="btn btn-outline" onclick="document.getElementById('issue-badge-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-cta">Issue Verifiable Badge</button>
           </div>
         </form>
       </div>
     </div>
   </dialog>
 
-  <!-- APPLICATION DETAIL MODAL -->
-  <dialog id="admin-app-detail-modal" class="native-modal">
-    <div class="modal-inner" style="max-width: 540px;">
-      <div class="modal-header">
-        <div>
-          <h3 id="admin-modal-applicant-name" class="modal-title">Applicant Review</h3>
-          <p class="modal-subtitle">Candidate screening &amp; decision logger</p>
-        </div>
-        <button id="admin-modal-close" class="modal-close" aria-label="Close modal">&times;</button>
-      </div>
-      <div id="admin-modal-applicant-body">
-        <!-- Injected by admin.js -->
-      </div>
-    </div>
-  </dialog>
-
-  <!-- ENTERPRISE FOOTER -->
+  <!-- FOOTER -->
   <footer class="footer">
     <div class="container footer-content">
       <div class="footer-col footer-col-brand">
@@ -386,9 +367,8 @@
       <div style="display: flex; gap: 16px; font-size: 13px;">
         <a href="clubs.html" style="color: var(--text-secondary);">Societies</a>
         <a href="events.html" style="color: var(--text-secondary);">Events</a>
-        <a href="marketplace.html" style="color: var(--text-secondary);">Exchange</a>
         <a href="network.html" style="color: var(--text-secondary);">Network</a>
-        <a href="dashboard.html" style="color: var(--text-secondary);">Command Center</a>
+        <a href="dashboard.html" style="color: var(--text-secondary);">Dashboard</a>
       </div>
     </div>
   </footer>
@@ -398,6 +378,7 @@
   <script src="js/states.js"></script>
   <script src="js/brand.js"></script>
   <script src="js/data.js"></script>
+  <script src="js/api.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/palette.js"></script>
   <script src="js/common.js"></script>

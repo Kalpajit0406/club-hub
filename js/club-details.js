@@ -1,314 +1,208 @@
-// js/club-details.js - Logic for Individual Club Overview & Recruitment Modal
+// js/club-details.js - Individual Club Details & Join Request Controller
 
 let currentClub = null;
 
-document.addEventListener("DOMContentLoaded", () => {
-  loadClubData();
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadClubData();
   initApplicationModal();
 });
 
-// Load and populate club details from CLUBS_DATA
-function loadClubData() {
+async function loadClubData() {
   const params = new URLSearchParams(window.location.search);
   const clubId = params.get("id");
 
-  if (!clubId || typeof CLUBS_DATA === "undefined") {
+  if (!clubId) {
     showClubNotFound();
     return;
   }
 
-  currentClub = CLUBS_DATA.find(c => c.id === clubId);
-
-  if (!currentClub) {
-    showClubNotFound();
-    return;
-  }
-
-  // Update document title
-  document.title = `${currentClub.name} (${currentClub.acronym || currentClub.category}) | ClubHub`;
-
-  // Render hero banner & identity
-  const heroCover = document.getElementById("hero-cover-bg");
-  if (heroCover && currentClub.banner) {
-    heroCover.style.backgroundImage = `url('${currentClub.banner}')`;
-  }
-
-  const logoImg = document.getElementById("club-logo") || document.getElementById("club-logo-img");
-  if (logoImg) {
-    logoImg.src = currentClub.logo;
-    logoImg.alt = `${currentClub.name} Logo`;
-  }
-
-  const nameTitle = document.getElementById("club-name") || document.getElementById("club-name-title");
-  if (nameTitle) nameTitle.textContent = currentClub.name;
-
-  const taglineEl = document.getElementById("club-tagline") || document.getElementById("club-tagline-text");
-  if (taglineEl) taglineEl.textContent = currentClub.tagline;
-
-  const categoryBox = document.getElementById("club-category-badge");
-  if (categoryBox) {
-    categoryBox.textContent = currentClub.category;
-    categoryBox.className = `badge badge-${currentClub.category.toLowerCase()}`;
-  }
-
-  const statusBox = document.getElementById("club-status-badge");
-  if (statusBox) {
-    const isOpen = currentClub.status === "OPEN";
-    statusBox.className = isOpen ? "badge badge-status-open" : "badge badge-status-closed";
-    statusBox.innerHTML = isOpen 
-      ? `<span class="badge-dot"></span> Recruiting Now`
-      : `<span class="badge-dot"></span> Recruitment Closed`;
-  }
-
-  const estBadge = document.getElementById("club-established-badge");
-  if (estBadge && currentClub.established) {
-    estBadge.textContent = `Est. ${currentClub.established}`;
-  }
-
-  const membersCount = document.getElementById("club-member-count");
-  if (membersCount) membersCount.innerHTML = `<strong>${currentClub.memberCount}</strong> Active Members`;
-
-  const meetingInfo = document.getElementById("club-meeting-info");
-  if (meetingInfo) meetingInfo.textContent = currentClub.meetingInfo || "Assembly: Wednesdays at 5:00 PM • Tech Block 302";
-
-  // Social Links
-  renderSocialLinks(currentClub.socials);
-
-  // Render main description
-  const descEl = document.getElementById("club-description") || document.getElementById("club-full-description");
-  if (descEl) descEl.textContent = currentClub.description;
-
-  // Render open domains
-  const domainsContainer = document.getElementById("club-domains-list");
-  if (domainsContainer) {
-    domainsContainer.innerHTML = (currentClub.domains || []).map(d => `
-      <div class="domain-chip-card" onclick="selectDomainAndOpenModal('${escapeHTML(d)}')">
-        <div class="domain-chip-title">${escapeHTML(d)}</div>
-        <div class="domain-chip-subtitle">Recruiting for Core Team &rarr;</div>
-      </div>
-    `).join("");
-  }
-
-  // Render achievements
-  const achievementsContainer = document.getElementById("club-achievements-list");
-  if (achievementsContainer) {
-    const list = currentClub.achievements || [
-      "Secured 1st Place at National Smart India Hackathon.",
-      "Conducted 12+ hands-on industry workshops reaching 800+ attendees.",
-      "Organized annual campus technical festival with international participation."
-    ];
-    achievementsContainer.innerHTML = list.map(ach => `
-      <li class="achievement-item">
-        <svg class="achievement-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <polyline points="20 6 9 17 4 12"/>
-        </svg>
-        <span>${escapeHTML(ach)}</span>
-      </li>
-    `).join("");
-  }
-
-  // Render upcoming events for this club
-  const eventsContainer = document.getElementById("club-events-list");
-  if (eventsContainer && typeof CAMPUS_EVENTS !== "undefined") {
-    const clubEvents = CAMPUS_EVENTS.filter(e => e.clubId === currentClub.id);
-    if (clubEvents.length > 0) {
-      eventsContainer.innerHTML = clubEvents.map(evt => {
-        const d = new Date(evt.date);
-        const month = d.toLocaleString('en-US', { month: 'short' });
-        const day = d.getDate();
-        return `
-          <div class="society-event-row">
-            <div class="event-row-left">
-              <div class="event-date-pill">
-                <strong>${day}</strong>
-                <span>${month}</span>
-              </div>
-              <div>
-                <div class="event-row-title">${escapeHTML(evt.title)}</div>
-                <div class="event-row-meta">
-                  <span>📍 ${escapeHTML(evt.venue || "Campus Auditorium")}</span> &bull; 
-                  <span>${escapeHTML(evt.type || "Workshop")}</span>
-                </div>
-              </div>
-            </div>
-            <a href="events.html?id=${evt.id}" class="btn btn-outline btn-sm">Event Details</a>
-          </div>
-        `;
-      }).join("");
-    } else {
-      eventsContainer.innerHTML = `<p class="section-subtext">No upcoming public events scheduled currently. Core team announcements will appear here soon.</p>`;
+  try {
+    currentClub = await API.getClub(clubId);
+    if (!currentClub) {
+      showClubNotFound();
+      return;
     }
-  }
 
-  // Render coordinators
-  const coordsContainer = document.getElementById("club-coordinators-grid");
-  if (coordsContainer) {
-    const coords = currentClub.coordinators || [
-      { name: "Aditya Verma", role: "President & Lead", email: "aditya.v@tint.edu.in", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" },
-      { name: "Pooja Hegde", role: "Vice President & Operations", email: "pooja.h@tint.edu.in", avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&auto=format&fit=crop&q=80" }
-    ];
-    coordsContainer.innerHTML = coords.map(c => `
-      <div class="coordinator-card">
-        <img src="${c.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'}" alt="${escapeHTML(c.name)}" class="coordinator-avatar">
-        <div>
-          <div class="coordinator-name">${escapeHTML(c.name)}</div>
-          <div class="coordinator-role">${escapeHTML(c.role)}</div>
-        </div>
-      </div>
-    `).join("");
-  }
+    document.title = `${currentClub.name} | ClubHub`;
 
-  // Update recruitment widget & actions
-  updateActionButtons();
+    // Render Banner & Logo
+    const bannerBg = document.getElementById("hero-cover-bg");
+    const bannerUrl = currentClub.image_url || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1200&auto=format&fit=crop&q=80";
+    if (bannerBg) {
+      bannerBg.style.backgroundImage = `url('${bannerUrl}')`;
+    }
 
-  // Populate domains in modal dropdown
-  const modalDomainSelect = document.getElementById("app-domain-select") || document.getElementById("app-target-domain");
-  if (modalDomainSelect && currentClub.domains) {
-    modalDomainSelect.innerHTML = currentClub.domains.map(d => `
-      <option value="${escapeHTML(d)}">${escapeHTML(d)}</option>
-    `).join("");
-  }
+    const logoImg = document.getElementById("club-logo");
+    if (logoImg) {
+      logoImg.src = bannerUrl;
+      logoImg.alt = currentClub.name;
+    }
 
-  // Check if auto-apply trigger was passed in URL (?apply=true)
-  if (params.get("apply") === "true" && currentClub.status === "OPEN") {
-    if (typeof Storage !== "undefined" && Storage.hasApplied(currentClub.id)) {
-      if (typeof UIStates !== "undefined") {
-        UIStates.showToast("You have already submitted an application to this society!", "info");
+    // Name & Category
+    const nameEl = document.getElementById("club-name");
+    if (nameEl) nameEl.textContent = currentClub.name;
+
+    const catBadge = document.getElementById("club-category-badge");
+    if (catBadge) catBadge.textContent = currentClub.category;
+
+    const taglineEl = document.getElementById("club-tagline");
+    if (taglineEl) taglineEl.textContent = currentClub.category + " Society at TINT";
+
+    // Description
+    const descEl = document.getElementById("club-description");
+    if (descEl) descEl.textContent = currentClub.description;
+
+    // Member count & Coordinator
+    const memberCountEl = document.getElementById("club-member-count");
+    if (memberCountEl) {
+      const count = currentClub.member_count || 0;
+      memberCountEl.innerHTML = `<strong>${count}</strong> Active ${count === 1 ? 'Member' : 'Members'}`;
+    }
+
+    const meetingInfoEl = document.getElementById("club-meeting-info");
+    if (meetingInfoEl) {
+      const coordName = currentClub.coordinator ? currentClub.coordinator.full_name : "Campus Secretariat";
+      meetingInfoEl.innerHTML = `Lead Coordinator: <strong>${escapeHTML(coordName)}</strong>`;
+    }
+
+    // Recruitment Status
+    const statusBadge = document.getElementById("club-status-badge");
+    const widgetStatus = document.getElementById("widget-status");
+    if (currentClub.recruitment_open) {
+      if (statusBadge) {
+        statusBadge.className = "badge badge-status-open";
+        statusBadge.innerHTML = `<span class="badge-dot"></span> Recruiting Now`;
+      }
+      if (widgetStatus) {
+        widgetStatus.className = "meta-value status-open";
+        widgetStatus.textContent = "Active / Open";
       }
     } else {
-      openApplyModal();
+      if (statusBadge) {
+        statusBadge.className = "badge badge-status-closed";
+        statusBadge.textContent = "Recruitment Closed";
+      }
+      if (widgetStatus) {
+        widgetStatus.className = "meta-value";
+        widgetStatus.textContent = "Closed";
+      }
     }
+
+    // Action button state
+    updateJoinButtonState();
+
+    // Load Club Events if container exists
+    await loadClubEvents(currentClub.id);
+
+  } catch (err) {
+    showClubNotFound(err.message);
   }
 }
 
-function renderSocialLinks(socials) {
-  const container = document.getElementById("club-socials-container");
-  if (!container || !socials) return;
-
-  let html = "";
-  if (socials.github) {
-    html += `<a href="${socials.github}" target="_blank" rel="noopener noreferrer" class="social-link-icon" title="GitHub">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-    </a>`;
-  }
-  if (socials.linkedin) {
-    html += `<a href="${socials.linkedin}" target="_blank" rel="noopener noreferrer" class="social-link-icon" title="LinkedIn">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
-    </a>`;
-  }
-  if (socials.instagram) {
-    html += `<a href="${socials.instagram}" target="_blank" rel="noopener noreferrer" class="social-link-icon" title="Instagram">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-    </a>`;
-  }
-  container.innerHTML = html;
-}
-
-function updateActionButtons() {
-  if (!currentClub) return;
-
-  const bookmarkBtn = document.getElementById("bookmark-btn");
+function updateJoinButtonState() {
   const heroApplyBtn = document.getElementById("hero-apply-btn");
-  const sidebarApplyBtn = document.getElementById("open-apply-modal-btn");
-  const existingBanner = document.getElementById("existing-application-banner");
-  const existingStatusText = document.getElementById("existing-app-status-text");
+  const widgetApplyBtn = document.getElementById("open-apply-modal-btn");
+  const existingAppBanner = document.getElementById("existing-application-banner");
+  const existingAppText = document.getElementById("existing-app-status-text");
 
-  const hasApplied = typeof Storage !== "undefined" && Storage.hasApplied(currentClub.id);
-  const isBookmarked = typeof Storage !== "undefined" && Storage.isBookmarked(currentClub.id);
-  const isOpen = currentClub.status === "OPEN";
+  if (!heroApplyBtn && !widgetApplyBtn) return;
 
-  // Bookmark Button
-  if (bookmarkBtn) {
-    bookmarkBtn.classList.toggle("saved", isBookmarked);
-    const bookmarkText = document.getElementById("bookmark-text");
-    if (bookmarkText) bookmarkText.textContent = isBookmarked ? "Society Saved" : "Save Society";
+  const status = currentClub ? currentClub.user_status : "none";
 
-    bookmarkBtn.onclick = () => {
-      const isNowSaved = Storage.toggleBookmark(currentClub.id);
-      bookmarkBtn.classList.toggle("saved", isNowSaved);
-      if (bookmarkText) bookmarkText.textContent = isNowSaved ? "Society Saved" : "Save Society";
-      if (typeof UIStates !== "undefined") {
-        UIStates.showToast(isNowSaved ? "Added to your saved societies!" : "Removed from saved societies.", "info");
-      }
-    };
-  }
-
-  // Handle applied state
-  if (hasApplied) {
-    if (existingBanner) existingBanner.style.display = "flex";
-    if (existingStatusText && typeof Storage !== "undefined") {
-      const app = Storage.getUserApplicationForClub(currentClub.id);
-      if (app) existingStatusText.textContent = `Your candidacy is currently: ${app.status}`;
-    }
+  if (status === "admin") {
     if (heroApplyBtn) {
-      heroApplyBtn.textContent = "Application Submitted";
-      heroApplyBtn.classList.add("btn-secondary");
-      heroApplyBtn.classList.remove("btn-primary");
-      heroApplyBtn.removeAttribute("href");
+      heroApplyBtn.textContent = "Manage in Club Admin";
+      heroApplyBtn.href = "admin.html";
+      heroApplyBtn.className = "btn btn-outline";
+    }
+    if (widgetApplyBtn) {
+      widgetApplyBtn.textContent = "Manage Club Requests";
+      widgetApplyBtn.className = "btn btn-outline btn-block btn-lg";
+      widgetApplyBtn.onclick = () => window.location.href = "admin.html";
+    }
+    if (existingAppBanner) {
+      existingAppBanner.style.display = "flex";
+      if (existingAppText) existingAppText.textContent = "You are the Coordinator / Admin of this society.";
+    }
+  } else if (status === "member") {
+    if (heroApplyBtn) {
+      heroApplyBtn.textContent = "✓ Member";
+      heroApplyBtn.className = "btn btn-success disabled";
       heroApplyBtn.style.pointerEvents = "none";
     }
-    if (sidebarApplyBtn) {
-      sidebarApplyBtn.textContent = "Application Under Review";
-      sidebarApplyBtn.disabled = true;
-      sidebarApplyBtn.classList.add("btn-secondary");
-      sidebarApplyBtn.classList.remove("btn-primary");
+    if (widgetApplyBtn) {
+      widgetApplyBtn.textContent = "✓ You are a Member";
+      widgetApplyBtn.className = "btn btn-success btn-block btn-lg disabled";
+      widgetApplyBtn.disabled = true;
     }
-  } else if (!isOpen) {
+    if (existingAppBanner) {
+      existingAppBanner.style.display = "flex";
+      if (existingAppText) existingAppText.textContent = "Your membership has been approved! You are an active core member.";
+    }
+  } else if (status === "pending") {
     if (heroApplyBtn) {
-      heroApplyBtn.textContent = "Recruitment Closed";
-      heroApplyBtn.classList.add("btn-secondary");
-      heroApplyBtn.classList.remove("btn-primary");
-      heroApplyBtn.removeAttribute("href");
+      heroApplyBtn.textContent = "Request Pending";
+      heroApplyBtn.className = "btn btn-warning disabled";
       heroApplyBtn.style.pointerEvents = "none";
     }
-    if (sidebarApplyBtn) {
-      sidebarApplyBtn.textContent = "Recruitment Closed";
-      sidebarApplyBtn.disabled = true;
-      sidebarApplyBtn.classList.add("btn-secondary");
-      sidebarApplyBtn.classList.remove("btn-primary");
+    if (widgetApplyBtn) {
+      widgetApplyBtn.textContent = "Request Pending Review";
+      widgetApplyBtn.className = "btn btn-warning btn-block btn-lg disabled";
+      widgetApplyBtn.disabled = true;
+    }
+    if (existingAppBanner) {
+      existingAppBanner.style.display = "flex";
+      if (existingAppText) existingAppText.textContent = "Your candidacy is currently Pending Review by the club lead.";
+    }
+  } else if (status === "rejected") {
+    if (heroApplyBtn) {
+      heroApplyBtn.textContent = "Re-request Join";
+      heroApplyBtn.className = "btn btn-outline";
+      heroApplyBtn.onclick = (e) => { e.preventDefault(); openModal(); };
+    }
+    if (widgetApplyBtn) {
+      widgetApplyBtn.textContent = "Re-apply for Membership";
+      widgetApplyBtn.className = "btn btn-cta btn-block btn-lg";
+      widgetApplyBtn.onclick = () => openModal();
+    }
+    if (existingAppBanner) {
+      existingAppBanner.style.display = "flex";
+      if (existingAppText) existingAppText.textContent = "Previous request was rejected. You may submit a new request below.";
     }
   } else {
+    // None
     if (heroApplyBtn) {
-      heroApplyBtn.onclick = (e) => {
-        e.preventDefault();
-        openApplyModal();
-      };
+      heroApplyBtn.textContent = "Join Society";
+      heroApplyBtn.className = "btn btn-cta";
+      heroApplyBtn.onclick = (e) => { e.preventDefault(); openModal(); };
     }
-    if (sidebarApplyBtn) {
-      sidebarApplyBtn.onclick = () => openApplyModal();
+    if (widgetApplyBtn) {
+      widgetApplyBtn.textContent = "Join This Society";
+      widgetApplyBtn.className = "btn btn-cta btn-block btn-lg";
+      widgetApplyBtn.onclick = () => openModal();
+    }
+    if (existingAppBanner) {
+      existingAppBanner.style.display = "none";
     }
   }
 }
 
-function selectDomainAndOpenModal(domain) {
-  const modalDomainSelect = document.getElementById("app-domain-select");
-  if (modalDomainSelect) {
-    modalDomainSelect.value = domain;
-  }
-  openApplyModal();
-}
+function openModal() {
+  const user = requireAuth();
+  if (!user) return;
 
-function openApplyModal() {
   const modal = document.getElementById("applyModal");
   if (!modal) return;
 
-  const modalTitle = document.getElementById("modal-club-name");
-  if (modalTitle && currentClub) {
-    modalTitle.textContent = `Apply to ${currentClub.name}`;
-  }
+  const clubNameEl = document.getElementById("modal-club-name");
+  if (clubNameEl && currentClub) clubNameEl.textContent = `Apply to ${currentClub.name}`;
 
-  // Pre-fill user data if logged in
-  if (typeof Storage !== "undefined") {
-    const user = Storage.getCurrentUser();
-    if (user) {
-      const nameInput = document.getElementById("app-student-name");
-      const rollInput = document.getElementById("app-roll-number");
-      const deptSelect = document.getElementById("app-department-select");
-      if (nameInput && user.name) nameInput.value = user.name;
-      if (rollInput && user.rollNumber) rollInput.value = user.rollNumber;
-      if (deptSelect && user.department) deptSelect.value = user.department;
-    }
-  }
+  // Pre-fill user data
+  const nameInput = document.getElementById("app-student-name");
+  if (nameInput) nameInput.value = user.full_name || user.name || "";
+
+  const deptInput = document.getElementById("app-branch");
+  if (deptInput) deptInput.value = user.department || "";
 
   if (typeof modal.showModal === "function") {
     modal.showModal();
@@ -317,83 +211,89 @@ function openApplyModal() {
   }
 }
 
-function closeApplyModal() {
-  const modal = document.getElementById("applyModal");
-  if (!modal) return;
-  if (typeof modal.close === "function") {
-    modal.close();
-  } else {
-    modal.style.display = "none";
-  }
-}
-
 function initApplicationModal() {
+  const modal = document.getElementById("applyModal");
   const closeBtn = document.getElementById("close-apply-modal-btn");
-  const cancelBtn = document.getElementById("cancel-apply-modal-btn");
-  const form = document.getElementById("apply-form");
+  const form = document.getElementById("recruitment-apply-form");
 
-  if (closeBtn) closeBtn.onclick = closeApplyModal;
-  if (cancelBtn) cancelBtn.onclick = closeApplyModal;
+  if (!modal || !form) return;
 
-  if (form) {
-    form.onsubmit = (e) => {
-      e.preventDefault();
-      if (!currentClub) return;
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      if (typeof modal.close === "function") modal.close();
+      else modal.style.display = "none";
+    });
+  }
 
-      const studentName = document.getElementById("app-student-name").value.trim();
-      const rollNumber = document.getElementById("app-roll-number").value.trim();
-      const department = document.getElementById("app-department-select").value;
-      const year = document.getElementById("app-year-select").value;
-      const domain = document.getElementById("app-domain-select").value;
-      const statement = document.getElementById("app-statement").value.trim();
-      const portfolio = document.getElementById("app-portfolio").value.trim();
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const user = requireAuth();
+    if (!user) return;
 
-      if (!studentName || !rollNumber || !department || !domain || !statement) {
-        if (typeof UIStates !== "undefined") {
-          UIStates.showToast("Please fill in all required fields.", "warning");
-        }
-        return;
+    if (!currentClub) return;
+
+    const motivation = document.getElementById("app-motivation") ? document.getElementById("app-motivation").value.trim() : "Interested in participating in society events and projects";
+    const skills = document.getElementById("app-experience") ? document.getElementById("app-experience").value.trim() : "General";
+    const submitBtn = form.querySelector("button[type='submit']");
+
+    try {
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = "Submitting...";
       }
 
-      if (typeof Storage !== "undefined") {
-        const appPayload = {
-          clubId: currentClub.id,
-          clubName: currentClub.name,
-          clubLogo: currentClub.logo,
-          studentName,
-          rollNumber,
-          department,
-          year,
-          domain,
-          statement,
-          portfolio,
-          status: "Pending",
-          appliedAt: new Date().toISOString()
-        };
+      await API.submitJoinRequest(currentClub.id, motivation, skills);
+      showToast("Join request submitted successfully! Your status is now Pending.", "success");
 
-        Storage.submitApplication(appPayload);
-        closeApplyModal();
-        updateActionButtons();
+      if (typeof modal.close === "function") modal.close();
+      else modal.style.display = "none";
 
-        if (typeof UIStates !== "undefined") {
-          UIStates.showToast("Application submitted successfully! Track your status on your Dashboard.", "success");
-        }
+      await loadClubData();
+
+    } catch (err) {
+      showToast(err.message || "Failed to submit application.", "error");
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Submit Application";
       }
-    };
+    }
+  });
+}
+
+async function loadClubEvents(clubId) {
+  const container = document.getElementById("club-events-list");
+  if (!container) return;
+
+  try {
+    const events = await API.getEvents({ club_id: clubId });
+    if (!events || events.length === 0) {
+      container.innerHTML = `<div style="padding: 20px; font-size: 13px; color: var(--text-secondary); text-align: center;">No scheduled events at this time.</div>`;
+      return;
+    }
+
+    container.innerHTML = events.map(ev => `
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px;">
+        <div>
+          <div style="font-weight: 700; color: var(--text-main); font-size: 14px;">${escapeHTML(ev.title)}</div>
+          <div style="font-size: 12px; color: var(--text-muted);">${new Date(ev.event_date).toLocaleDateString()} &bull; ${escapeHTML(ev.location)}</div>
+        </div>
+        <a href="events.html" class="btn btn-outline btn-sm">View</a>
+      </div>
+    `).join("");
+  } catch (e) {
+    // Silent fail
   }
 }
 
-function showClubNotFound() {
+function showClubNotFound(msg = "Society Not Found") {
   const main = document.querySelector(".main-content");
   if (main && typeof UIStates !== "undefined") {
     main.innerHTML = `
-      <div class="container" style="padding: 60px 0;">
-        ${UIStates.renderEmptyState(null, {
-          title: "Society Profile Not Found",
-          message: "The society you are looking for does not exist or may have been unlisted from the active directory.",
-          actionText: "Back to All Societies",
-          actionUrl: "clubs.html"
-        })}
+      <div class="container" style="text-align: center; padding: 100px 20px;">
+        <h2 style="font-size: 28px; margin-bottom: 12px; color: var(--text-main);">${escapeHTML(msg)}</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 24px;">The society you are looking for does not exist or has been removed.</p>
+        <a href="clubs.html" class="btn btn-primary">Back to Clubs Directory</a>
       </div>
     `;
   }

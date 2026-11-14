@@ -10,10 +10,14 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 # Load environment variables from .env file
-env_path = Path(__file__).resolve().parent / ".env"
+project_root = Path(__file__).resolve().parent.parent
+env_path = project_root / ".env"
 load_dotenv(dotenv_path=env_path)
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./clubclash.db")
+DEFAULT_DB_FILE = project_root / "clubclash.db"
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    DATABASE_URL = f"sqlite:///{DEFAULT_DB_FILE.as_posix()}"
 
 # For SQLite, check_same_thread=False allows multiple threads in FastAPI requests
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}

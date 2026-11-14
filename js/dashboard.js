@@ -1,9 +1,11 @@
-// js/dashboard.js - Logic for Student Dashboard & Campus Life Command Center
+// js/dashboard.js - Student Dashboard & Campus Life Command Center Controller
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  const user = requireAuth();
+  if (!user) return;
+
   initDashboardTabs();
-  refreshDashboard();
-  setupPassModal();
+  await refreshDashboard();
 });
 
 function initDashboardTabs() {
@@ -23,7 +25,6 @@ function initDashboardTabs() {
     });
   });
 
-  // Handle URL param ?tab=events or ?tab=marketplace etc.
   const params = new URLSearchParams(window.location.search);
   const tabParam = params.get("tab");
   if (tabParam) {
@@ -32,244 +33,304 @@ function initDashboardTabs() {
   }
 }
 
-function refreshDashboard() {
+async function refreshDashboard() {
   updateUserProfileHeader();
-  renderApplicationsList();
-  renderStudentEvents();
-  renderStudentMarketplace();
-  renderStudentNetworkPosts();
-  renderStudentJobApplications();
-  renderStudentBadges();
-  updateSummaryMetrics();
-  if (typeof updateNavBadges === "function") updateNavBadges();
+  await Promise.all([
+    renderMyClubs(),
+    renderRegisteredEvents(),
+    renderMyCollabPosts(),
+    renderMyBadges()
+  ]);
 }
 
 function updateUserProfileHeader() {
-  if (typeof Storage === "undefined") return;
-  const user = Storage.getCurrentUser();
+  const user = API.getCurrentUser();
   if (!user) return;
 
+  const displayName = user.full_name || user.name || "Student User";
   const nameEl = document.getElementById("dash-user-name");
   const avatarEl = document.getElementById("dash-user-avatar");
-  const rollEl = document.getElementById("dash-user-roll");
   const deptEl = document.getElementById("dash-user-dept");
   const emailEl = document.getElementById("dash-user-email");
+  const roleEl = document.getElementById("dash-user-role");
 
-  if (nameEl) nameEl.textContent = user.name;
+  if (nameEl) nameEl.textContent = displayName;
   if (avatarEl) {
-    const initials = (user.name || "Aditya Verma").split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
+    const initials = displayName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase() || "ST";
     avatarEl.textContent = initials;
   }
-  if (rollEl) rollEl.textContent = `Roll No: ${user.rollNumber || user.roll || '23/CS/104'}`;
-  if (deptEl) deptEl.textContent = `${user.department || user.branch || 'Computer Science & Engineering'} (${user.year || '2'}nd Year)`;
-  if (emailEl) emailEl.textContent = user.email || 'aditya@tint.edu.in';
+  if (deptEl) {
+    const yearStr = user.year ? `${user.year} Year` : "Student";
+    deptEl.textContent = `${user.department || 'Collegiate Engineering'} (${yearStr})`;
+  }
+  if (emailEl) emailEl.textContent = user.email || "";
+  if (roleEl) {
+    let r = "Student";
+    if (user.role === "admin") r = "Site Super Admin";
+    else if (user.role === "coordinator") r = "Club Lead / Admin";
+    roleEl.textContent = r;
+  }
 }
 
-function updateSummaryMetrics() {
-  const user = typeof Storage !== "undefined" ? Storage.getCurrentUser() : null;
-  const userEmail = user ? user.email : "";
+// ---------------- TAB 1: MY CLUBS & JOIN REQUESTS ----------------
+async function renderMyClubs() {
+  const container = document.getElementById("my-clubs-container");
+  const tabBadge = document.getElementById("tab-count-clubs");
+  const metricClubs = document.getElementById("metric-clubs-count");
+  const metricPending = document.getElementById("metric-pending-count");
 
-  const apps = typeof Storage !== "undefined" ? Storage.getApplications() : [];
-  const allRegs = typeof Storage !== "undefined" ? Storage.getEventRegistrations() : [];
-  const userRegs = allRegs.filter(r => r.email === userEmail || r.studentEmail === userEmail);
-
-  const allItems = typeof Storage !== "undefined" ? Storage.getMarketplaceItems() : [];
-  const userItems = allItems.filter(i => i.sellerEmail === userEmail);
-
-  const badges = typeof Storage !== "undefined" ? Storage.getVerifiedBadges(userEmail) : [];
-
-  const appsEl = document.getElementById("metric-apps-count");
-  const eventsEl = document.getElementById("metric-events-count");
-  const mktEl = document.getElementById("metric-mkt-count");
-  const badgesEl = document.getElementById("metric-badges-count");
-
-  if (appsEl) appsEl.textContent = apps.length;
-  if (eventsEl) eventsEl.textContent = userRegs.length;
-  if (mktEl) mktEl.textContent = userItems.length;
-  if (badgesEl) badgesEl.textContent = badges.length;
-}
-
-// ---------------- 1. CLUB APPLICATIONS ----------------
-function renderApplicationsList() {
-  const container = document.getElementById("applications-container");
   if (!container) return;
 
-  const applications = typeof Storage !== "undefined" ? Storage.getApplications() : [];
-  const badgeEl = document.getElementById("tab-count-apps");
-  if (badgeEl) badgeEl.textContent = applications.length;
+  container.innerHTML = `<div style="text-align: center; padding: 36px; color: var(--text-secondary);">Loading your societies...</div>`;
 
-  if (applications.length === 0) {
-    if (typeof UIStates !== "undefined") {
-      UIStates.renderEmptyState(container, {
-        title: "No Club Applications Submitted",
-        message: "You haven't applied to any college societies yet. Explore active technical wings and cultural collectives recruiting this semester.",
-        actionText: "Explore Recognized Societies",
-        actionUrl: "clubs.html"
-      });
-    } else {
-      container.innerHTML = `<p>No club applications found.</p>`;
-    }
-    return;
-  }
+  try {
+    const data = await API.getMyClubs();
+    const memberships = data.memberships || [];
+    const coordinated = data.coordinated || [];
+    const pending = data.pending_requests || [];
+    const rejected = data.rejected_requests || [];
 
-  container.innerHTML = applications.map(app => {
-    let badgeClass = "badge-warning";
-    let badgeLabel = "Pending Review";
-    const statusUpper = (app.status || "").toUpperCase();
+    const totalClubsCount = memberships.length + coordinated.length;
+    if (tabBadge) tabBadge.textContent = totalClubsCount;
+    if (metricClubs) metricClubs.textContent = totalClubsCount;
+    if (metricPending) metricPending.textContent = pending.length;
 
-    if (statusUpper === "APPROVED" || statusUpper === "ACCEPTED") {
-      badgeClass = "badge-success";
-      badgeLabel = "Accepted & Onboarded";
-    } else if (statusUpper === "SHORTLISTED") {
-      badgeClass = "badge-primary";
-      badgeLabel = "Shortlisted for Interview";
-    } else if (statusUpper === "REJECTED") {
-      badgeClass = "badge-danger";
-      badgeLabel = "Not Shortlisted";
-    }
+    let html = "";
 
-    const appDate = app.appliedAt || app.appliedDate || new Date().toISOString();
-    const formattedDate = new Date(appDate).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" });
-
-    return `
-      <article class="dash-app-card">
-        <div class="dash-app-info">
-          <img src="${app.clubLogo || 'https://images.unsplash.com/photo-1573164713988-8665fc963095?w=100'}" alt="${escapeHTML(app.clubName)}" class="dash-app-logo" loading="lazy">
-          <div>
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-              <h4 class="dash-app-title">${escapeHTML(app.clubName)}</h4>
-              <span class="badge ${badgeClass}">${badgeLabel}</span>
-            </div>
-            <div class="dash-app-meta">
-              Target Wing: <strong>${escapeHTML(app.domain || 'Core Team')}</strong> &bull; Applied: ${formattedDate}
-            </div>
+    // 1. Coordinated Clubs
+    if (coordinated.length > 0) {
+      html += `
+        <div style="margin-bottom: 24px;">
+          <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 16px; margin: 0 0 12px 0; color: var(--primary);">
+            ⚡ Clubs You Coordinate
+          </h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
+            ${coordinated.map(c => `
+              <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-weight: 700; color: var(--text-main);">${escapeHTML(c.club_name)}</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">${c.member_count} Members &bull; ${c.pending_requests} Pending Requests</div>
+                </div>
+                <a href="admin.html" class="btn btn-outline btn-sm">Secretariat &rarr;</a>
+              </div>
+            `).join("")}
           </div>
         </div>
+      `;
+    }
 
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <a href="club-details.html?id=${app.clubId}" class="btn btn-outline btn-sm">View Society</a>
-          <button class="btn btn-outline btn-sm" onclick="withdrawApp('${app.id}')" style="color: var(--color-error); border-color: var(--border-color);">
-            Withdraw
-          </button>
+    // 2. Active Memberships
+    if (memberships.length > 0) {
+      html += `
+        <div style="margin-bottom: 24px;">
+          <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 16px; margin: 0 0 12px 0; color: var(--text-main);">
+            🏛️ Active Society Memberships
+          </h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
+            ${memberships.map(m => `
+              <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-weight: 700; color: var(--text-main);">${escapeHTML(m.club_name)}</div>
+                  <div style="font-size: 12px; color: var(--success); font-weight: 600;">Active Core Member</div>
+                </div>
+                <a href="club-details.html?id=${m.club_id}" class="btn btn-outline btn-sm">View Society</a>
+              </div>
+            `).join("")}
+          </div>
         </div>
-      </article>
-    `;
-  }).join("");
-}
+      `;
+    }
 
-function withdrawApp(id) {
-  if (confirm("Are you sure you wish to withdraw this society application?")) {
-    if (typeof Storage !== "undefined") {
-      Storage.deleteApplication(id);
+    // 3. Pending Requests
+    if (pending.length > 0) {
+      html += `
+        <div style="margin-bottom: 24px;">
+          <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 16px; margin: 0 0 12px 0; color: var(--warm-accent, #F59E0B);">
+            ⏳ Pending Join Requests
+          </h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
+            ${pending.map(p => `
+              <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-weight: 700; color: var(--text-main);">${escapeHTML(p.club_name)}</div>
+                  <div style="font-size: 12px; color: var(--warm-accent, #F59E0B); font-weight: 600;">Under Review by Coordinator</div>
+                </div>
+                <span class="badge-status-pending" style="padding: 4px 10px; border-radius: 999px; font-size: 11px;">Pending</span>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `;
     }
-    refreshDashboard();
-    if (typeof UIStates !== "undefined") {
-      UIStates.showToast("Application withdrawn successfully.", "info");
+
+    // 4. Rejected Requests
+    if (rejected.length > 0) {
+      html += `
+        <div style="margin-bottom: 24px;">
+          <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 16px; margin: 0 0 12px 0; color: var(--danger);">
+            Decision Recorded
+          </h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
+            ${rejected.map(r => `
+              <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-weight: 700; color: var(--text-main);">${escapeHTML(r.club_name)}</div>
+                  <div style="font-size: 12px; color: var(--danger);">Request not accepted</div>
+                </div>
+                <a href="club-details.html?id=${r.club_id}" class="btn btn-outline btn-sm">Re-apply</a>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `;
     }
+
+    if (!html) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 60px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card);">
+          <div style="font-size: 36px; margin-bottom: 12px;">🏛️</div>
+          <h4 style="font-size: 18px; margin: 0 0 8px; color: var(--text-main);">You haven't joined any clubs yet</h4>
+          <p style="color: var(--text-secondary); font-size: 14px; margin: 0 auto 20px; max-width: 400px;">
+            Explore collegiate societies, technical chapters, and student cells to get involved on campus!
+          </p>
+          <a href="clubs.html" class="btn btn-cta">Explore Campus Societies</a>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = html;
+
+  } catch (err) {
+    container.innerHTML = `<div style="text-align: center; color: var(--danger); padding: 24px;">Failed to load clubs: ${escapeHTML(err.message)}</div>`;
   }
 }
 
-// Global helpers from secondary branch
-function handleWithdrawApplication(appId) {
-  withdrawApp(appId);
-}
-
-function handleRemoveBookmark(clubId) {
-  if (typeof Storage !== "undefined") {
-    Storage.toggleBookmark(clubId);
-    refreshDashboard();
-    if (typeof UIStates !== "undefined") {
-      UIStates.showToast("Society removed from saved list.", "info");
-    }
-  }
-}
-
-// ---------------- 2. REGISTERED EVENTS & PASSES ----------------
-function renderStudentEvents() {
+// ---------------- TAB 2: REGISTERED EVENTS & PASSES ----------------
+async function renderRegisteredEvents() {
   const container = document.getElementById("dash-events-container");
+  const tabBadge = document.getElementById("tab-count-events");
+  const metricEvents = document.getElementById("metric-events-count");
+
   if (!container) return;
 
-  const user = typeof Storage !== "undefined" ? Storage.getCurrentUser() : null;
-  const userEmail = user ? user.email : "";
-  const allRegs = typeof Storage !== "undefined" ? Storage.getEventRegistrations() : [];
-  const regs = allRegs.filter(r => r.email === userEmail || r.studentEmail === userEmail);
+  container.innerHTML = `<div style="text-align: center; padding: 36px; color: var(--text-secondary);">Loading your event passes...</div>`;
 
-  const badgeEl = document.getElementById("tab-count-events");
-  if (badgeEl) badgeEl.textContent = regs.length;
+  try {
+    const registrations = await API.getMyEventRegistrations();
 
-  if (regs.length === 0) {
-    if (typeof UIStates !== "undefined") {
-      UIStates.renderEmptyState(container, {
-        title: "No Event Passes Registered",
-        message: "You haven't registered for any campus hackathons or workshops yet. RSVP to events to generate verified digital entry passes.",
-        actionText: "Browse Campus Events",
-        actionUrl: "events.html"
-      });
+    if (tabBadge) tabBadge.textContent = registrations.length;
+    if (metricEvents) metricEvents.textContent = registrations.length;
+
+    if (!registrations || registrations.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 60px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card);">
+          <div style="font-size: 36px; margin-bottom: 12px;">🎫</div>
+          <h4 style="font-size: 18px; margin: 0 0 8px; color: var(--text-main);">No Event Passes Held</h4>
+          <p style="color: var(--text-secondary); font-size: 14px; margin: 0 auto 20px; max-width: 400px;">
+            Register for upcoming campus hackathons, robowars, and workshops to receive verified QR entry passes.
+          </p>
+          <a href="events.html" class="btn btn-primary">Browse Campus Events</a>
+        </div>
+      `;
+      return;
     }
-    return;
+
+    container.innerHTML = `
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+        ${registrations.map(reg => {
+          const ev = reg.event || {};
+          const clubName = ev.club ? ev.club.name : "Campus Club";
+          const dateStr = ev.event_date ? new Date(ev.event_date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : "Upcoming";
+
+          return `
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                  <span class="badge" style="font-size: 11px;">${escapeHTML(ev.category || 'Workshop')}</span>
+                  <span class="badge-status-approved" style="padding: 3px 8px; border-radius: 999px; font-size: 10px;">Pass Active</span>
+                </div>
+                <h4 style="font-size: 16px; margin: 0 0 6px; color: var(--text-main); font-weight: 700;">${escapeHTML(ev.title || 'Campus Event')}</h4>
+                <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">${escapeHTML(clubName)} &bull; ${escapeHTML(ev.location || 'Campus')}</div>
+                <div style="font-size: 13px; color: var(--text-secondary); font-weight: 500; margin-bottom: 16px;">📅 ${dateStr}</div>
+              </div>
+
+              <div style="border-top: 1px dashed var(--border); padding-top: 14px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Pass Code</div>
+                  <div style="font-family: monospace; font-weight: 700; color: var(--primary); font-size: 13px;">${escapeHTML(reg.pass_code)}</div>
+                </div>
+                <button type="button" class="btn btn-outline btn-sm" onclick="showPassModal('${escapeHTML(ev.title || 'Event')}', '${escapeHTML(clubName)}', '${escapeHTML(reg.pass_code)}', '${dateStr}', '${escapeHTML(ev.location || 'Campus')}')">
+                  View Pass
+                </button>
+              </div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
+
+  } catch (err) {
+    container.innerHTML = `<div style="text-align: center; color: var(--danger); padding: 24px;">Failed to load events: ${escapeHTML(err.message)}</div>`;
   }
-
-  container.innerHTML = `
-    <div class="dash-events-grid">
-      ${regs.map(reg => {
-        const d = new Date(reg.eventDate || reg.date || Date.now());
-        const dateStr = d.toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" });
-
-        return `
-          <div class="dash-event-card">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-              <span class="badge badge-teal">✓ Entry Pass Issued</span>
-              <span style="font-size: 0.75rem; color: var(--text-muted);">${dateStr}</span>
-            </div>
-            <h4 style="font-size: 1.0625rem; font-weight: 700; margin: 0 0 6px;">${escapeHTML(reg.eventTitle || reg.title)}</h4>
-            <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 14px;">
-              📍 ${escapeHTML(reg.eventVenue || reg.venue || 'Campus Auditorium')} &bull; Code: <code>${escapeHTML(reg.passCode || 'PASS-CONFIRMED')}</code>
-            </div>
-            <button class="btn btn-primary btn-sm btn-block" onclick="openPassModal('${reg.passCode || reg.id}')">
-              View Digital Pass
-            </button>
-          </div>
-        `;
-      }).join("")}
-    </div>
-  `;
 }
 
-function openPassModal(codeOrId) {
-  const allRegs = typeof Storage !== "undefined" ? Storage.getEventRegistrations() : [];
-  const pass = allRegs.find(r => r.passCode === codeOrId || r.id === codeOrId) || allRegs[0];
-  if (!pass) return;
-
+function showPassModal(title, clubName, passCode, dateStr, location) {
   const modal = document.getElementById("dash-pass-modal");
   const body = document.getElementById("dash-pass-modal-body");
   if (!modal || !body) return;
 
-  const d = new Date(pass.eventDate || pass.date || Date.now());
-  const formattedDate = d.toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" });
+  const user = API.getCurrentUser() || {};
+  const attendeeName = user.full_name || user.name || "Attendee";
 
   body.innerHTML = `
-    <div class="digital-pass-card">
-      <span class="digital-pass-badge">✓ OFFICIAL ENTRY PASS</span>
-      <h3 style="margin: 0 0 4px; font-size: 1.125rem; font-weight: 800;">${escapeHTML(pass.eventTitle || pass.title)}</h3>
-      <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 12px;">
-        ${escapeHTML(pass.eventVenue || pass.venue || 'Campus Auditorium')} &bull; ${formattedDate}
+    <div style="text-align: center; padding: 10px 0;">
+      <div style="font-size: 12px; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 4px;">OFFICIAL CAMPUS ACCESS PASS</div>
+      <h3 style="font-size: 20px; margin: 0 0 4px; font-weight: 800; color: var(--text-main);">${escapeHTML(title)}</h3>
+      <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 18px;">Hosted by ${escapeHTML(clubName)}</div>
+
+      <!-- QR Simulation Box -->
+      <div style="width: 140px; height: 140px; margin: 0 auto 18px; padding: 10px; background: #FFFFFF; border: 2px solid var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
+          <rect width="100" height="100" fill="#FFFFFF"/>
+          <rect x="10" y="10" width="30" height="30" fill="#0F172A"/>
+          <rect x="15" y="15" width="20" height="20" fill="#FFFFFF"/>
+          <rect x="20" y="20" width="10" height="10" fill="#0F172A"/>
+          <rect x="60" y="10" width="30" height="30" fill="#0F172A"/>
+          <rect x="65" y="15" width="20" height="20" fill="#FFFFFF"/>
+          <rect x="70" y="20" width="10" height="10" fill="#0F172A"/>
+          <rect x="10" y="60" width="30" height="30" fill="#0F172A"/>
+          <rect x="15" y="65" width="20" height="20" fill="#FFFFFF"/>
+          <rect x="20" y="70" width="10" height="10" fill="#0F172A"/>
+          <rect x="46" y="10" width="8" height="20" fill="#0F172A"/>
+          <rect x="46" y="38" width="16" height="8" fill="#0F172A"/>
+          <rect x="60" y="52" width="14" height="14" fill="#0F172A"/>
+          <rect x="80" y="60" width="10" height="24" fill="#0F172A"/>
+          <rect x="46" y="68" width="24" height="10" fill="#0F172A"/>
+          <rect x="48" y="82" width="12" height="8" fill="#0F172A"/>
+        </svg>
       </div>
 
-      <div class="digital-pass-code">${escapeHTML(pass.passCode || 'PASS-ENTRY')}</div>
-
-      <div class="digital-pass-barcode">
-        ${Array.from({ length: 30 }).map((_, i) => `<div class="barcode-bar" style="height: ${18 + (i % 5) * 5}px;"></div>`).join("")}
+      <div style="background: var(--bg-surface); padding: 14px; border-radius: var(--radius-sm); margin-bottom: 16px; text-align: left; font-size: 13px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span style="color: var(--text-muted);">Attendee:</span>
+          <strong>${escapeHTML(attendeeName)}</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span style="color: var(--text-muted);">Pass ID:</span>
+          <strong style="font-family: monospace; color: var(--primary);">${escapeHTML(passCode)}</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span style="color: var(--text-muted);">Schedule:</span>
+          <span>${escapeHTML(dateStr)}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span style="color: var(--text-muted);">Venue:</span>
+          <span>${escapeHTML(location)}</span>
+        </div>
       </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; text-align: left; font-size: 0.75rem; background: var(--bg-surface); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-top: 14px;">
-        <div><strong>Attendee:</strong> ${escapeHTML(pass.studentName || 'Aditya Verma')}</div>
-        <div><strong>Roll No:</strong> ${escapeHTML(pass.rollNumber || pass.studentRoll || '23/CS/104')}</div>
-      </div>
-    </div>
-
-    <div class="modal-footer" style="margin-top: 16px;">
-      <button type="button" class="btn btn-outline" onclick="closePassModal()">Done</button>
-      <button type="button" class="btn btn-primary" onclick="window.print()">Print Entry Pass</button>
+      <button type="button" class="btn btn-outline btn-block" onclick="document.getElementById('dash-pass-modal').style.display='none'">Close Pass</button>
     </div>
   `;
 
@@ -289,226 +350,106 @@ function setupPassModal() {
   if (closeBtn) closeBtn.onclick = closePassModal;
 }
 
-// ---------------- 3. MARKETPLACE ITEMS ----------------
-function renderStudentMarketplace() {
-  const container = document.getElementById("dash-mkt-container");
-  if (!container) return;
-
-  const user = typeof Storage !== "undefined" ? Storage.getCurrentUser() : null;
-  const userEmail = user ? user.email : "";
-  const allItems = typeof Storage !== "undefined" ? Storage.getMarketplaceItems() : [];
-  const items = allItems.filter(i => i.sellerEmail === userEmail);
-
-  const badgeEl = document.getElementById("tab-count-mkt");
-  if (badgeEl) badgeEl.textContent = items.length;
-
-  if (items.length === 0) {
-    if (typeof UIStates !== "undefined") {
-      UIStates.renderEmptyState(container, {
-        title: "No Marketplace Items Listed",
-        message: "You haven't posted any engineering textbooks, calculators, or lab gear for sale yet.",
-        actionText: "Post an Item on Marketplace",
-        actionUrl: "marketplace.html"
-      });
-    }
-    return;
-  }
-
-  container.innerHTML = `
-    <div style="display: flex; flex-direction: column; gap: 14px;">
-      ${items.map(item => {
-        const isSold = item.status === "SOLD";
-
-        return `
-          <div class="dash-app-card">
-            <div style="display: flex; align-items: center; gap: 14px;">
-              <img src="${item.image || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=100'}" alt="${escapeHTML(item.title)}" style="width: 52px; height: 52px; border-radius: var(--radius-md); object-fit: cover; border: 1px solid var(--border-color);">
-              <div>
-                <h4 style="margin: 0 0 2px 0; font-size: 0.9375rem; font-weight: 700;">${escapeHTML(item.title)}</h4>
-                <div style="font-size: 0.8125rem; color: var(--text-secondary);">
-                  Price: <strong>₹${item.price}</strong> &bull; Condition: ${escapeHTML(item.condition || 'Good')} &bull; Pickup: ${escapeHTML(item.location || 'Campus')}
-                </div>
-              </div>
-            </div>
-
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span class="badge ${isSold ? 'badge-status-closed' : 'badge-status-open'}">${isSold ? 'Marked Sold' : 'Active Listing'}</span>
-              <button class="btn btn-outline btn-sm" onclick="toggleItemSoldStatus('${item.id}')">
-                ${isSold ? 'Relist as Available' : 'Mark as Sold'}
-              </button>
-            </div>
-          </div>
-        `;
-      }).join("")}
-    </div>
-  `;
-}
-
-function toggleItemSoldStatus(itemId) {
-  if (typeof Storage !== "undefined") {
-    const allItems = Storage.getMarketplaceItems();
-    const item = allItems.find(i => i.id === itemId);
-    if (item) {
-      item.status = item.status === "SOLD" ? "AVAILABLE" : "SOLD";
-      Storage.saveMarketplaceItems(allItems);
-      refreshDashboard();
-      if (typeof UIStates !== "undefined") {
-        UIStates.showToast(`Item updated to: ${item.status}`, "info");
-      }
-    }
-  }
-}
-
-// ---------------- 4. MY COLLAB POSTS ----------------
-function renderStudentNetworkPosts() {
+// ---------------- TAB 3: MY COLLAB POSTS ----------------
+async function renderMyCollabPosts() {
   const container = document.getElementById("dash-network-container");
+  const tabBadge = document.getElementById("tab-count-posts");
+
   if (!container) return;
 
-  const user = typeof Storage !== "undefined" ? Storage.getCurrentUser() : null;
-  const userName = user ? user.name : "Aditya Verma";
-  const allPosts = typeof Storage !== "undefined" ? Storage.getNetworkPosts() : [];
-  const posts = allPosts.filter(p => p.authorName === userName);
+  try {
+    const user = API.getCurrentUser();
+    const allPosts = await API.getNetworkPosts();
+    const myPosts = allPosts.filter(p => p.student_id === user.id);
 
-  const badgeEl = document.getElementById("tab-count-posts");
-  if (badgeEl) badgeEl.textContent = posts.length;
+    if (tabBadge) tabBadge.textContent = myPosts.length;
 
-  if (posts.length === 0) {
-    if (typeof UIStates !== "undefined") {
-      UIStates.renderEmptyState(container, {
-        title: "No Collaboration Posts Yet",
-        message: "Find hackathon teammates, create study groups, or discuss engineering projects on the campus feed.",
-        actionText: "Post on Peer Network",
-        actionUrl: "network.html"
-      });
-    }
-    return;
-  }
-
-  container.innerHTML = `
-    <div style="display: flex; flex-direction: column; gap: 14px;">
-      ${posts.map(p => `
-        <div class="dash-app-card">
-          <div style="flex: 1;">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-              <span class="badge badge-teal">${escapeHTML(p.tag)}</span>
-              <span style="font-size: 0.75rem; color: var(--text-muted);">${new Date(p.timestamp).toLocaleDateString("en-IN", { month: "short", day: "numeric" })}</span>
-            </div>
-            <p style="font-size: 0.875rem; color: var(--text-secondary); margin: 0; line-height: 1.5;">
-              ${escapeHTML(p.content)}
-            </p>
-          </div>
-
-          <div style="display: flex; align-items: center; gap: 12px; font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary);">
-            <span>▲ ${p.upvotes || 0} Upvotes</span>
-            <span>💬 ${(p.comments || []).length} Replies</span>
-            <a href="network.html" class="btn btn-outline btn-sm">View in Feed</a>
-          </div>
+    if (!myPosts || myPosts.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 60px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card);">
+          <div style="font-size: 36px; margin-bottom: 12px;">💬</div>
+          <h4 style="font-size: 18px; margin: 0 0 8px; color: var(--text-main);">No Published Discussions</h4>
+          <p style="color: var(--text-secondary); font-size: 14px; margin: 0 auto 20px; max-width: 400px;">
+            Start a hackathon team search or study circle on the peer network feed.
+          </p>
+          <a href="network.html" class="btn btn-primary">Go to Collab Feed</a>
         </div>
-      `).join("")}
-    </div>
-  `;
-}
-
-// ---------------- 5. INTERNSHIP APPLICATIONS ----------------
-function renderStudentJobApplications() {
-  const container = document.getElementById("dash-jobs-container");
-  if (!container) return;
-
-  const user = typeof Storage !== "undefined" ? Storage.getCurrentUser() : null;
-  const userEmail = user ? user.email : "";
-  const allJobApps = typeof Storage !== "undefined" ? Storage.getJobApplications() : [];
-  const apps = allJobApps.filter(a => a.studentEmail === userEmail);
-
-  const badgeEl = document.getElementById("tab-count-jobs");
-  if (badgeEl) badgeEl.textContent = apps.length;
-
-  if (apps.length === 0) {
-    if (typeof UIStates !== "undefined") {
-      UIStates.renderEmptyState(container, {
-        title: "No Placement Applications Submitted",
-        message: "Apply for corporate campus drives and engineering internships from top employers like Microsoft, Google, TCS, and Swiggy.",
-        actionText: "Explore Campus Drives",
-        actionUrl: "recruiters.html"
-      });
+      `;
+      return;
     }
-    return;
-  }
 
-  container.innerHTML = `
-    <div style="display: flex; flex-direction: column; gap: 14px;">
-      ${apps.map(app => {
-        let statusBadge = `<span class="badge badge-warning">Under Review</span>`;
-        if (app.status === "Shortlisted" || app.status === "SHORTLISTED") {
-          statusBadge = `<span class="badge badge-primary">Shortlisted for Interview</span>`;
-        } else if (app.status === "Offer Extended" || app.status === "ACCEPTED") {
-          statusBadge = `<span class="badge badge-success">Offer Extended</span>`;
-        } else if (app.status === "Not Selected" || app.status === "REJECTED") {
-          statusBadge = `<span class="badge badge-danger">Not Selected</span>`;
-        }
-
-        return `
-          <div class="dash-app-card">
-            <div>
-              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                <h4 style="margin: 0; font-size: 1rem; font-weight: 700;">${escapeHTML(app.jobRole || app.role || 'Software Intern')}</h4>
-                ${statusBadge}
-              </div>
-              <div class="dash-app-meta">
-                Company: <strong style="color: var(--primary-color);">${escapeHTML(app.company || 'Corporate Partner')}</strong> &bull; Applied: ${new Date(app.appliedDate).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
-              </div>
+    container.innerHTML = `
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        ${myPosts.map(post => `
+          <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 18px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span class="badge" style="font-size: 11px;">${escapeHTML(post.tag)}</span>
+              <span style="font-size: 12px; color: var(--text-muted);">${new Date(post.created_at).toLocaleDateString()}</span>
             </div>
-
-            <div>
-              <a href="${app.resume || app.resumeUrl || '#'}" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm">
-                View Submitted CV
-              </a>
+            <h4 style="font-size: 16px; margin: 0 0 6px; color: var(--text-main); font-weight: 700;">${escapeHTML(post.title)}</h4>
+            <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0 0 12px;">${escapeHTML(post.content)}</p>
+            <div style="display: flex; gap: 16px; font-size: 12px; color: var(--text-muted); font-weight: 600;">
+              <span>▲ ${post.upvotes_count} Upvotes</span>
+              <span>💬 ${post.comments_count || 0} Comments</span>
             </div>
           </div>
-        `;
-      }).join("")}
-    </div>
-  `;
+        `).join("")}
+      </div>
+    `;
+
+  } catch (err) {
+    container.innerHTML = `<div style="text-align: center; color: var(--danger); padding: 24px;">Failed to load posts: ${escapeHTML(err.message)}</div>`;
+  }
 }
 
-// ---------------- 6. VERIFIED BADGES ----------------
-function renderStudentBadges() {
+// ---------------- TAB 4: VERIFIED BADGES ----------------
+async function renderMyBadges() {
   const container = document.getElementById("dash-badges-container");
+  const tabBadge = document.getElementById("tab-count-badges");
+  const metricBadges = document.getElementById("metric-badges-count");
+
   if (!container) return;
 
-  const user = typeof Storage !== "undefined" ? Storage.getCurrentUser() : null;
-  const userEmail = user ? user.email : "";
-  const badges = typeof Storage !== "undefined" ? Storage.getVerifiedBadges(userEmail) : [];
+  try {
+    const badges = await API.getMyBadges();
 
-  const badgeEl = document.getElementById("tab-count-badges");
-  if (badgeEl) badgeEl.textContent = badges.length;
+    if (tabBadge) tabBadge.textContent = badges.length;
+    if (metricBadges) metricBadges.textContent = badges.length;
 
-  if (badges.length === 0) {
-    if (typeof UIStates !== "undefined") {
-      UIStates.renderEmptyState(container, {
-        title: "No Verified Badges Earned Yet",
-        message: "Participate in hackathons, complete society core projects, and maintain strong academic honors to receive digitally verified badges.",
-        actionText: "Explore Campus Events",
-        actionUrl: "events.html"
-      });
+    if (!badges || badges.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 60px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); grid-column: 1 / -1;">
+          <div style="font-size: 36px; margin-bottom: 12px;">🏅</div>
+          <h4 style="font-size: 18px; margin: 0 0 8px; color: var(--text-main);">No Badges Earned Yet</h4>
+          <p style="color: var(--text-secondary); font-size: 14px; margin: 0 auto; max-width: 420px;">
+            Participate in campus hackathons, lead club workshops, and contribute to society projects to receive verifiable cryptographic credentials.
+          </p>
+        </div>
+      `;
+      return;
     }
-    return;
-  }
 
-  const shieldIcon = typeof Icons !== "undefined" ? Icons.render("shield-check", { width: 22, height: 22 }) : "🛡️";
+    container.innerHTML = badges.map(badge => `
+      <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(79, 70, 229, 0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 20px;">
+              🏅
+            </div>
+            <span class="badge-status-approved" style="padding: 3px 8px; border-radius: 999px; font-size: 10px;">Verified Hash</span>
+          </div>
+          <h4 style="font-size: 16px; margin: 0 0 6px; color: var(--text-main); font-weight: 700;">${escapeHTML(badge.title)}</h4>
+          <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0 0 14px;">${escapeHTML(badge.description)}</p>
+        </div>
 
-  container.innerHTML = badges.map(b => `
-    <div class="badge-cert-card">
-      <div class="badge-cert-icon">
-        ${shieldIcon}
-      </div>
-      <div>
-        <div class="badge-cert-title">${escapeHTML(b.title)}</div>
-        <div class="badge-cert-issuer">Issued by: ${escapeHTML(b.issuer)} &bull; ${escapeHTML(b.issueDate || '2026')}</div>
-        <p class="badge-cert-desc">${escapeHTML(b.description)}</p>
-        <div style="font-size: 0.6875rem; color: var(--text-muted); margin-top: 8px; font-family: monospace;">
-          Hash: ${escapeHTML(b.verificationHash || 'SHA-256-AUTHENTICATED')}
+        <div style="border-top: 1px solid var(--border); padding-top: 12px; font-size: 11px; color: var(--text-muted);">
+          <div>Issued by: <strong>${escapeHTML(badge.issuer_name)}</strong></div>
+          <div style="font-family: monospace; color: var(--primary); margin-top: 4px;">Hash: ${escapeHTML(badge.hash_id)}</div>
         </div>
       </div>
-    </div>
-  `).join("");
+    `).join("");
+
+  } catch (err) {
+    container.innerHTML = `<div style="text-align: center; color: var(--danger); padding: 24px; grid-column: 1 / -1;">Failed to load badges: ${escapeHTML(err.message)}</div>`;
+  }
 }

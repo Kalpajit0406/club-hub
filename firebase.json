@@ -10,7 +10,13 @@
       "*.py",
       "*.pyc",
       "requirements.txt"
+    ],
+    "redirects": [
+      {
+        "source": "/**",
+        "destination": "https://club-hub-inky.vercel.app/",
+        "type": 301
+      }
     ]
   }
 }
-

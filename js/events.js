@@ -1,22 +1,15 @@
-// js/events.js - Campus Events & Workshops Controller
+// js/events.js - Campus Events & Digital Pass Ticketing Controller
 
-let currentEvents = [];
 let selectedCategory = "all";
 let searchQuery = "";
-let activeEventForRegistration = null;
+let debounceTimer = null;
 
-document.addEventListener("DOMContentLoaded", () => {
-  initEventsPage();
-});
-
-function initEventsPage() {
-  currentEvents = typeof Storage !== "undefined" ? Storage.getEvents() : [];
+document.addEventListener("DOMContentLoaded", async () => {
   setupFilterChips();
   setupSearchInput();
-  setupRegistrationModal();
   setupCreateEventModal();
-  renderEvents();
-}
+  await loadAndRenderEvents();
+});
 
 function setupFilterChips() {
   const chips = document.querySelectorAll(".events-chip");
@@ -25,7 +18,7 @@ function setupFilterChips() {
       chips.forEach(c => c.classList.remove("active"));
       chip.classList.add("active");
       selectedCategory = chip.getAttribute("data-category") || "all";
-      renderEvents();
+      loadAndRenderEvents();
     });
   });
 }
@@ -36,376 +29,255 @@ function setupSearchInput() {
   if (!input) return;
 
   input.addEventListener("input", (e) => {
-    const val = e.target.value.trim();
-    if (clearBtn) clearBtn.style.display = val ? "inline-flex" : "none";
-    searchQuery = val.toLowerCase();
-    renderEvents();
+    clearTimeout(debounceTimer);
+    searchQuery = e.target.value.trim();
+    debounceTimer = setTimeout(() => {
+      loadAndRenderEvents();
+    }, 300);
   });
-
-  if (clearBtn) {
-    clearBtn.addEventListener("click", () => {
-      input.value = "";
-      searchQuery = "";
-      clearBtn.style.display = "none";
-      renderEvents();
-      input.focus();
-    });
-  }
 }
 
-function renderEvents() {
+async function loadAndRenderEvents() {
   const grid = document.getElementById("events-grid");
   const countEl = document.getElementById("events-count-badge");
+  const createTrigger = document.getElementById("create-event-trigger");
+
   if (!grid) return;
 
-  let filtered = currentEvents.filter(ev => {
-    const matchesCat = selectedCategory === "all" || (ev.category || "").toLowerCase() === selectedCategory.toLowerCase();
-    const matchesSearch = !searchQuery || 
-      (ev.title || "").toLowerCase().includes(searchQuery) ||
-      (ev.clubName || "").toLowerCase().includes(searchQuery) ||
-      (ev.venue || "").toLowerCase().includes(searchQuery) ||
-      (ev.tags && ev.tags.some(t => t.toLowerCase().includes(searchQuery)));
-    return matchesCat && matchesSearch;
-  });
-
-  if (countEl) {
-    countEl.textContent = `${filtered.length} Events Listed`;
+  // Check if current user is coordinator/admin
+  const user = typeof API !== "undefined" ? API.getCurrentUser() : null;
+  if (createTrigger) {
+    if (user && (user.role === "coordinator" || user.role === "admin")) {
+      createTrigger.style.display = "inline-flex";
+    } else {
+      createTrigger.style.display = "none";
+    }
   }
 
-  if (filtered.length === 0) {
-    if (typeof UIStates !== "undefined") {
-      UIStates.renderNoResultsState(grid, {
-        query: searchQuery || selectedCategory,
-        onClear: "resetFilters()"
-      });
-    } else {
+  grid.innerHTML = `
+    <div style="grid-column: 1 / -1; text-align: center; padding: 48px; color: var(--text-secondary);">
+      <div style="display: inline-block; width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 12px;"></div>
+      <div>Loading campus events...</div>
+    </div>
+  `;
+
+  try {
+    const events = await API.getEvents({
+      category: selectedCategory,
+      search: searchQuery
+    });
+
+    if (countEl) {
+      countEl.textContent = `${events.length} Events Scheduled`;
+    }
+
+    if (!events || events.length === 0) {
       grid.innerHTML = `
-        <div class="empty-state" style="grid-column: 1 / -1;">
-          <h3 class="empty-state-title">No events match your criteria</h3>
-          <p class="empty-state-desc">Try adjusting your search terms or selecting another category.</p>
-          <button class="btn btn-outline btn-sm" onclick="resetFilters()">Reset Filters</button>
+        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card);">
+          <div style="font-size: 36px; margin-bottom: 12px;">📅</div>
+          <h3 style="font-size: 18px; margin: 0 0 8px; color: var(--text-main); font-weight: 700;">No upcoming events yet</h3>
+          <p style="color: var(--text-secondary); font-size: 14px; margin: 0 auto; max-width: 420px;">
+            Campus societies and chapter leads will publish national hackathons, robowars, and hands-on codelabs here.
+          </p>
         </div>
       `;
+      return;
     }
-    return;
-  }
 
-  const user = typeof Storage !== "undefined" ? Storage.getCurrentUser() : null;
-  const userEmail = user ? user.email : "";
+    grid.innerHTML = events.map(ev => {
+      const clubName = ev.club ? ev.club.name : "Campus Club";
+      const bannerImg = ev.banner_url || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80";
+      const dateObj = new Date(ev.event_date);
+      const dateStr = dateObj.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+      const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-  const calendarIcon = typeof Icons !== "undefined" ? Icons.render("calendar", { width: 14, height: 14 }) : "";
-  const mapPinIcon = typeof Icons !== "undefined" ? Icons.render("map-pin", { width: 14, height: 14 }) : "";
-  const checkIcon = typeof Icons !== "undefined" ? Icons.render("check", { width: 14, height: 14 }) : "";
+      let actionHtml = "";
+      if (ev.is_registered) {
+        actionHtml = `
+          <button type="button" class="btn btn-outline btn-sm" style="color: var(--success); border-color: var(--success);" onclick="showPassModal('${escapeHTML(ev.title)}', '${escapeHTML(clubName)}', '${escapeHTML(ev.pass_code)}', '${dateStr} ${timeStr}', '${escapeHTML(ev.location)}')">
+            ✓ Pass Held
+          </button>
+        `;
+      } else {
+        actionHtml = `
+          <button type="button" class="btn btn-cta btn-sm" onclick="handleEventRegistration(${ev.id}, '${escapeHTML(ev.title)}', '${escapeHTML(clubName)}')">
+            Register &amp; Get Pass
+          </button>
+        `;
+      }
 
-  grid.innerHTML = filtered.map(ev => {
-    const d = new Date(ev.date);
-    const month = d.toLocaleDateString("en-IN", { month: "short" });
-    const day = d.getDate();
-    const time = d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
-    const isRegistered = userEmail && typeof Storage !== "undefined" && Storage.isRegisteredForEvent(ev.id, userEmail);
-
-    const registeredCount = ev.registeredCount || 0;
-    const capacity = ev.capacity || 200;
-    const capacityPct = Math.min(100, Math.round((registeredCount / capacity) * 100));
-    const fillClass = capacityPct > 85 ? "full" : (capacityPct > 60 ? "high" : "");
-
-    const isFree = !ev.fee || ev.fee.toLowerCase().includes("free") || ev.fee === "₹0";
-
-    return `
-      <article class="event-card" data-event-id="${ev.id}">
-        <div class="event-banner-wrap">
-          <img src="${ev.banner || 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800'}" alt="${escapeHTML(ev.title)}" class="event-banner-img" loading="lazy">
-          <div class="event-date-badge">
-            <span class="event-date-month">${month}</span>
-            <span class="event-date-day">${day}</span>
-          </div>
-          <span class="event-cat-badge">${escapeHTML(ev.category || 'Campus')}</span>
-        </div>
-
-        <div class="event-card-body">
-          <div class="event-club-meta">
-            ${calendarIcon}
-            <span>${escapeHTML(ev.clubName || 'University Chapter')}</span>
-          </div>
-
-          <h3 class="event-title">${escapeHTML(ev.title)}</h3>
-          <p class="event-desc">${escapeHTML(ev.description || '')}</p>
-
-          ${ev.prizes ? `
-            <div class="event-prize-tag">
-              <span>🏆</span>
-              <span>${escapeHTML(ev.prizes)}</span>
-            </div>
-          ` : ''}
-
-          <div class="event-details-list">
-            <div class="event-detail-item">
-              ${calendarIcon}
-              <span>${month} ${day}, ${d.getFullYear()} &bull; ${time}</span>
-            </div>
-            <div class="event-detail-item">
-              ${mapPinIcon}
-              <span>${escapeHTML(ev.venue || 'Campus Auditorium')}</span>
-            </div>
-          </div>
-
-          <!-- Capacity progress meter -->
-          <div class="capacity-meter-wrap">
-            <div class="capacity-meter-header">
-              <span>Confirmed Seats</span>
-              <span><strong>${registeredCount}</strong> / ${capacity} (${capacityPct}%)</span>
-            </div>
-            <div class="capacity-progress-bar">
-              <div class="capacity-fill ${fillClass}" style="width: ${capacityPct}%;"></div>
-            </div>
-          </div>
-
-          <div class="event-card-footer">
-            <span class="event-fee-badge ${isFree ? 'free' : ''}">
-              ${isFree ? 'Free Admission' : escapeHTML(ev.fee)}
+      return `
+        <article class="event-card" style="display: flex; flex-direction: column; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); overflow: hidden; box-shadow: var(--shadow-sm); transition: transform 0.2s, box-shadow 0.2s;">
+          <div style="position: relative; height: 160px; overflow: hidden; background: var(--bg-surface);">
+            <img src="${escapeHTML(bannerImg)}" alt="${escapeHTML(ev.title)}" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
+            <span class="badge" style="position: absolute; top: 12px; left: 12px; font-size: 11px; background: rgba(0,0,0,0.6); color: #FFF; border: none;">
+              ${escapeHTML(ev.category)}
             </span>
-
-            ${isRegistered ? `
-              <button class="btn btn-outline btn-sm" onclick="viewDigitalPass('${ev.id}')" style="color: var(--color-success); border-color: var(--color-success);">
-                ${checkIcon} Registered (View Pass)
-              </button>
-            ` : `
-              <button class="btn btn-primary btn-sm" onclick="openRegisterModal('${ev.id}')">
-                Register &amp; Get Pass
-              </button>
-            `}
           </div>
-        </div>
-      </article>
+
+          <div style="padding: 20px; display: flex; flex-direction: column; flex-grow: 1;">
+            <div style="font-size: 12px; color: var(--primary); font-weight: 700; margin-bottom: 6px;">
+              ${dateStr} &bull; ${timeStr}
+            </div>
+
+            <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 18px; font-weight: 700; margin: 0 0 8px; color: var(--text-main);">
+              ${escapeHTML(ev.title)}
+            </h3>
+
+            <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+              Organized by <strong>${escapeHTML(clubName)}</strong> &bull; 📍 ${escapeHTML(ev.location)}
+            </div>
+
+            <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0 0 20px; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+              ${escapeHTML(ev.description)}
+            </p>
+
+            <div style="border-top: 1px solid var(--border); padding-top: 14px; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 12px; color: var(--success); font-weight: 700;">Free Entry</span>
+              ${actionHtml}
+            </div>
+          </div>
+        </article>
+      `;
+    }).join("");
+
+  } catch (err) {
+    grid.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 48px 20px; color: var(--danger);">
+        <p style="font-weight: 600;">Failed to load events from backend.</p>
+        <p style="font-size: 13px; color: var(--text-secondary);">${escapeHTML(err.message)}</p>
+        <button class="btn btn-outline btn-sm" onclick="loadAndRenderEvents()" style="margin-top: 12px;">Retry</button>
+      </div>
     `;
-  }).join("");
+  }
 }
 
-function resetFilters() {
-  selectedCategory = "all";
-  searchQuery = "";
-  const input = document.getElementById("events-search-input");
-  if (input) input.value = "";
-  const clearBtn = document.getElementById("events-search-clear");
-  if (clearBtn) clearBtn.style.display = "none";
+async function handleEventRegistration(eventId, title, clubName) {
+  const user = requireAuth();
+  if (!user) return;
 
-  const chips = document.querySelectorAll(".events-chip");
-  chips.forEach(c => {
-    if ((c.getAttribute("data-category") || "all") === "all") c.classList.add("active");
-    else c.classList.remove("active");
-  });
-
-  renderEvents();
+  try {
+    showToast(`Registering for ${title}...`, "info");
+    const reg = await API.registerForEvent(eventId);
+    showToast("Registration confirmed! Digital Pass generated.", "success");
+    await loadAndRenderEvents();
+    showPassModal(title, clubName, reg.pass_code, "Confirmed", "Campus Venue");
+  } catch (err) {
+    showToast(err.message || "Failed to register for event.", "error");
+  }
 }
 
-function openRegisterModal(eventId) {
-  const event = currentEvents.find(e => e.id === eventId);
-  if (!event) return;
-
-  activeEventForRegistration = event;
+function showPassModal(title, clubName, passCode, dateStr, location) {
   const modal = document.getElementById("event-reg-modal");
-  const modalTitle = document.getElementById("modal-event-title");
-  const modalSub = document.getElementById("modal-event-sub");
   const formView = document.getElementById("event-modal-form-view");
   const passView = document.getElementById("event-modal-pass-view");
+  const modalTitle = document.getElementById("modal-event-title");
+  const modalSub = document.getElementById("modal-event-sub");
 
-  if (modalTitle) modalTitle.textContent = `Register: ${event.title}`;
-  if (modalSub) modalSub.textContent = `Organized by ${event.clubName} • ${event.venue}`;
+  if (!modal || !passView) return;
 
-  if (formView) formView.style.display = "block";
-  if (passView) passView.style.display = "none";
+  const user = API.getCurrentUser() || {};
+  const attendeeName = user.full_name || user.name || "Attendee";
 
-  // Pre-fill user data
-  if (typeof Storage !== "undefined") {
-    const user = Storage.getCurrentUser();
-    if (user) {
-      const nameInput = document.getElementById("reg-student-name");
-      const rollInput = document.getElementById("reg-student-roll");
-      const emailInput = document.getElementById("reg-student-email");
-      if (nameInput && user.name) nameInput.value = user.name;
-      if (rollInput && user.rollNumber) rollInput.value = user.rollNumber;
-      if (emailInput && user.email) emailInput.value = user.email;
-    }
-  }
+  if (modalTitle) modalTitle.textContent = "Digital Entry Pass";
+  if (modalSub) modalSub.textContent = "Cryptographically verified campus entry ticket";
 
-  if (modal) {
-    if (typeof modal.showModal === "function") {
-      modal.showModal();
-    } else {
-      modal.style.display = "block";
-    }
-  }
+  if (formView) formView.style.display = "none";
+  passView.style.display = "block";
+
+  passView.innerHTML = `
+    <div style="text-align: center; padding: 10px 0;">
+      <h3 style="font-size: 18px; margin: 0 0 4px; font-weight: 800; color: var(--text-main);">${escapeHTML(title)}</h3>
+      <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 18px;">Hosted by ${escapeHTML(clubName)}</div>
+
+      <!-- QR Simulation -->
+      <div style="width: 140px; height: 140px; margin: 0 auto 18px; padding: 10px; background: #FFFFFF; border: 2px solid var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
+          <rect width="100" height="100" fill="#FFFFFF"/>
+          <rect x="10" y="10" width="30" height="30" fill="#0F172A"/>
+          <rect x="15" y="15" width="20" height="20" fill="#FFFFFF"/>
+          <rect x="20" y="20" width="10" height="10" fill="#0F172A"/>
+          <rect x="60" y="10" width="30" height="30" fill="#0F172A"/>
+          <rect x="65" y="15" width="20" height="20" fill="#FFFFFF"/>
+          <rect x="70" y="20" width="10" height="10" fill="#0F172A"/>
+          <rect x="10" y="60" width="30" height="30" fill="#0F172A"/>
+          <rect x="15" y="65" width="20" height="20" fill="#FFFFFF"/>
+          <rect x="20" y="70" width="10" height="10" fill="#0F172A"/>
+          <rect x="46" y="10" width="8" height="20" fill="#0F172A"/>
+          <rect x="46" y="38" width="16" height="8" fill="#0F172A"/>
+          <rect x="60" y="52" width="14" height="14" fill="#0F172A"/>
+          <rect x="80" y="60" width="10" height="24" fill="#0F172A"/>
+          <rect x="46" y="68" width="24" height="10" fill="#0F172A"/>
+          <rect x="48" y="82" width="12" height="8" fill="#0F172A"/>
+        </svg>
+      </div>
+
+      <div style="background: var(--bg-surface); padding: 14px; border-radius: var(--radius-sm); margin-bottom: 16px; text-align: left; font-size: 13px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span style="color: var(--text-muted);">Attendee:</span>
+          <strong>${escapeHTML(attendeeName)}</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span style="color: var(--text-muted);">Pass Code:</span>
+          <strong style="font-family: monospace; color: var(--primary);">${escapeHTML(passCode)}</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span style="color: var(--text-muted);">Schedule:</span>
+          <span>${escapeHTML(dateStr)}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span style="color: var(--text-muted);">Venue:</span>
+          <span>${escapeHTML(location)}</span>
+        </div>
+      </div>
+
+      <button type="button" class="btn btn-outline btn-block" onclick="document.getElementById('event-reg-modal').style.display='none'">Close Pass</button>
+    </div>
+  `;
+
+  modal.style.display = "flex";
 }
 
-function closeRegisterModal() {
-  const modal = document.getElementById("event-reg-modal");
-  if (!modal) return;
-  if (typeof modal.close === "function") {
-    modal.close();
-  } else {
-    modal.style.display = "none";
+// ---------------- CREATE EVENT MODAL (FOR COORDINATORS) ----------------
+function setupCreateEventModal() {
+  const trigger = document.getElementById("create-event-trigger");
+  const modal = document.getElementById("create-event-modal");
+  const closeBtn = document.getElementById("create-event-close");
+  const form = document.getElementById("create-event-form");
+  const clubSelect = document.getElementById("new-event-club-select");
+
+  const regModal = document.getElementById("event-reg-modal");
+  const regClose = document.getElementById("event-reg-close");
+  if (regClose && regModal) {
+    regClose.addEventListener("click", () => { regModal.style.display = "none"; });
   }
-}
 
-function setupRegistrationModal() {
-  const closeBtn = document.getElementById("event-reg-close");
-  const cancelBtn = document.getElementById("cancel-reg-btn");
-  const form = document.getElementById("event-reg-form");
+  if (!trigger || !modal || !form) return;
 
-  if (closeBtn) closeBtn.onclick = closeRegisterModal;
-  if (cancelBtn) cancelBtn.onclick = closeRegisterModal;
+  trigger.addEventListener("click", async () => {
+    const user = requireAuth();
+    if (!user) return;
 
-  if (form) {
-    form.onsubmit = (e) => {
-      e.preventDefault();
-      if (!activeEventForRegistration) return;
-
-      const name = document.getElementById("reg-student-name").value.trim();
-      const roll = document.getElementById("reg-student-roll").value.trim();
-      const email = document.getElementById("reg-student-email").value.trim();
-
-      if (!name || !roll || !email) {
-        if (typeof UIStates !== "undefined") {
-          UIStates.showToast("Please fill in all attendee fields.", "warning");
-        }
+    try {
+      const clubs = await API.getCoordinatedClubs();
+      if (!clubs || clubs.length === 0) {
+        showToast("You need to charter a club first before scheduling events.", "warning");
         return;
       }
 
-      const passCode = "PASS-" + Math.random().toString(36).substring(2, 8).toUpperCase() + "-" + activeEventForRegistration.id.substring(0, 4).toUpperCase();
-
-      const regRecord = {
-        eventId: activeEventForRegistration.id,
-        eventTitle: activeEventForRegistration.title,
-        eventDate: activeEventForRegistration.date,
-        eventVenue: activeEventForRegistration.venue,
-        clubName: activeEventForRegistration.clubName,
-        studentName: name,
-        rollNumber: roll,
-        email: email,
-        passCode: passCode,
-        registeredAt: new Date().toISOString()
-      };
-
-      if (typeof Storage !== "undefined") {
-        Storage.registerForEvent(regRecord);
+      if (clubSelect) {
+        clubSelect.innerHTML = clubs.map(c => `
+          <option value="${c.id}">${escapeHTML(c.name)}</option>
+        `).join("");
       }
 
-      // Increment registered count locally
-      activeEventForRegistration.registeredCount = (activeEventForRegistration.registeredCount || 0) + 1;
-
-      renderDigitalPassView(regRecord);
-      renderEvents();
-
-      if (typeof UIStates !== "undefined") {
-        UIStates.showToast("Registration confirmed! Your Digital Entry Pass is ready.", "success");
-      }
-    };
-  }
-}
-
-function viewDigitalPass(eventId) {
-  const event = currentEvents.find(e => e.id === eventId);
-  const user = typeof Storage !== "undefined" ? Storage.getCurrentUser() : null;
-  const userEmail = user ? user.email : "";
-
-  let regRecord = null;
-  if (typeof Storage !== "undefined") {
-    const userRegs = Storage.getUserEventRegistrations(userEmail);
-    regRecord = userRegs.find(r => r.eventId === eventId);
-  }
-
-  if (!regRecord) {
-    regRecord = {
-      eventId: eventId,
-      eventTitle: event ? event.title : "Campus Event",
-      eventDate: event ? event.date : new Date().toISOString(),
-      eventVenue: event ? event.venue : "Campus Auditorium",
-      clubName: event ? event.clubName : "ClubHub Society",
-      studentName: user ? user.name : "Registered Student",
-      rollNumber: user ? user.rollNumber : "23/CS/101",
-      email: userEmail || "student@tint.edu.in",
-      passCode: "PASS-" + eventId.substring(0, 4).toUpperCase() + "-VERIFIED",
-      registeredAt: new Date().toISOString()
-    };
-  }
-
-  const modal = document.getElementById("event-reg-modal");
-  const modalTitle = document.getElementById("modal-event-title");
-  const modalSub = document.getElementById("modal-event-sub");
-  if (modalTitle) modalTitle.textContent = "Digital Entry Pass";
-  if (modalSub) modalSub.textContent = regRecord.eventTitle;
-
-  renderDigitalPassView(regRecord);
-
-  if (modal) {
-    if (typeof modal.showModal === "function") {
-      modal.showModal();
-    } else {
-      modal.style.display = "block";
+      modal.style.display = "flex";
+    } catch (err) {
+      showToast(err.message || "Failed to load your clubs.", "error");
     }
-  }
-}
+  });
 
-function renderDigitalPassView(regRecord) {
-  const formView = document.getElementById("event-modal-form-view");
-  const passView = document.getElementById("event-modal-pass-view");
-  if (formView) formView.style.display = "none";
-  if (!passView) return;
-
-  const d = new Date(regRecord.eventDate);
-  const formattedDate = d.toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" });
-
-  passView.style.display = "block";
-  passView.innerHTML = `
-    <div class="digital-pass-card">
-      <span class="digital-pass-badge">✓ OFFICIAL ENTRY PASS</span>
-      <h3 style="margin: 0 0 6px; font-size: 1.125rem; font-weight: 800;">${escapeHTML(regRecord.eventTitle)}</h3>
-      <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 12px;">
-        ${escapeHTML(regRecord.clubName)} &bull; ${escapeHTML(regRecord.eventVenue)}
-      </div>
-
-      <div class="digital-pass-code">${escapeHTML(regRecord.passCode)}</div>
-
-      <div class="digital-pass-barcode">
-        ${Array.from({ length: 30 }).map((_, i) => `<div class="barcode-bar" style="height: ${18 + (i % 5) * 5}px;"></div>`).join("")}
-      </div>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; text-align: left; font-size: 0.75rem; background: var(--bg-surface); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-top: 14px;">
-        <div><strong style="color: var(--text-secondary);">Attendee:</strong> ${escapeHTML(regRecord.studentName)}</div>
-        <div><strong style="color: var(--text-secondary);">Roll No:</strong> ${escapeHTML(regRecord.rollNumber)}</div>
-        <div><strong style="color: var(--text-secondary);">Event Date:</strong> ${formattedDate}</div>
-        <div><strong style="color: var(--text-secondary);">Status:</strong> <span style="color: var(--color-success); font-weight: 700;">Confirmed</span></div>
-      </div>
-    </div>
-
-    <div class="modal-footer" style="margin-top: 16px;">
-      <button type="button" class="btn btn-outline" onclick="closeRegisterModal()">Done</button>
-      <button type="button" class="btn btn-primary" onclick="window.print()">Print / Save Pass</button>
-    </div>
-  `;
-}
-
-function setupCreateEventModal() {
-  const triggerBtn = document.getElementById("create-event-trigger");
-  const modal = document.getElementById("create-event-modal");
-  const closeBtn = document.getElementById("create-event-close");
-  const cancelBtn = document.getElementById("cancel-create-btn");
-  const form = document.getElementById("create-event-form");
-
-  // Check if current user is admin or coordinator
-  if (typeof Storage !== "undefined") {
-    const user = Storage.getCurrentUser();
-    if (user && (user.role === "Admin" || user.role === "Coordinator")) {
-      if (triggerBtn) triggerBtn.style.display = "inline-flex";
-    }
-  }
-
-  if (triggerBtn && modal) {
-    triggerBtn.onclick = () => {
-      if (typeof modal.showModal === "function") modal.showModal();
-      else modal.style.display = "block";
-    };
-  }
+  if (closeBtn) closeBtn.addEventListener("click", () => { modal.style.display = "none"; });
 
   const closeCreate = () => {
     if (!modal) return;
@@ -413,49 +285,36 @@ function setupCreateEventModal() {
     else modal.style.display = "none";
   };
 
-  if (closeBtn) closeBtn.onclick = closeCreate;
-  if (cancelBtn) cancelBtn.onclick = closeCreate;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const clubId = clubSelect ? Number(clubSelect.value) : null;
+    const title = document.getElementById("new-event-title").value.trim();
+    const category = document.getElementById("new-event-category").value;
+    const dateVal = document.getElementById("new-event-date").value;
+    const location = document.getElementById("new-event-venue").value.trim();
+    const desc = document.getElementById("new-event-desc").value.trim();
 
-  if (form) {
-    form.onsubmit = (e) => {
-      e.preventDefault();
-      const title = document.getElementById("new-event-title").value.trim();
-      const clubName = document.getElementById("new-event-club").value.trim();
-      const category = document.getElementById("new-event-category").value;
-      const date = document.getElementById("new-event-date").value;
-      const venue = document.getElementById("new-event-venue").value.trim();
-      const fee = document.getElementById("new-event-fee").value.trim() || "Free";
-      const prizes = document.getElementById("new-event-prizes").value.trim();
-      const capacity = parseInt(document.getElementById("new-event-capacity").value, 10) || 200;
-      const desc = document.getElementById("new-event-desc").value.trim();
+    if (!clubId || !title || !dateVal || !location) {
+      showToast("Please fill in all required fields.", "error");
+      return;
+    }
 
-      const newEvent = {
-        id: "evt-" + Date.now(),
+    try {
+      await API.createEvent({
+        club_id: clubId,
         title,
-        clubName,
         category,
-        date: new Date(date).toISOString(),
-        venue,
-        fee,
-        prizes,
-        capacity,
-        registeredCount: 0,
-        description: desc,
-        banner: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800"
-      };
+        event_date: new Date(dateVal).toISOString(),
+        location,
+        description: desc || "Campus event"
+      });
 
-      currentEvents.unshift(newEvent);
-      if (typeof Storage !== "undefined") {
-        Storage.saveEvents(currentEvents);
-      }
-
-      closeCreate();
+      showToast(`Event '${title}' published successfully!`, "success");
+      modal.style.display = "none";
       form.reset();
-      renderEvents();
-
-      if (typeof UIStates !== "undefined") {
-        UIStates.showToast("Event published successfully to campus calendar!", "success");
-      }
-    };
-  }
+      await loadAndRenderEvents();
+    } catch (err) {
+      showToast(err.message || "Failed to publish event.", "error");
+    }
+  });
 }
