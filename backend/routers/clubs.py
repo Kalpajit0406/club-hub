@@ -391,8 +391,8 @@ def get_club_requests(
         .filter(Application.club_id == club_id)
     )
 
-    if status_filter:
-        query = query.filter(Application.status == status_filter)
+    if isinstance(status_filter, str) and status_filter.strip():
+        query = query.filter(Application.status == status_filter.strip())
 
     applications = query.order_by(Application.applied_at.desc()).all()
     return applications

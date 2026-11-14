@@ -149,16 +149,16 @@ async function renderClubRequests(clubId) {
         statusBadge = `<span class="badge-status-pending" style="padding: 4px 10px; border-radius: 999px; font-size: 11px;">Pending</span>`;
         actionsHtml = `
           <div style="display: flex; gap: 6px;">
-            <button type="button" class="btn btn-success btn-sm" onclick="handleRequestDecision(${req.id}, 'Approved', '${escapeHTML(studentName)}')">Approve</button>
-            <button type="button" class="btn btn-danger btn-sm" onclick="handleRequestDecision(${req.id}, 'Rejected', '${escapeHTML(studentName)}')">Reject</button>
+            <button type="button" class="btn btn-success btn-sm" onclick="handleRequestDecision(${req.id}, 'Approved', '${escapeHTML(studentName)}')">✓ Accept</button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="handleRequestDecision(${req.id}, 'Rejected', '${escapeHTML(studentName)}')">✗ Reject</button>
           </div>
         `;
       } else if (req.status === "Approved") {
-        statusBadge = `<span class="badge-status-approved" style="padding: 4px 10px; border-radius: 999px; font-size: 11px;">Approved</span>`;
+        statusBadge = `<span class="badge-status-approved" style="padding: 4px 10px; border-radius: 999px; font-size: 11px;">Accepted</span>`;
         actionsHtml = `<span style="font-size: 12px; color: var(--success); font-weight: 600;">Active Member</span>`;
       } else {
         statusBadge = `<span class="badge-status-rejected" style="padding: 4px 10px; border-radius: 999px; font-size: 11px;">Rejected</span>`;
-        actionsHtml = `<button type="button" class="btn btn-outline btn-sm" onclick="handleRequestDecision(${req.id}, 'Approved', '${escapeHTML(studentName)}')">Reconsider</button>`;
+        actionsHtml = `<button type="button" class="btn btn-outline btn-sm" onclick="handleRequestDecision(${req.id}, 'Approved', '${escapeHTML(studentName)}')">Accept</button>`;
       }
 
       return `
