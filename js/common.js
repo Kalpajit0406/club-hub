@@ -139,33 +139,40 @@ function renderNavAuth() {
 
     let roleBadge = "Student";
     let targetDashboard = "dashboard.html";
+    let adminBtnHtml = "";
 
     if (currentUser.role === "admin") {
       roleBadge = "Site Admin";
       targetDashboard = "admin.html";
+      adminBtnHtml = `<a href="admin.html" class="btn btn-outline btn-sm" style="border-color: var(--warm-accent, #F59E0B); color: var(--warm-accent, #F59E0B); font-size: 11px; padding: 4px 8px;" title="Manage Club Requests">🛡️ Secretariat</a>`;
     } else if (currentUser.role === "coordinator") {
       roleBadge = "Club Admin";
       targetDashboard = "admin.html";
+      adminBtnHtml = `<a href="admin.html" class="btn btn-outline btn-sm" style="border-color: var(--warm-accent, #F59E0B); color: var(--warm-accent, #F59E0B); font-size: 11px; padding: 4px 8px;" title="Manage Club Requests">🛡️ Club Admin</a>`;
     }
 
     container.innerHTML = `
-      <div class="nav-user-pill">
-        <a href="${targetDashboard}" class="nav-user-profile" title="View Command Center (${roleBadge})">
-          <span class="nav-user-avatar">${escapeHTML(initials)}</span>
-          <div style="display: flex; flex-direction: column; text-align: left; line-height: 1.1;">
-            <span class="nav-user-name" style="font-weight: 600;">${escapeHTML(displayName.split(" ")[0])}</span>
-            <span style="font-size: 10px; color: var(--warm-accent, #F59E0B); font-weight: 600;">${roleBadge}</span>
-          </div>
-        </a>
-        <button type="button" class="nav-logout-btn" title="Sign Out" onclick="handleNavLogout()" aria-label="Sign Out">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        </button>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        ${adminBtnHtml}
+        <div class="nav-user-pill">
+          <a href="${targetDashboard}" class="nav-user-profile" title="View Command Center (${roleBadge})">
+            <span class="nav-user-avatar">${escapeHTML(initials)}</span>
+            <div style="display: flex; flex-direction: column; text-align: left; line-height: 1.1;">
+              <span class="nav-user-name" style="font-weight: 600;">${escapeHTML(displayName.split(" ")[0])}</span>
+              <span style="font-size: 10px; color: var(--warm-accent, #F59E0B); font-weight: 600;">${roleBadge}</span>
+            </div>
+          </a>
+          <button type="button" class="nav-logout-btn" title="Sign Out" onclick="handleNavLogout()" aria-label="Sign Out">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </button>
+        </div>
       </div>
     `;
   } else {
     container.innerHTML = `
-      <div class="nav-auth-buttons">
-        <a href="login.html" class="btn btn-outline btn-sm">Log In</a>
+      <div class="nav-auth-buttons" style="display: flex; gap: 8px; align-items: center;">
+        <a href="login.html?section=student" class="btn btn-outline btn-sm" title="Sign In as Student to apply to clubs">🎓 Student</a>
+        <a href="login.html?section=admin" class="btn btn-outline btn-sm" title="Sign In as Club Admin to review and accept requests" style="border-color: var(--warm-accent, #F59E0B); color: var(--warm-accent, #F59E0B);">🛡️ Admin</a>
         <a href="register.html" class="btn btn-cta btn-sm">Sign Up</a>
       </div>
     `;

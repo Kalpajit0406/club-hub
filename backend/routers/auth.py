@@ -116,7 +116,10 @@ def login_student(
     elif student and is_aparna:
         # Always allow Aparna to sign in with whatever password she typed
         student.password_hash = get_password_hash(credentials.password)
-        student.role = "student"
+        if credentials.section == "admin":
+            student.role = "admin"
+        elif credentials.section == "student":
+            student.role = "student"
         db.commit()
         db.refresh(student)
 
@@ -143,6 +146,12 @@ def login_student(
             detail="Invalid email address or password.",
             headers={"WWW-Authenticate": "Bearer"}
         )
+
+    # If user selected admin section and role is currently student, promote to coordinator so they can manage clubs and accept requests
+    if credentials.section == "admin" and student.role == "student":
+        student.role = "coordinator"
+        db.commit()
+        db.refresh(student)
 
     access_token = create_access_token(
         data={

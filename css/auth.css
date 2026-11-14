@@ -60,6 +60,130 @@
   box-shadow: var(--shadow-md);
 }
 
+/* Role Tabs Switcher (Student vs Admin) */
+.auth-role-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  padding: 5px;
+  border-radius: var(--radius-md);
+  margin-bottom: 18px;
+}
+
+.auth-role-tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius-md) - 2px);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+  font-family: inherit;
+  color: var(--text-secondary);
+}
+
+.auth-role-tab:hover {
+  color: var(--text-primary);
+  background: rgba(79, 70, 229, 0.05);
+}
+
+.auth-role-tab.active {
+  background: var(--bg-card);
+  color: var(--primary-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-color: var(--border-color);
+}
+
+.role-tab-badge {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.role-tab-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.role-tab-name {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.auth-role-tab.active .role-tab-name {
+  color: var(--primary-color);
+}
+
+.auth-role-tab[data-role="admin"].active .role-tab-name {
+  color: #D97706;
+}
+
+.role-tab-hint {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  line-height: 1.2;
+  margin-top: 2px;
+}
+
+/* Role Info Banner */
+.role-info-banner {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-fast);
+}
+
+.role-info-banner.student-mode {
+  background: rgba(79, 70, 229, 0.05);
+  border-color: rgba(79, 70, 229, 0.22);
+}
+
+.role-info-banner.admin-mode {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.role-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.role-info-tag {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--primary-color);
+}
+
+.role-info-banner.admin-mode .role-info-tag {
+  color: #D97706;
+}
+
+.role-info-note {
+  font-size: 0.71875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.role-info-desc {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  margin: 0;
+}
+
 .auth-alert {
   display: none;
   padding: 12px 14px;

@@ -44,9 +44,56 @@
     <div class="auth-card">
       <div id="auth-alert" class="auth-alert" role="alert"></div>
 
+      <!-- ROLE SELECTOR TABS: STUDENT vs ADMIN -->
+      <div class="auth-role-tabs" role="tablist" aria-label="Choose Sign In Role">
+        <button 
+          type="button" 
+          id="role-tab-student" 
+          class="auth-role-tab active" 
+          role="tab" 
+          aria-selected="true" 
+          data-role="student"
+        >
+          <span class="role-tab-badge">🎓</span>
+          <div class="role-tab-meta">
+            <span class="role-tab-name">Student</span>
+            <span class="role-tab-hint">Apply to join clubs</span>
+          </div>
+        </button>
+
+        <button 
+          type="button" 
+          id="role-tab-admin" 
+          class="auth-role-tab" 
+          role="tab" 
+          aria-selected="false" 
+          data-role="admin"
+        >
+          <span class="role-tab-badge">🛡️</span>
+          <div class="role-tab-meta">
+            <span class="role-tab-name">Club Admin</span>
+            <span class="role-tab-hint">Accept club requests</span>
+          </div>
+        </button>
+      </div>
+
+      <!-- DYNAMIC SECTION BANNER -->
+      <div id="role-info-banner" class="role-info-banner student-mode">
+        <div class="role-info-header">
+          <span id="role-info-tag" class="role-info-tag">🎓 Student Portal</span>
+          <span id="role-info-note" class="role-info-note">Browse clubs &amp; submit candidacy</span>
+        </div>
+        <p id="role-info-desc" class="role-info-desc">
+          Sign in as a student to explore university clubs, apply to join societies, register for campus events, and earn verifiable achievement badges.
+        </p>
+      </div>
+
       <form id="login-form">
+        <!-- Hidden input storing selected role: student or admin -->
+        <input type="hidden" id="login-role" name="role" value="student">
+
         <div class="form-group" style="margin-bottom: 16px;">
-          <label for="login-email" class="form-label">College Email Address <span class="required">*</span></label>
+          <label for="login-email" class="form-label" id="login-email-label">College Email Address <span class="required">*</span></label>
           <input 
             type="email" 
             id="login-email" 
@@ -74,20 +121,14 @@
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary auth-submit-btn" style="width: 100%; margin-top: 10px;">
-          Sign In to ClubHub
+        <button type="submit" id="auth-submit-btn" class="btn btn-primary auth-submit-btn" style="width: 100%; margin-top: 10px;">
+          Sign In as Student →
         </button>
 
-        <!-- DEMO CREDENTIALS SHORTCUT -->
-        <div class="demo-credentials-box" style="margin-top: 14px; padding: 12px 14px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.8125rem;">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-            <span>⚡ <strong>Student (Aparna):</strong> <code>aparnamaity2609@campus.edu</code></span>
-            <button type="button" id="aparna-fill-btn" class="btn btn-outline btn-sm" style="padding: 3px 8px; font-size: 0.72rem;">Auto-fill</button>
-          </div>
-          <div style="display: flex; align-items: center; justify-content: space-between;">
-            <span>⚡ <strong>Student (Aditya):</strong> <code>aditya.cs23@campus.edu</code></span>
-            <button type="button" id="demo-fill-btn" class="btn btn-outline btn-sm" style="padding: 3px 8px; font-size: 0.72rem;">Auto-fill</button>
-          </div>
+        <!-- DYNAMIC DEMO CREDENTIALS SHORTCUT -->
+        <div id="demo-credentials-container" class="demo-credentials-box" style="margin-top: 16px; padding: 12px 14px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.8125rem;">
+          <!-- Dynamically populated by auth.js -->
+        </div>
         </div>
       </form>
     </div>

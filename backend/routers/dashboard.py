@@ -5,6 +5,7 @@ Dashboard & System Analytics Router.
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 
 from backend.database import get_db
 from backend.models import Student, Club, Application, Membership, Event, EventRegistration, Badge
@@ -65,7 +66,7 @@ def get_student_dashboard_stats(
 
 @router.get(
     "/coordinator-clubs",
-    summary="Get clubs coordinated by current user"
+    summary="Get clubs coordinated or managed by current user"
 )
 def get_coordinated_clubs(
     current_user: Student = Depends(get_current_user),
@@ -74,7 +75,18 @@ def get_coordinated_clubs(
     if current_user.role == "admin":
         clubs = db.query(Club).all()
     else:
-        clubs = db.query(Club).filter(Club.coordinator_id == current_user.id).all()
+        # Include clubs where current_user is coordinator OR an active member
+        member_club_ids = [m.club_id for m in db.query(Membership.club_id).filter(Membership.student_id == current_user.id).all()]
+        clubs = db.query(Club).filter(
+            or_(
+                Club.coordinator_id == current_user.id,
+                Club.id.in_(member_club_ids) if member_club_ids else False
+            )
+        ).all()
+
+        # If user has coordinator or admin role and has no clubs assigned yet, allow managing all campus societies:
+        if not clubs and current_user.role in ("coordinator", "admin"):
+            clubs = db.query(Club).all()
 
     result = []
     for c in clubs:
