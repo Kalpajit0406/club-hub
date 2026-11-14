@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Placements &amp; Internships | ClubHub</title>
+  <meta name="description" content="Discover campus internship drives, engineering trainee programs, and verified job postings from top tech employers.">
+
+  <!-- Anti-Flicker Theme & Palette Init -->
+  <script>
+    (function() {
+      var savedTheme = localStorage.getItem("clubhub_theme_mode_v2") || "light";
+      var savedPalette = localStorage.getItem("clubhub_active_palette") || "default";
+      document.documentElement.setAttribute("data-theme", savedTheme);
+      document.documentElement.setAttribute("data-palette", savedPalette);
+    })();
+  </script>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/palette.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/recruiters.css">
+</head>
+<body>
+
+  <!-- GLOBAL NAVBAR -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand" aria-label="ClubHub Home">
+        <span class="brand-name">Club<span>Hub</span></span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="clubs.html" class="nav-link">Clubs</a>
+        <a href="events.html" class="nav-link">Events</a>
+        <a href="marketplace.html" class="nav-link">Marketplace</a>
+        <a href="network.html" class="nav-link">Network</a>
+        <a href="recruiters.html" class="nav-link active">Placements</a>
+      </nav>
+
+      <div class="nav-actions">
+        <div id="nav-auth-box"></div>
+        <button type="button" class="mobile-nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- PAGE HEADER -->
+  <section class="page-header">
+    <div class="container page-title-row">
+      <div>
+        <div class="page-category-eyebrow">Corporate Drives &amp; Careers</div>
+        <h1 class="page-title">Placements &amp; Internships</h1>
+        <p class="page-description">
+          Verified software engineering, cloud, and product development opportunities with corporate recruiters and premier employers.
+        </p>
+      </div>
+      <div>
+        <a href="recruiter-dashboard.html" class="btn btn-outline">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          Employer Portal &rarr;
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="rec-main-section">
+    <div class="container">
+      
+      <!-- Controls (Search) -->
+      <div class="rec-controls-card">
+        <div class="rec-search-row">
+          <div class="rec-search-box">
+            <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" id="job-search-input" class="search-input" placeholder="Search by company (Microsoft, Google, TCS), role, or skills (React, Python)..." autocomplete="off">
+            <button type="button" id="job-search-clear" class="search-clear" style="display: none;">&times;</button>
+          </div>
+
+          <div id="job-count-badge" class="rec-stat-pill">
+            Loading openings...
+          </div>
+        </div>
+      </div>
+
+      <!-- Job Cards Grid -->
+      <div id="job-grid" class="rec-grid" aria-live="polite">
+        <!-- Injected by recruiters.js -->
+      </div>
+
+    </div>
+  </main>
+
+  <!-- APPLY MODAL -->
+  <dialog id="job-apply-modal" class="native-modal">
+    <div class="modal-inner" style="max-width: 540px;">
+      <div class="modal-header">
+        <div>
+          <h3 id="modal-job-title" class="modal-title">Apply for Role</h3>
+          <p id="modal-job-sub" class="modal-subtitle">Official Campus Placement Application</p>
+        </div>
+        <button id="job-apply-close" class="modal-close" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div>
+        <form id="job-apply-form" class="modal-body-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="apply-name">Full Name <span class="required">*</span></label>
+              <input type="text" id="apply-name" class="form-input" required placeholder="Aditya Verma">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="apply-roll">Roll Number <span class="required">*</span></label>
+              <input type="text" id="apply-roll" class="form-input" required placeholder="23/CS/104">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="apply-email">College Email <span class="required">*</span></label>
+              <input type="email" id="apply-email" class="form-input" required placeholder="aditya@tint.edu.in">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="apply-cgpa">Cumulative CGPA <span class="required">*</span></label>
+              <input type="text" id="apply-cgpa" class="form-input" required placeholder="e.g. 8.74">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="apply-github">GitHub / Portfolio Link <span class="required">*</span></label>
+            <input type="url" id="apply-github" class="form-input" required placeholder="https://github.com/aditya-tint">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="apply-resume">Resume / CV Drive Link <span class="required">*</span></label>
+            <input type="url" id="apply-resume" class="form-input" required placeholder="https://drive.google.com/file/d/your-resume">
+          </div>
+
+          <!-- Verified Badges Container -->
+          <div id="apply-badges-container"></div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" id="cancel-apply-btn">Cancel</button>
+            <button type="submit" class="btn btn-primary">Submit Application</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ENTERPRISE FOOTER -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <div class="footer-col footer-col-brand">
+        <a href="index.html" class="nav-brand" style="margin-bottom: 12px; display: inline-flex;">
+          <span class="brand-name">Club<span>Hub</span></span>
+        </a>
+        <p class="footer-description">
+          The all-in-one university campus operating system. Discover societies, attend hackathons, trade student goods, and find collaborative teams.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <div class="footer-col-title">Campus Hubs</div>
+        <ul class="footer-links">
+          <li><a href="clubs.html">All Societies</a></li>
+          <li><a href="events.html">Campus Events</a></li>
+          <li><a href="marketplace.html">Student Exchange</a></li>
+          <li><a href="network.html">Peer Network</a></li>
+          <li><a href="recruiters.html">Career Drives</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <div class="footer-col-title">Command Center</div>
+        <ul class="footer-links">
+          <li><a href="dashboard.html">Student Profile</a></li>
+          <li><a href="recruiter-dashboard.html">Recruiter Portal</a></li>
+          <li><a href="admin.html">Secretariat Access</a></li>
+          <li><a href="login.html">Account Sign In</a></li>
+          <li><a href="register.html">Student Onboarding</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <div class="footer-col-title">System Status</div>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 8px;">
+          FastAPI Backend &bull; Operational<br>
+          Connected Node Architecture<br>
+          Vercel &amp; Firebase Hosted
+        </p>
+        <span class="badge badge-teal" style="font-size: 12px; padding: 4px 10px;">v2.4 Production</span>
+      </div>
+    </div>
+
+    <div class="container footer-bottom">
+      <div>&copy; 2026 <strong>ClubHub</strong> &bull; The University Campus Operating System. All rights reserved.</div>
+      <div style="display: flex; gap: 16px; font-size: 13px;">
+        <a href="clubs.html" style="color: var(--text-secondary);">Societies</a>
+        <a href="events.html" style="color: var(--text-secondary);">Events</a>
+        <a href="marketplace.html" style="color: var(--text-secondary);">Exchange</a>
+        <a href="network.html" style="color: var(--text-secondary);">Network</a>
+        <a href="dashboard.html" style="color: var(--text-secondary);">Command Center</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/icons.js"></script>
+  <script src="js/states.js"></script>
+  <script src="js/brand.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/palette.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/recruiters.js"></script>
+</body>
+</html>

@@ -3,13 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CampusConnect | College Club & Student Organization Platform</title>
-  <meta name="description" content="Discover official college clubs, technical chapters, cultural groups, and societies. Submit membership applications and track your recruitment status in real time.">
-  
+  <title>ClubHub | The All-in-One Smart Campus Operating System</title>
+  <meta name="description" content="Discover official college clubs, register for hackathons and tech fests, buy/sell engineering textbooks, find project teammates, and apply for verified corporate internships.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+  <!-- Anti-Flicker Theme & Palette Init -->
+  <script>
+    (function() {
+      var savedTheme = localStorage.getItem("clubhub_theme_mode_v2") || "light";
+      document.documentElement.setAttribute("data-theme", savedTheme);
+    })();
+  </script>
+
   <!-- Google Fonts: Plus Jakarta Sans & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- CSS Stylesheets -->
   <link rel="stylesheet" href="css/style.css">
@@ -18,293 +29,357 @@
 </head>
 <body>
 
-  <!-- ==================== NAVIGATION BAR ==================== -->
+  <!-- GLOBAL NAVBAR -->
   <header class="navbar">
     <div class="container nav-container">
-      <a href="index.html" class="brand-logo" aria-label="CampusConnect Home">
-        <div class="brand-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
-            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+      <a href="index.html" class="nav-brand" aria-label="ClubHub Home">
+        <div class="brand-icon-wrap">
+          <svg viewBox="0 0 48 48" width="34" height="34" fill="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="chNavGrad" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#2F5BE7"/>
+                <stop offset="100%" stop-color="#1D4ED8"/>
+              </linearGradient>
+            </defs>
+            <rect width="48" height="48" rx="12" fill="#0B1220"/>
+            <rect width="48" height="48" rx="12" stroke="rgba(255, 255, 255, 0.15)" stroke-width="1.5"/>
+            <path d="M 24 11 C 15 11 11 16 11 24 C 11 32 15 37 24 37" stroke="url(#chNavGrad)" stroke-width="4.2" stroke-linecap="round"/>
+            <path d="M 19 24 L 33 24 M 33 13 L 33 35" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="24" cy="11" r="3.5" fill="#2F5BE7" stroke="#FFFFFF" stroke-width="1.8"/>
+            <circle cx="24" cy="37" r="3.5" fill="#0F766E" stroke="#FFFFFF" stroke-width="1.8"/>
+            <circle cx="19" cy="24" r="2.75" fill="#F4B544" stroke="#0B1220" stroke-width="1.5"/>
+            <circle cx="33" cy="24" r="3" fill="#2F5BE7" stroke="#FFFFFF" stroke-width="1.8"/>
           </svg>
         </div>
         <div class="brand-text">
-          Campus<span>Connect</span>
-          <span class="brand-sub">Student Life Platform</span>
+          <span class="brand-title">Club<span class="brand-accent">Hub</span></span>
+          <span class="brand-sub">Campus OS</span>
         </div>
       </a>
 
-      <!-- Desktop & Mobile Navigation Links -->
-      <nav>
-        <ul class="nav-links">
-          <li><a href="index.html" class="nav-link active">Home</a></li>
-          <li><a href="clubs.html" class="nav-link">Explore Clubs</a></li>
-          <li>
-            <a href="dashboard.html" class="nav-link">
-              My Dashboard
-              <span id="nav-app-count" class="nav-counter" style="display: none;">0</span>
-            </a>
-          </li>
-        </ul>
+      <nav class="nav-links">
+        <a href="clubs.html" class="nav-link">Explore Clubs</a>
+        <a href="events.html" class="nav-link">Events</a>
+        <a href="marketplace.html" class="nav-link">Marketplace</a>
+        <a href="network.html" class="nav-link">Network</a>
+        <a href="recruiters.html" class="nav-link">Placements</a>
       </nav>
 
       <div class="nav-actions">
         <div id="nav-auth-box"></div>
-        <a href="clubs.html" class="btn btn-primary btn-sm">Explore Clubs</a>
-        <button class="mobile-nav-toggle" aria-label="Toggle Navigation Menu" aria-expanded="false">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="3" y1="12" x2="21" y2="12"/>
-            <line x1="3" y1="6" x2="21" y2="6"/>
-            <line x1="3" y1="18" x2="21" y2="18"/>
-          </svg>
+        <button type="button" class="mobile-nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- ==================== MAIN CONTENT ==================== -->
+  <!-- MAIN HOMEPAGE CONTENT -->
   <main class="main-content">
-
-    <!-- HERO SECTION -->
+    
+    <!-- 1. TWO-COLUMN PREMIUM HERO -->
     <section class="hero">
-      <div class="container">
-        <div class="hero-content">
-          <div class="hero-badge">
-            <span class="hero-badge-dot"></span>
-            Campus Recruitment Season 2026 Live
+      <div class="container hero-grid">
+        
+        <!-- Left Column: Copy & Actions -->
+        <div class="hero-left">
+          <div class="hero-announcement">
+            <span class="announcement-dot"></span>
+            Campus Recruitment &amp; Hackathon Season 2026 Live
           </div>
+
           <h1 class="hero-title">
-            Discover Your Community. <br>
-            <span class="text-primary-accent">Join, Learn & Lead.</span>
+            Your campus.<br>
+            Your community.<br>
+            <span class="title-accent">Your opportunities.</span>
           </h1>
-          <p class="hero-subtitle">
-            The modern student portal for 30+ official university clubs, technical chapters, and creative societies. Apply to recruitments in seconds and track your review status in real time.
+
+          <p class="hero-desc">
+            Discover campus communities, find your next hackathon, collaborate with talented students, and unlock career opportunities — all from one place.
           </p>
 
-          <!-- Instant Search Form -->
-          <form id="hero-search-form" class="hero-search-form" role="search">
-            <div class="hero-search-wrapper">
-              <svg class="hero-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
-              <input 
-                type="text" 
-                id="hero-search-input" 
-                class="hero-search-input" 
-                placeholder="Search clubs, technical domains, cultural groups..."
-                autocomplete="off"
-              >
-              <button type="submit" class="btn btn-primary hero-search-btn">Find Clubs</button>
-            </div>
+          <div class="hero-actions">
+            <a href="clubs.html" class="btn btn-primary btn-lg">Explore Clubs</a>
+            <a href="events.html" class="btn btn-outline btn-lg">Browse Events</a>
+          </div>
+
+          <!-- Quick Discovery Search -->
+          <form class="hero-search-wrap" action="clubs.html" method="GET">
+            <span class="hero-search-icon" data-icon="search" data-icon-size="18"></span>
+            <input type="text" name="q" class="hero-search-input" placeholder="Search clubs, hackathons, robotics, coding..." aria-label="Search campus platform">
+            <button type="submit" class="btn btn-primary hero-search-btn">Discover</button>
           </form>
+        </div>
 
-          <!-- Key Metrics / Stats Card (SaaS Elevated) -->
-          <div class="hero-stats-card">
-            <div class="stat-item">
-              <div class="stat-icon-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                  <circle cx="9" cy="7" r="4"/>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                </svg>
-              </div>
-              <div>
-                <div class="stat-number">30+</div>
-                <div class="stat-label">Active Clubs</div>
-              </div>
+        <!-- Right Column: Realistic Product UI Preview -->
+        <div class="hero-preview" aria-hidden="true">
+          <div class="preview-header">
+            <span class="preview-badge"><span class="preview-dot"></span> Campus Live Radar</span>
+            <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Spring 2026</span>
+          </div>
+
+          <!-- Preview Item 1: Active Hackathon -->
+          <div class="preview-card-item">
+            <div class="preview-card-row">
+              <span class="preview-tag">🔥 Hackathon</span>
+              <span style="font-size: 11px; font-weight: 700; color: var(--success);">Registration Open</span>
             </div>
-
-            <div class="stat-item">
-              <div class="stat-icon-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                  <circle cx="9" cy="7" r="4"/>
-                  <polyline points="16 11 18 13 22 9"/>
-                </svg>
-              </div>
-              <div>
-                <div class="stat-number">1,800+</div>
-                <div class="stat-label">Student Members</div>
-              </div>
+            <div class="preview-event-title">HackTINT 2026: 36h Code Sprint</div>
+            <div class="preview-meta">
+              <span data-icon="calendar" data-icon-size="13"></span> Mar 20, 2026 &bull; ₹1.5L Prize Pool
             </div>
-
-            <div class="stat-item">
-              <div class="stat-icon-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                  <line x1="16" y1="2" x2="16" y2="6"/>
-                  <line x1="8" y1="2" x2="8" y2="6"/>
-                  <line x1="3" y1="10" x2="21" y2="10"/>
-                </svg>
-              </div>
-              <div>
-                <div class="stat-number">60+</div>
-                <div class="stat-label">Annual Events</div>
-              </div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-top: 4px;">
+              <span>Capacity</span>
+              <span>124 / 200 Registered</span>
+            </div>
+            <div class="preview-capacity-bar">
+              <div class="preview-capacity-fill" style="width: 62%;"></div>
             </div>
           </div>
 
+          <!-- Preview Item 2: Leading Club -->
+          <div class="preview-card-item">
+            <div class="preview-card-row">
+              <div class="preview-club-name">Google Developer Student Club (GDSC)</div>
+              <span class="preview-tag" style="background: var(--teal-light); color: var(--teal); border-color: var(--teal-border);">Technical</span>
+            </div>
+            <div class="preview-meta">
+              <span data-icon="users" data-icon-size="13"></span> 180 Active Members &bull; Recruitment Open
+            </div>
+          </div>
+
+          <!-- Preview Item 3: Teammate Post -->
+          <div class="preview-card-item" style="border-left: 3px solid var(--amber);">
+            <div class="preview-card-row">
+              <span style="font-size: 11px; font-weight: 700; color: var(--amber); text-transform: uppercase;">#HackathonTeam</span>
+              <span style="font-size: 11px; color: var(--text-muted);">15m ago</span>
+            </div>
+            <div style="font-size: 13px; font-weight: 600; color: var(--text-main);">
+              SIH 2026: Looking for Flutter &amp; UI/UX specialist for Smart Agriculture Rover.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 2. VERIFIED CAMPUS ACTIVITY TELEMETRY -->
+    <section class="stats-section">
+      <div class="container stats-grid">
+        <div class="stat-item">
+          <div class="stat-value">30+</div>
+          <div class="stat-label">Chartered Campus Clubs</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value highlight">2,400+</div>
+          <div class="stat-label">Enrolled Student Members</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">₹15L+</div>
+          <div class="stat-label">Hackathon &amp; Stipend Pool</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value highlight">100%</div>
+          <div class="stat-label">Verified Student Platform</div>
         </div>
       </div>
     </section>
 
-    <!-- CATEGORIES SECTION -->
-    <section class="categories-section">
+    <!-- 3. SMART CAMPUS PLATFORM SUITE -->
+    <section class="container section-pad">
+      <div class="section-head">
+        <span class="section-tag"><span data-icon="laptop" data-icon-size="14"></span> All-in-One Operating System</span>
+        <h2 class="section-h2">Everything You Need for Campus Success</h2>
+        <p class="section-p">
+          Purpose-built modules to navigate technical societies, events, academics, student commerce, and career launches.
+        </p>
+      </div>
+
+      <div class="suite-grid">
+        <!-- Module 1: Clubs -->
+        <a href="clubs.html" class="suite-card">
+          <div class="suite-icon-box">
+            <span data-icon="users" data-icon-size="22"></span>
+          </div>
+          <h3>Societies &amp; Chapters</h3>
+          <p>Discover technical societies, cultural wings, and sports cells. View meeting schedules, review active rosters, and apply with real-time status tracking.</p>
+          <span class="suite-action">Explore Clubs <span data-icon="arrow-right" data-icon-size="14"></span></span>
+        </a>
+
+        <!-- Module 2: Events -->
+        <a href="events.html" class="suite-card">
+          <div class="suite-icon-box">
+            <span data-icon="calendar" data-icon-size="22"></span>
+          </div>
+          <h3>Events &amp; Hackathons</h3>
+          <p>Register for 36-hour hackathons, combat robowars, codelabs, and fests. Instantly claim official digital entry passes with simulated verification QR codes.</p>
+          <span class="suite-action">Browse Events <span data-icon="arrow-right" data-icon-size="14"></span></span>
+        </a>
+
+        <!-- Module 3: Marketplace -->
+        <a href="marketplace.html" class="suite-card">
+          <div class="suite-icon-box">
+            <span data-icon="tag" data-icon-size="22"></span>
+          </div>
+          <h3>Student Marketplace</h3>
+          <p>Buy, sell, and trade engineering textbooks, scientific calculators, mini drafters, and Arduino sensor kits safely with authenticated campus peers.</p>
+          <span class="suite-action">Open Marketplace <span data-icon="arrow-right" data-icon-size="14"></span></span>
+        </a>
+
+        <!-- Module 4: Network -->
+        <a href="network.html" class="suite-card">
+          <div class="suite-icon-box">
+            <span data-icon="message-square" data-icon-size="22"></span>
+          </div>
+          <h3>Collaboration Feed</h3>
+          <p>Find Smart India Hackathon (SIH) teammates, organize MAKAUT exam study circles, recruit drone hardware coders, and share insights across departments.</p>
+          <span class="suite-action">Join Feed <span data-icon="arrow-right" data-icon-size="14"></span></span>
+        </a>
+
+        <!-- Module 5: Placements -->
+        <a href="recruiters.html" class="suite-card">
+          <div class="suite-icon-box">
+            <span data-icon="briefcase" data-icon-size="22"></span>
+          </div>
+          <h3>Placements &amp; Internships</h3>
+          <p>Directly apply for verified campus openings from top tech employers with transparent compensation, eligibility guidelines, and achievement badge portfolios.</p>
+          <span class="suite-action">View Openings <span data-icon="arrow-right" data-icon-size="14"></span></span>
+        </a>
+
+        <!-- Module 6: Dashboard -->
+        <a href="dashboard.html" class="suite-card">
+          <div class="suite-icon-box">
+            <span data-icon="award" data-icon-size="22"></span>
+          </div>
+          <h3>Verified Credentials</h3>
+          <p>Earn verified credentials for hackathon victories and executive club leadership, ready to share with recruiters via cryptographic achievement identifiers.</p>
+          <span class="suite-action">My Dashboard <span data-icon="arrow-right" data-icon-size="14"></span></span>
+        </a>
+      </div>
+    </section>
+
+    <!-- 4. FEATURED CLUBS SPOTLIGHT -->
+    <section class="section-pad" style="background: var(--bg-surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
       <div class="container">
-        <div class="section-header text-center">
-          <h2 class="section-title">Explore by Domain & Discipline</h2>
-          <p class="section-subtitle">Whether you love competitive programming, robotics, public speaking, varsity athletics, or music, find the right community to grow.</p>
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 32px;">
+          <div>
+            <span class="section-tag"><span data-icon="award" data-icon-size="14"></span> Featured Campus Chapters</span>
+            <h2 class="section-h2" style="margin-bottom: 0;">Explore Top Student Societies</h2>
+          </div>
+          <a href="clubs.html" class="btn btn-outline btn-sm">View All 30+ Clubs</a>
         </div>
 
-        <div id="categories-grid" class="categories-grid">
-          <!-- Dynamically populated by js/home.js -->
+        <div id="home-featured-clubs-grid" class="suite-grid">
+          <!-- Dynamically populated or seeded by home.js -->
         </div>
       </div>
     </section>
 
-    <!-- FEATURED CLUBS SECTION -->
-    <section class="featured-section">
-      <div class="container">
-        <div class="section-header">
-          <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
-            <div>
-              <h2 class="section-title">Featured Clubs Recruiting Now</h2>
-              <p class="section-subtitle">Official campus organizations actively accepting membership applications for this semester.</p>
-            </div>
-            <a href="clubs.html" class="btn btn-outline btn-sm">View All Clubs &rarr;</a>
-          </div>
-        </div>
+    <!-- 5. HOW CLUBHUB WORKS -->
+    <section class="container section-pad">
+      <div class="section-head">
+        <span class="section-tag"><span data-icon="activity" data-icon-size="14"></span> Streamlined Experience</span>
+        <h2 class="section-h2">How ClubHub Powers Campus Life</h2>
+        <p class="section-p">Designed to take university students from first-year discovery to career launches in three simple steps.</p>
+      </div>
 
-        <div id="featured-clubs-grid" class="clubs-grid">
-          <!-- Dynamically populated by js/home.js -->
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <h3>Discover &amp; Join</h3>
+          <p>Browse campus societies by technical category, review meeting schedules and team leads, and submit your membership application with 1 click.</p>
         </div>
-
-        <div class="section-actions">
-          <a href="clubs.html" class="btn btn-primary btn-lg">Browse Full Clubs Directory</a>
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <h3>Engage &amp; Build</h3>
+          <p>RSVP for campus hackathons with digital entry passes, buy affordable textbooks from graduating seniors, and find hackathon teammates in the collaboration feed.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">3</div>
+          <h3>Verify &amp; Accelerate</h3>
+          <p>Earn verifiable digital achievement badges for event milestones, build a verified extracurricular profile, and apply directly for corporate internships.</p>
         </div>
       </div>
-    </section>
 
-    <!-- VALUE PROPOSITIONS -->
-    <section class="values-section">
-      <div class="container">
-        <div class="section-header text-center">
-          <h2 class="section-title">Why Join Through CampusConnect?</h2>
-          <p class="section-subtitle">Experience a modern, transparent campus recruitment workflow designed for students and student leaders.</p>
-        </div>
-
-        <div class="values-grid">
-          <div class="value-card">
-            <div class="value-icon-box">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-              </svg>
-            </div>
-            <h3 class="value-title">Real-World Projects & Mentorship</h3>
-            <p class="value-desc">Gain portfolio-ready experience building production software, organizing collegiate hackathons, and competing at national tournaments.</p>
-          </div>
-
-          <div class="value-card">
-            <div class="value-icon-box green">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                <polyline points="22 4 12 14.01 9 11.01"/>
-              </svg>
-            </div>
-            <h3 class="value-title">Live Application Tracking</h3>
-            <p class="value-desc">No more lost email threads or opaque Google forms. Track your review stage from submission to Round 1 interview and final selection.</p>
-          </div>
-
-          <div class="value-card">
-            <div class="value-icon-box navy">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              </svg>
-            </div>
-            <h3 class="value-title">Official Campus Verification</h3>
-            <p class="value-desc">Every student organization is verified by the Directorate of Student Welfare, ensuring valid activity points and certificates.</p>
-          </div>
-        </div>
-
-        <!-- CALL TO ACTION BANNER -->
-        <div class="cta-banner">
-          <h2>Ready to Shape Your College Experience?</h2>
-          <p>Join over 1,800 students actively participating in campus technical chapters, societies, and arts collectives.</p>
-          <div class="cta-buttons">
-            <a href="clubs.html" class="btn btn-white btn-lg">Explore All Clubs</a>
-            <a href="dashboard.html" class="btn btn-outline-white btn-lg">Track My Applications</a>
-          </div>
+      <!-- Registration CTA Banner -->
+      <div class="cta-banner">
+        <h2>Ready to Elevate Your Campus Journey?</h2>
+        <p>Join thousands of students building projects, organizing national hackathons, and unlocking elite internships.</p>
+        <div class="cta-banner-buttons">
+          <a href="register.html" class="btn btn-primary btn-lg" style="background: #FFFFFF; color: #0B1220 !important; border-color: #FFFFFF;">
+            Create Student Account
+          </a>
+          <a href="clubs.html" class="btn btn-outline btn-lg" style="border-color: rgba(255, 255, 255, 0.4); color: #FFFFFF !important;">
+            Explore Without Account
+          </a>
         </div>
       </div>
     </section>
 
   </main>
 
-  <!-- ==================== FOOTER ==================== -->
+  <!-- PROFESSIONAL ENTERPRISE FOOTER -->
   <footer class="footer">
     <div class="container">
-      <div class="footer-grid">
-        <div class="footer-brand">
-          <div class="brand-logo">
-            <div class="brand-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
-                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-                <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-              </svg>
-            </div>
+      <div class="footer-top">
+        <div class="footer-col">
+          <a href="index.html" class="nav-brand" style="margin-bottom: 14px; display: inline-flex;">
             <div class="brand-text">
-              Campus<span>Connect</span>
+              <span class="brand-title" style="font-size: 1.4rem;">Club<span style="color: #60A5FA;">Hub</span></span>
+              <span class="brand-sub">Smart Campus Operating System</span>
             </div>
-          </div>
-          <p>The unified SaaS platform for extracurricular student life, technical chapters, and leadership development on campus.</p>
-          <span class="footer-pill">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            Official Campus Student Life Portal
-          </span>
+          </a>
+          <p style="font-size: 13.5px; line-height: 1.6; max-width: 320px; color: #94A3B8;">
+            The unified collegiate operating system connecting university societies, hackathons, student commerce, and corporate talent acquisition.
+          </p>
         </div>
 
-        <div>
-          <h4 class="footer-heading">Platform</h4>
+        <div class="footer-col">
+          <h4>Explore</h4>
           <ul class="footer-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="clubs.html">Explore Clubs</a></li>
-            <li><a href="clubs.html?filter=open">Recruiting Now</a></li>
-            <li><a href="dashboard.html">Student Dashboard</a></li>
+            <li><a href="clubs.html" class="footer-link">Campus Societies</a></li>
+            <li><a href="events.html" class="footer-link">Events &amp; Hackathons</a></li>
+            <li><a href="marketplace.html" class="footer-link">Student Marketplace</a></li>
+            <li><a href="network.html" class="footer-link">Collaboration Feed</a></li>
+            <li><a href="recruiters.html" class="footer-link">Placements &amp; Careers</a></li>
           </ul>
         </div>
 
-        <div>
-          <h4 class="footer-heading">Categories</h4>
+        <div class="footer-col">
+          <h4>Dashboards</h4>
           <ul class="footer-links">
-            <li><a href="clubs.html?category=Technical">Technical & Coding</a></li>
-            <li><a href="clubs.html?category=Cultural">Cultural & Arts</a></li>
-            <li><a href="clubs.html?category=Sports">Sports & Athletics</a></li>
-            <li><a href="clubs.html?category=Literary">Literary & Debate</a></li>
-            <li><a href="clubs.html?category=Entrepreneurship">Entrepreneurship & Startups</a></li>
+            <li><a href="dashboard.html" class="footer-link">Student Command Center</a></li>
+            <li><a href="admin.html" class="footer-link">Club Secretariat</a></li>
+            <li><a href="recruiter-dashboard.html" class="footer-link">Recruiter Portal</a></li>
+            <li><a href="login.html" class="footer-link">Demo Logins</a></li>
           </ul>
         </div>
 
-        <div>
-          <h4 class="footer-heading">Campus Helpdesk</h4>
+        <div class="footer-col">
+          <h4>Resources</h4>
           <ul class="footer-links">
-            <li><a href="mailto:support@campusconnect.edu">support@campusconnect.edu</a></li>
-            <li><a href="#">Student Council Office, Block A</a></li>
-            <li><a href="#">Club Registration Guidelines</a></li>
-            <li><a href="#">Student Code of Conduct</a></li>
+            <li><a href="https://github.com/Kalpajit0406/club-hub" target="_blank" rel="noopener" class="footer-link">GitHub Repository</a></li>
+            <li><a href="http://127.0.0.1:8001/docs" target="_blank" rel="noopener" class="footer-link">FastAPI Swagger Docs</a></li>
+            <li><a href="https://club-hub-9c2de.web.app" target="_blank" rel="noopener" class="footer-link">Firebase Live Hosting</a></li>
+            <li><a href="https://club-hub-inky.vercel.app" target="_blank" rel="noopener" class="footer-link">Vercel Production</a></li>
           </ul>
         </div>
       </div>
 
       <div class="footer-bottom">
-        <div>&copy; 2026 CampusConnect. All rights reserved. Built for College Students & Club Leaders.</div>
-        <div>Modern SaaS Architecture • Pure HTML5, CSS3 & JavaScript</div>
+        <div>&copy; 2026 <strong>ClubHub</strong> &bull; Developed for TINT Campus Community.</div>
+        <div style="display: flex; gap: 20px; color: #94A3B8;">
+          <span>Privacy &amp; Student Data Protection</span>
+          <span>Terms of Extracurricular Service</span>
+        </div>
       </div>
     </div>
   </footer>
 
-  <!-- Core Scripts -->
+  <!-- Scripts -->
+  <script src="js/icons.js"></script>
+  <script src="js/states.js"></script>
+  <script src="js/brand.js"></script>
   <script src="js/data.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/common.js"></script>

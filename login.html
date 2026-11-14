@@ -3,16 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Student Sign In | CampusConnect</title>
-  <meta name="description" content="Sign in to your CampusConnect account to apply to clubs and track recruitment stages.">
+  <title>Sign In | ClubHub — Smart Campus OS</title>
+  <meta name="description" content="Sign in to your ClubHub account to explore clubs, register for campus events, buy textbooks in marketplace, and apply for internships.">
+
+  <!-- Anti-Flicker Theme & Palette Init -->
+  <script>
+    (function() {
+      var savedTheme = localStorage.getItem("clubhub_theme_mode_v2") || "light";
+      var savedPalette = localStorage.getItem("clubhub_active_palette") || "default";
+      document.documentElement.setAttribute("data-theme", savedTheme);
+      document.documentElement.setAttribute("data-palette", savedPalette);
+    })();
+  </script>
 
   <!-- Google Fonts: Plus Jakarta Sans & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- CSS Stylesheets -->
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/palette.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/auth.css">
 </head>
@@ -22,53 +33,72 @@
     
     <!-- BRAND & HEADER -->
     <div class="auth-header">
-      <a href="index.html" class="auth-brand" aria-label="Return to CampusConnect Home">
-        <div class="brand-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
-            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-          </svg>
-        </div>
-        <div>Campus<span>Connect</span></div>
+      <a href="index.html" class="nav-brand auth-brand" aria-label="Return to ClubHub Home">
+        <span class="brand-name">Club<span>Hub</span></span>
       </a>
-      <h1 class="auth-title">Welcome back</h1>
-      <p class="auth-subtitle">Sign in with your institutional credentials to track club applications and view memberships.</p>
+      <h1 class="auth-title">Welcome to ClubHub</h1>
+      <p class="auth-subtitle">The all-in-one university campus operating system for societies, hackathons, marketplace, and placements.</p>
     </div>
 
     <!-- AUTH CARD -->
     <div class="auth-card">
       <div id="auth-alert" class="auth-alert" role="alert"></div>
 
+      <!-- 1-CLICK INSTANT DEMO LOGINS -->
+      <div class="demo-login-box">
+        <label class="demo-login-label">
+          ⚡ 1-Click Instant Demo Access:
+        </label>
+        <div class="demo-roles-grid">
+          <button type="button" class="demo-role-btn" data-demo-role="student">
+            <span class="demo-role-icon">🎓</span>
+            <span class="demo-role-title">Student</span>
+            <span class="demo-role-sub">Aditya</span>
+          </button>
+          <button type="button" class="demo-role-btn" data-demo-role="admin">
+            <span class="demo-role-icon">⚡</span>
+            <span class="demo-role-title">Lead</span>
+            <span class="demo-role-sub">GDSC</span>
+          </button>
+          <button type="button" class="demo-role-btn" data-demo-role="recruiter">
+            <span class="demo-role-icon">💼</span>
+            <span class="demo-role-title">Recruiter</span>
+            <span class="demo-role-sub">Microsoft</span>
+          </button>
+          <button type="button" class="demo-role-btn" data-demo-role="secretariat">
+            <span class="demo-role-icon">🏛️</span>
+            <span class="demo-role-title">Admin</span>
+            <span class="demo-role-sub">Office</span>
+          </button>
+        </div>
+      </div>
+
       <form id="login-form">
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom: 16px;">
           <label for="login-email" class="form-label">College Email Address <span class="required">*</span></label>
           <input 
             type="email" 
             id="login-email" 
             class="form-input" 
-            placeholder="e.g. aditya.cs23@campus.edu" 
+            placeholder="e.g. aditya@tint.edu.in" 
             required 
             autocomplete="email"
           >
-          <div class="form-hint">Use your official university domain email.</div>
         </div>
 
-        <div class="form-group">
-          <label for="login-password" class="form-label">Password <span class="required">*</span></label>
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="login-password" class="form-label">Account Password <span class="required">*</span></label>
           <div class="password-input-wrapper">
             <input 
               type="password" 
               id="login-password" 
               class="form-input" 
-              placeholder="••••••••" 
+              placeholder="Enter your password" 
               required 
               autocomplete="current-password"
             >
             <button type="button" class="toggle-password-btn" data-target="login-password" aria-label="Toggle password visibility">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
           </div>
         </div>
@@ -76,37 +106,37 @@
         <div class="auth-options-row">
           <label class="auth-checkbox-label">
             <input type="checkbox" id="remember-me" checked>
-            <span>Remember me for 30 days</span>
+            <span>Remember session</span>
           </label>
-          <a href="#" class="auth-link" onclick="showToast('Password reset link dispatched to your college email.', 'info')">Forgot password?</a>
+          <a href="#" class="auth-link" onclick="if(typeof UIStates!=='undefined') UIStates.showToast('Password reset link sent to registered email.', 'info')">Forgot password?</a>
         </div>
 
-        <button type="submit" class="btn btn-primary auth-submit-btn">
-          Sign In to CampusConnect
+        <button type="submit" class="btn btn-primary btn-block btn-lg">
+          Sign In to ClubHub
         </button>
 
         <!-- DEMO CREDENTIALS SHORTCUT -->
-        <div class="demo-credentials-box">
+        <div class="demo-credentials-box" style="margin-top: 14px; padding: 10px 14px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between; font-size: 0.8125rem;">
           <span>⚡ <strong>Demo Account:</strong> <code>aditya.cs23@campus.edu</code> (Password: <code>password123</code>)</span>
-          <button type="button" id="demo-fill-btn" class="demo-fill-btn">Auto-fill</button>
+          <button type="button" id="demo-fill-btn" class="btn btn-outline btn-sm" style="padding: 4px 10px; font-size: 0.75rem;">Auto-fill</button>
         </div>
       </form>
     </div>
 
     <!-- FOOTER LINK -->
-    <div class="auth-footer-prompt">
-      Don't have an account yet? 
-      <a href="register.html" class="auth-link">Create an account</a>
-    </div>
-
-    <div style="text-align: center; margin-top: 1.25rem;">
-      <a href="index.html" style="font-size: 0.8125rem; color: var(--text-secondary);">&larr; Back to CampusConnect Home</a>
+    <div class="auth-footer">
+      New to campus? <a href="register.html" class="auth-link">Create Student Account</a> &bull; <a href="index.html" class="auth-link">Return to Home</a>
     </div>
 
   </div>
 
   <!-- Scripts -->
+  <script src="js/icons.js"></script>
+  <script src="js/states.js"></script>
+  <script src="js/brand.js"></script>
+  <script src="js/data.js"></script>
   <script src="js/storage.js"></script>
+  <script src="js/palette.js"></script>
   <script src="js/common.js"></script>
   <script src="js/auth.js"></script>
 </body>

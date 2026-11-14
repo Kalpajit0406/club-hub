@@ -1,0 +1,12 @@
+.vercel
+__pycache__/
+*.py[cod]
+*$py.class
+*.db
+*.sqlite3
+.pytest_cache/
+.env
+backend/.env
+backend/*.db
+serviceAccountKey.json
+backend/serviceAccountKey.json

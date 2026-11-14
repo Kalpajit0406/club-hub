@@ -3,343 +3,373 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Club Overview | CampusConnect</title>
+  <title>Society Profile &amp; Recruitment | ClubHub</title>
   <meta name="description" content="View club details, leadership, active recruitment wings, and submit your membership application.">
+
+  <!-- Anti-Flicker Theme & Palette Init -->
+  <script>
+    (function() {
+      var savedTheme = localStorage.getItem("clubhub_theme_mode_v2") || "light";
+      var savedPalette = localStorage.getItem("clubhub_active_palette") || "default";
+      document.documentElement.setAttribute("data-theme", savedTheme);
+      document.documentElement.setAttribute("data-palette", savedPalette);
+    })();
+  </script>
 
   <!-- Google Fonts: Plus Jakarta Sans & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- CSS Stylesheets -->
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/palette.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/club-details.css">
 </head>
 <body>
 
-  <!-- ==================== NAVIGATION BAR ==================== -->
+  <!-- GLOBAL NAVBAR -->
   <header class="navbar">
-    <div class="container nav-container">
-      <a href="index.html" class="brand-logo" aria-label="CampusConnect Home">
-        <div class="brand-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
-            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-          </svg>
-        </div>
-        <div class="brand-text">
-          Campus<span>Connect</span>
-          <span class="brand-sub">Student Life Platform</span>
-        </div>
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand" aria-label="ClubHub Home">
+        <span class="brand-name">Club<span>Hub</span></span>
       </a>
 
-      <nav>
-        <ul class="nav-links">
-          <li><a href="index.html" class="nav-link">Home</a></li>
-          <li><a href="clubs.html" class="nav-link active">Explore Clubs</a></li>
-          <li>
-            <a href="dashboard.html" class="nav-link">
-              My Dashboard
-              <span id="nav-app-count" class="nav-counter" style="display: none;">0</span>
-            </a>
-          </li>
-        </ul>
+      <nav class="nav-links">
+        <a href="clubs.html" class="nav-link active">Clubs</a>
+        <a href="events.html" class="nav-link">Events</a>
+        <a href="marketplace.html" class="nav-link">Marketplace</a>
+        <a href="network.html" class="nav-link">Network</a>
+        <a href="recruiters.html" class="nav-link">Placements</a>
       </nav>
 
       <div class="nav-actions">
         <div id="nav-auth-box"></div>
-        <a href="clubs.html" class="btn btn-outline btn-sm">&larr; Back to Directory</a>
-        <button class="mobile-nav-toggle" aria-label="Toggle Navigation Menu" aria-expanded="false">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="3" y1="12" x2="21" y2="12"/>
-            <line x1="3" y1="6" x2="21" y2="6"/>
-            <line x1="3" y1="18" x2="21" y2="18"/>
-          </svg>
+        <button type="button" class="mobile-nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
       </div>
     </div>
   </header>
 
   <!-- ==================== MAIN CONTENT ==================== -->
-  <main class="main-content" id="club-details-container">
+  <main class="main-content">
 
-    <!-- HERO COVER & HEADER -->
-    <section class="club-hero">
-      <div class="club-hero-banner">
-        <img id="club-banner-img" src="" alt="Club Banner Loading...">
-      </div>
-
-      <div class="container club-hero-content">
-        <div class="club-hero-top">
-          <div class="club-hero-identity">
-            <img id="club-logo-img" src="" alt="Club Logo Loading..." class="club-hero-logo">
-            <div class="club-hero-title-box">
-              <div class="club-title-row">
-                <h1 id="club-name-title">Loading Club...</h1>
-                <span id="club-acronym-badge" class="club-hero-acronym"></span>
-                <svg class="verified-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" title="Verified Campus Chapter"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              </div>
-            </div>
+    <!-- HERO COVER BANNER -->
+    <section class="club-hero" id="club-hero">
+      <div class="hero-cover-bg" id="hero-cover-bg"></div>
+      
+      <div class="container club-hero-container">
+        <!-- Logo & Core Metadata Stack -->
+        <div class="hero-header-row">
+          <div class="club-avatar-wrap">
+            <img id="club-logo" src="https://images.unsplash.com/photo-1573164713988-8665fc963095?w=160&auto=format&fit=crop&q=80" alt="Club Logo" class="club-logo-img">
           </div>
 
-          <div class="club-hero-actions">
-            <button id="club-bookmark-btn" class="btn btn-outline btn-sm">
+          <div class="hero-identity">
+            <div class="identity-badge-row">
+              <span id="club-category-badge" class="badge badge-primary">Technical</span>
+              <span id="club-status-badge" class="badge badge-status-open">
+                <span class="badge-dot"></span>
+                Recruiting Now
+              </span>
+              <span id="club-established-badge" class="badge badge-outline">Est. 2019</span>
+            </div>
+
+            <h1 id="club-name" class="club-title">Google Developer Student Club</h1>
+            <p id="club-tagline" class="club-tagline">Bridging the gap between theory and industry-grade developer skills.</p>
+          </div>
+
+          <div class="hero-actions">
+            <button type="button" id="bookmark-btn" class="btn btn-outline bookmark-btn" aria-label="Save to bookmarks">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
               </svg>
-              <span>Bookmark Club</span>
+              <span id="bookmark-text">Save Society</span>
             </button>
-            <button id="club-main-join-btn" class="btn btn-primary">Apply Now</button>
+            <a href="#apply-section" id="hero-apply-btn" class="btn btn-primary">
+              Apply for Recruitment
+            </a>
           </div>
         </div>
 
-        <p id="club-tagline" class="club-hero-tagline"></p>
-
-        <div class="club-hero-meta">
-          <div id="club-category-box"></div>
-          <div id="club-status-box"></div>
-          
-          <div class="club-meta-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            <span id="club-members-count"></span>
+        <!-- Quick Metrics Bar -->
+        <div class="hero-meta-bar">
+          <div class="meta-item">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span id="club-member-count"><strong>260+</strong> Active Members</span>
           </div>
-
-          <div class="club-meta-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
-            <span id="club-established-year"></span>
+          <div class="meta-item">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span id="club-meeting-info">Wednesdays at 5:00 PM | Tech Block Lab 302</span>
           </div>
-
-          <!-- Social Media Icons -->
-          <div id="club-socials-box" class="club-social-links"></div>
+          <div class="meta-item social-links-item" id="club-socials-container">
+            <!-- Injected by js/club-details.js -->
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- MAIN BODY GRID -->
-    <div class="container club-details-grid">
-
-      <!-- LEFT COLUMN: ABOUT, ACHIEVEMENTS, DOMAINS, EVENTS, LEADS -->
-      <div class="club-main-section">
-
-        <!-- About Description Card -->
-        <article class="club-info-card">
-          <h2>About the Organization</h2>
-          <p id="club-description" class="club-description-text"></p>
-          
-          <div style="margin-top: 1.5rem; padding: 0.85rem 1.15rem; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-md); display: flex; align-items: center; gap: 0.75rem;">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--primary)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            <div>
-              <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em;">Meeting Schedule & Venue</div>
-              <div id="club-meeting-info" style="font-weight: 600; color: var(--text-main); font-size: 0.875rem;"></div>
-            </div>
+    <!-- CONTENT LAYOUT: 2 COLUMNS (MAIN + STICKY RECRUITMENT SIDEBAR) -->
+    <div class="container club-content-layout">
+      
+      <!-- MAIN BODY (LEFT COLUMN) -->
+      <div class="club-main-column">
+        
+        <!-- SECTION 1: ABOUT & MISSION -->
+        <article class="content-card">
+          <h2 class="section-title">
+            <span class="section-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            </span>
+            About the Society
+          </h2>
+          <div id="club-description" class="section-text">
+            Loading society background and mission statement...
           </div>
         </article>
 
-        <!-- Recruitment Domains Card -->
-        <article class="club-info-card">
-          <h2>Wings & Domains Open for Application</h2>
-          <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1rem;">
-            Applicants can designate one primary specialization domain during their recruitment interview:
-          </p>
-          <div id="club-domains-list" class="domains-grid">
-            <!-- Dynamically populated -->
+        <!-- SECTION 2: OPEN DOMAINS / WINGS -->
+        <article class="content-card">
+          <h2 class="section-title">
+            <span class="section-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+            </span>
+            Active Recruitment Wings &amp; Domains
+          </h2>
+          <p class="section-subtext">Select a specialized domain to target your skills during this recruitment window.</p>
+          <div id="club-domains-list" class="domains-chips-grid">
+            <!-- Injected by js/club-details.js -->
           </div>
         </article>
 
-        <!-- Events & Workshops Card -->
-        <article class="club-info-card">
-          <h2>Upcoming Events & Workshops</h2>
-          <div id="club-events-list" class="club-events-list">
-            <!-- Dynamically populated -->
-          </div>
-        </article>
-
-        <!-- Achievements Card -->
-        <article class="club-info-card">
-          <h2>Key Highlights & Recent Achievements</h2>
+        <!-- SECTION 3: KEY ACHIEVEMENTS -->
+        <article class="content-card">
+          <h2 class="section-title">
+            <span class="section-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+            </span>
+            Recent Highlights &amp; Track Record
+          </h2>
           <ul id="club-achievements-list" class="achievements-list">
-            <!-- Dynamically populated -->
+            <!-- Injected by js/club-details.js -->
           </ul>
         </article>
 
-        <!-- Coordinators / Leadership Card -->
-        <article class="club-info-card">
-          <h2>Club Leadership & Contacts</h2>
-          <div id="club-coordinators-list" class="coordinators-grid">
-            <!-- Dynamically populated -->
+        <!-- SECTION 4: UPCOMING EVENTS & WORKSHOPS -->
+        <article class="content-card">
+          <h2 class="section-title">
+            <span class="section-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </span>
+            Upcoming Society Events
+          </h2>
+          <div id="club-events-list" class="events-vertical-list">
+            <!-- Injected by js/club-details.js -->
+          </div>
+        </article>
+
+        <!-- SECTION 5: LEADERSHIP & COORDINATORS -->
+        <article class="content-card">
+          <h2 class="section-title">
+            <span class="section-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </span>
+            Executive Board &amp; Coordinators
+          </h2>
+          <div id="club-coordinators-grid" class="coordinators-grid">
+            <!-- Injected by js/club-details.js -->
           </div>
         </article>
 
       </div>
 
-      <!-- RIGHT COLUMN: STICKY RECRUITMENT CALLOUT -->
-      <aside class="club-sidebar">
-        <div class="sidebar-sticky-widget">
-          <div class="recruitment-callout-card open">
-            <h3 class="widget-title">Membership & Selection</h3>
-            <p class="widget-desc">
-              Joining an official campus society unlocks hands-on project experience, mentorship, and accredited activity points.
-            </p>
+      <!-- SIDEBAR WIDGET (RIGHT COLUMN) -->
+      <aside class="club-sidebar-column" id="apply-section">
+        
+        <div class="recruitment-widget-card">
+          <div class="widget-header">
+            <div class="widget-tag">Official Recruitment</div>
+            <h3 class="widget-title">Join this Society</h3>
+            <p class="widget-desc">Submit your candidacy to join the collegiate core team for the current academic year.</p>
+          </div>
 
-            <ul class="widget-list">
-              <li class="widget-list-item">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                <span><strong>Eligibility:</strong> Open to all branches & study years</span>
-              </li>
-              <li class="widget-list-item">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                <span><strong>Process:</strong> Form screening + 1 Interview round</span>
-              </li>
-              <li class="widget-list-item">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                <span><strong>Commitment:</strong> ~3–4 hours per week</span>
-              </li>
-            </ul>
+          <div class="recruitment-meta-box">
+            <div class="meta-row">
+              <span class="meta-label">Recruitment Status:</span>
+              <span id="widget-status" class="meta-value status-open">Active / Open</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Eligibility:</span>
+              <span class="meta-value">All Registered Batches</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Selection Format:</span>
+              <span class="meta-value">Application &rarr; Screening</span>
+            </div>
+          </div>
 
-            <button id="sidebar-join-btn" class="btn btn-primary" style="width: 100%;">
-              Apply to Join
-            </button>
+          <div id="existing-application-banner" class="existing-app-banner" style="display: none;">
+            <div class="banner-icon">✓</div>
+            <div>
+              <div class="banner-title">Application Submitted</div>
+              <div class="banner-sub" id="existing-app-status-text">Your candidacy is currently Pending Review.</div>
+            </div>
+          </div>
+
+          <button type="button" id="open-apply-modal-btn" class="btn btn-primary btn-block btn-lg">
+            Apply to This Society
+          </button>
+
+          <div class="widget-footer-note">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Verified university recruitment. Decisions are recorded to your Student Command Center.
           </div>
         </div>
+
       </aside>
 
     </div>
 
   </main>
 
-  <!-- ==================== JOIN CLUB NATIVE <dialog> MODAL ==================== -->
-  <dialog id="applyModal" class="modal" aria-labelledby="modal-club-name" aria-modal="true">
-    <div class="modal-header">
-      <div>
-        <div style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">Membership Application</div>
-        <h3 id="modal-club-name" class="modal-title">Join Club</h3>
+  <!-- RECRUITMENT APPLICATION MODAL -->
+  <dialog id="applyModal" class="native-modal">
+    <div class="modal-inner">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="modal-club-name">Apply to Society</h3>
+          <p class="modal-subtitle">Candidate screening form &bull; Academic Year 2026–27</p>
+        </div>
+        <button type="button" id="close-apply-modal-btn" class="modal-close" aria-label="Close recruitment modal">&times;</button>
       </div>
-      <button id="modal-close-btn" class="modal-close-btn" aria-label="Close dialog">&times;</button>
-    </div>
 
-    <form id="club-application-form">
-      <div class="modal-body">
-        
-        <div class="form-group">
-          <label for="app-student-name" class="form-label">Full Name <span class="required">*</span></label>
-          <input type="text" id="app-student-name" class="form-input" placeholder="e.g. Aditya Verma" required>
+      <form id="apply-form" class="modal-body-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="app-student-name" class="form-label">Full Name <span class="required">*</span></label>
+            <input type="text" id="app-student-name" class="form-input" required placeholder="e.g. Aditya Verma">
+          </div>
+          <div class="form-group">
+            <label for="app-roll-number" class="form-label">College Roll Number <span class="required">*</span></label>
+            <input type="text" id="app-roll-number" class="form-input" required placeholder="e.g. 23/CS/104">
+          </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-row">
           <div class="form-group">
-            <label for="app-student-roll" class="form-label">Roll Number <span class="required">*</span></label>
-            <input type="text" id="app-student-roll" class="form-input" placeholder="e.g. 2024CSB1045" required>
+            <label for="app-department-select" class="form-label">Department / Branch <span class="required">*</span></label>
+            <select id="app-department-select" class="form-select" required>
+              <option value="">Select your department...</option>
+              <option value="CSE">Computer Science &amp; Engineering</option>
+              <option value="IT">Information Technology</option>
+              <option value="ECE">Electronics &amp; Communication</option>
+              <option value="EE">Electrical Engineering</option>
+              <option value="ME">Mechanical Engineering</option>
+              <option value="AIML">Artificial Intelligence &amp; Data Science</option>
+            </select>
           </div>
-
           <div class="form-group">
-            <label for="app-student-year" class="form-label">Year of Study <span class="required">*</span></label>
-            <select id="app-student-year" class="form-select" required>
-              <option value="1st Year">1st Year (Freshman)</option>
-              <option value="2nd Year" selected>2nd Year (Sophomore)</option>
-              <option value="3rd Year">3rd Year (Junior)</option>
-              <option value="4th Year">4th Year (Senior)</option>
+            <label for="app-year-select" class="form-label">Year of Study <span class="required">*</span></label>
+            <select id="app-year-select" class="form-select" required>
+              <option value="1">1st Year (Freshman)</option>
+              <option value="2" selected>2nd Year (Sophomore)</option>
+              <option value="3">3rd Year (Junior)</option>
+              <option value="4">4th Year (Senior)</option>
             </select>
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div class="form-group">
-            <label for="app-student-branch" class="form-label">Branch / Department <span class="required">*</span></label>
-            <input type="text" id="app-student-branch" class="form-input" placeholder="e.g. Computer Science & Engg" required>
-          </div>
-
-          <div class="form-group">
-            <label for="app-student-email" class="form-label">College Email ID <span class="required">*</span></label>
-            <input type="email" id="app-student-email" class="form-input" placeholder="aditya.cs24@campus.edu" required>
-          </div>
-        </div>
-
         <div class="form-group">
-          <label for="modal-domain-select" class="form-label">Preferred Domain / Wing <span class="required">*</span></label>
-          <select id="modal-domain-select" class="form-select" required>
-            <!-- Dynamically populated by js/club-details.js -->
+          <label for="app-domain-select" class="form-label">Preferred Recruitment Domain / Wing <span class="required">*</span></label>
+          <select id="app-domain-select" class="form-select" required>
+            <!-- Injected by js/club-details.js -->
           </select>
-          <div class="form-hint">Choose the primary area you want to contribute to.</div>
         </div>
 
         <div class="form-group">
-          <label for="app-student-sop" class="form-label">Statement of Interest (Why join?) <span class="required">*</span></label>
-          <textarea id="app-student-sop" class="form-textarea" placeholder="Briefly describe your interest, projects, or background you bring..." required></textarea>
+          <label for="app-statement" class="form-label">Statement of Motivation &amp; Skills <span class="required">*</span></label>
+          <textarea id="app-statement" class="form-textarea" rows="3" required placeholder="Explain why you wish to join this wing and what projects or skills you bring..."></textarea>
         </div>
 
         <div class="form-group">
-          <label for="app-student-portfolio" class="form-label">Portfolio, GitHub, or Resume Link</label>
-          <input type="url" id="app-student-portfolio" class="form-input" placeholder="https://github.com/yourusername or Google Drive link">
-          <div class="form-hint">Optional: share any code repositories, design portfolios, or resumes.</div>
+          <label for="app-portfolio" class="form-label">Portfolio, GitHub, or LinkedIn Profile URL</label>
+          <input type="url" id="app-portfolio" class="form-input" placeholder="https://github.com/username">
         </div>
 
-      </div>
-
-      <div class="modal-footer">
-        <button type="button" id="modal-cancel-btn" class="btn btn-secondary">Cancel</button>
-        <button type="submit" class="btn btn-primary">Submit Application</button>
-      </div>
-    </form>
+        <div class="modal-footer">
+          <button type="button" id="cancel-apply-modal-btn" class="btn btn-outline">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Application</button>
+        </div>
+      </form>
+    </div>
   </dialog>
 
-  <!-- ==================== FOOTER ==================== -->
+  <!-- ENTERPRISE FOOTER -->
   <footer class="footer">
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-brand">
-          <div class="brand-logo">
-            <div class="brand-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
-                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-                <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-              </svg>
-            </div>
-            <div class="brand-text">
-              Campus<span>Connect</span>
-            </div>
-          </div>
-          <p>The centralized hub for extracurricular student life, technical innovation, and creative societies.</p>
-        </div>
-
-        <div>
-          <h4 class="footer-heading">Navigation</h4>
-          <ul class="footer-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="clubs.html">Explore Clubs</a></li>
-            <li><a href="dashboard.html">Student Dashboard</a></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 class="footer-heading">Categories</h4>
-          <ul class="footer-links">
-            <li><a href="clubs.html?category=Technical">Technical & Coding</a></li>
-            <li><a href="clubs.html?category=Cultural">Cultural & Arts</a></li>
-            <li><a href="clubs.html?category=Sports">Sports & Athletics</a></li>
-            <li><a href="clubs.html?category=Literary">Literary & Debate</a></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 class="footer-heading">Questions</h4>
-          <ul class="footer-links">
-            <li><a href="mailto:support@campusconnect.edu">support@campusconnect.edu</a></li>
-            <li><a href="#">Student Council Office</a></li>
-          </ul>
-        </div>
+    <div class="container footer-content">
+      <div class="footer-col footer-col-brand">
+        <a href="index.html" class="nav-brand" style="margin-bottom: 12px; display: inline-flex;">
+          <span class="brand-name">Club<span>Hub</span></span>
+        </a>
+        <p class="footer-description">
+          The all-in-one university campus operating system. Discover societies, attend hackathons, trade student goods, and find collaborative teams.
+        </p>
       </div>
 
-      <div class="footer-bottom">
-        <div>&copy; 2026 CampusConnect. All rights reserved. Built for College Students.</div>
-        <div>Modern SaaS Architecture • Pure HTML5, CSS3 & JavaScript</div>
+      <div class="footer-col">
+        <div class="footer-col-title">Campus Hubs</div>
+        <ul class="footer-links">
+          <li><a href="clubs.html">All Societies</a></li>
+          <li><a href="events.html">Campus Events</a></li>
+          <li><a href="marketplace.html">Student Exchange</a></li>
+          <li><a href="network.html">Peer Network</a></li>
+          <li><a href="recruiters.html">Career Drives</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <div class="footer-col-title">Command Center</div>
+        <ul class="footer-links">
+          <li><a href="dashboard.html">Student Profile</a></li>
+          <li><a href="recruiter-dashboard.html">Recruiter Portal</a></li>
+          <li><a href="admin.html">Secretariat Access</a></li>
+          <li><a href="login.html">Account Sign In</a></li>
+          <li><a href="register.html">Student Onboarding</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <div class="footer-col-title">System Status</div>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 8px;">
+          FastAPI Backend &bull; Operational<br>
+          Connected Node Architecture<br>
+          Vercel &amp; Firebase Hosted
+        </p>
+        <span class="badge badge-teal" style="font-size: 12px; padding: 4px 10px;">v2.4 Production</span>
+      </div>
+    </div>
+
+    <div class="container footer-bottom">
+      <div>&copy; 2026 <strong>ClubHub</strong> &bull; The University Campus Operating System. All rights reserved.</div>
+      <div style="display: flex; gap: 16px; font-size: 13px;">
+        <a href="clubs.html" style="color: var(--text-secondary);">Societies</a>
+        <a href="events.html" style="color: var(--text-secondary);">Events</a>
+        <a href="marketplace.html" style="color: var(--text-secondary);">Exchange</a>
+        <a href="network.html" style="color: var(--text-secondary);">Network</a>
+        <a href="dashboard.html" style="color: var(--text-secondary);">Command Center</a>
       </div>
     </div>
   </footer>
 
   <!-- Core Scripts -->
+  <script src="js/icons.js"></script>
+  <script src="js/states.js"></script>
+  <script src="js/brand.js"></script>
   <script src="js/data.js"></script>
   <script src="js/storage.js"></script>
+  <script src="js/palette.js"></script>
   <script src="js/common.js"></script>
   <script src="js/club-details.js"></script>
 </body>

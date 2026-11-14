@@ -1,42 +1,36 @@
-/* css/club-details.css - CampusConnect Club Overview & Details Page Styles */
+/* css/club-details.css - ClubHub Society Profile & Recruitment Portal */
 
-/* ---------------- HERO COVER & HEADER ---------------- */
+/* Hero Banner */
 .club-hero {
   position: relative;
-  background-color: #ffffff;
-  border-bottom: 1px solid var(--border);
-  margin-top: calc(-1.25rem);
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-color);
   margin-bottom: 2.5rem;
-}
-
-.club-hero-banner {
-  height: 260px;
-  width: 100%;
-  position: relative;
   overflow: hidden;
-  background-color: var(--navy);
 }
 
-.club-hero-banner img {
+.hero-cover-bg {
+  height: 220px;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.88;
+  background: linear-gradient(135deg, #0B1220 0%, #1e293b 50%, #2F5BE7 100%);
+  background-size: cover;
+  background-position: center;
+  position: relative;
 }
 
-.club-hero-banner::after {
+.hero-cover-bg::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.1) 0%, rgba(15, 23, 42, 0.65) 100%);
+  background: rgba(11, 18, 32, 0.45);
 }
 
-.club-hero-content {
+.club-hero-container {
   position: relative;
   padding-bottom: 2rem;
 }
 
-.club-hero-top {
+.hero-header-row {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -48,395 +42,496 @@
   z-index: 5;
 }
 
-.club-hero-identity {
-  display: flex;
-  align-items: flex-end;
-  gap: 1.5rem;
-}
-
-.club-hero-logo {
-  width: 110px;
-  height: 110px;
-  border-radius: var(--radius-card);
-  border: 4px solid #ffffff;
-  box-shadow: var(--shadow-lg);
-  object-fit: cover;
-  background: #ffffff;
+.club-avatar-wrap {
   flex-shrink: 0;
 }
 
-.club-hero-title-box {
-  padding-bottom: 0.25rem;
+.club-logo-img {
+  width: 110px;
+  height: 110px;
+  border-radius: var(--radius-lg);
+  border: 4px solid var(--bg-card);
+  box-shadow: var(--shadow-md);
+  object-fit: cover;
+  background: var(--bg-card);
 }
 
-.club-title-row {
+.hero-identity {
+  flex: 1;
+  min-width: 280px;
+}
+
+.identity-badge-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
+  margin-bottom: 8px;
   flex-wrap: wrap;
 }
 
-.club-hero-title-box h1 {
-  font-family: var(--font-heading);
-  font-size: clamp(1.85rem, 3.5vw, 2.35rem);
+.club-title {
+  font-size: clamp(1.75rem, 3.2vw, 2.375rem);
+  font-weight: 800;
+  color: var(--text-primary);
   line-height: 1.2;
-  color: var(--navy-dark);
+  margin-bottom: 6px;
+  letter-spacing: -0.02em;
 }
 
-.club-hero-acronym {
+.club-tagline {
+  font-size: 1.05rem;
   color: var(--text-secondary);
-  font-size: 1.15rem;
-  font-weight: 600;
+  line-height: 1.5;
+  margin: 0;
 }
 
-.club-hero-actions {
+.hero-actions {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 12px;
+}
+
+/* Quick Metrics Bar */
+.hero-meta-bar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
   flex-wrap: wrap;
 }
 
-.club-hero-tagline {
-  font-size: 1.125rem;
-  color: var(--text-secondary);
-  max-width: 860px;
-  margin-bottom: 1.25rem;
-  line-height: 1.55;
-}
-
-.club-hero-meta {
-  display: flex;
+.meta-item {
+  display: inline-flex;
   align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border);
-  font-size: 0.875rem; /* 14px */
-  color: var(--text-secondary);
+  gap: 8px;
 }
 
-.club-meta-item {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-weight: 500;
+.meta-item svg {
+  color: var(--primary-color);
 }
 
-.club-meta-item svg {
-  width: 16px;
-  height: 16px;
-  color: var(--primary);
-}
-
-.club-social-links {
+.social-links-item {
   margin-left: auto;
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  gap: 12px;
 }
 
-.club-social-link {
-  width: 34px;
-  height: 34px;
-  border-radius: var(--radius-sm);
-  background: var(--bg-surface);
+.social-link-icon {
   color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--transition-fast);
-  border: 1px solid var(--border);
+  transition: color var(--transition-fast);
+  display: inline-flex;
 }
 
-.club-social-link:hover {
-  background: var(--primary);
-  color: #ffffff;
-  border-color: var(--primary);
+.social-link-icon:hover {
+  color: var(--primary-color);
 }
 
-.club-social-link svg {
-  width: 17px;
-  height: 17px;
-}
-
-/* ---------------- LAYOUT GRID (MAIN & SIDEBAR) ---------------- */
-.club-details-grid {
+/* Content Layout (Main + Sticky Sidebar) */
+.club-content-layout {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 2.5rem;
-  margin-bottom: 4rem;
+  grid-template-columns: 1fr 340px;
+  gap: 32px;
+  margin-bottom: 64px;
 }
 
-.club-main-section {
+.club-main-column {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 24px;
 }
 
-.club-info-card {
-  background: #ffffff;
-  border: 1px solid var(--border);
+.content-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-card);
-  padding: 2rem;
+  padding: 24px;
   box-shadow: var(--shadow-sm);
 }
 
-.club-info-card h2 {
-  font-family: var(--font-heading);
-  font-size: 1.3rem;
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.25rem;
   font-weight: 700;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border);
-  color: var(--navy-dark);
+  color: var(--text-primary);
+  margin-bottom: 12px;
 }
 
-.club-description-text {
-  font-size: 1rem;
+.section-icon {
+  display: inline-flex;
+  color: var(--primary-color);
+}
+
+.section-text {
+  font-size: 0.9375rem;
   line-height: 1.7;
-  color: var(--text-main);
-  margin-bottom: 1.25rem;
+  color: var(--text-secondary);
 }
 
+.section-subtext {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+
+/* Domains Chips Grid */
+.domains-chips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.domain-chip-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.domain-chip-card:hover {
+  border-color: var(--primary-color);
+  background: rgba(47, 91, 231, 0.04);
+}
+
+.domain-chip-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.domain-chip-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Achievements List */
 .achievements-list {
   list-style: none;
+  padding: 0;
+  margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 10px;
 }
 
 .achievement-item {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
-  font-size: 0.925rem;
+  gap: 10px;
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 
 .achievement-icon {
   width: 18px;
   height: 18px;
-  color: var(--success);
+  color: var(--color-teal);
   flex-shrink: 0;
   margin-top: 2px;
 }
 
-/* Domains Grid */
-.domains-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0.75rem;
+/* Events List */
+.events-vertical-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.domain-pill-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 0.85rem 1rem;
-  font-weight: 600;
-  color: var(--text-main);
+.society-event-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  transition: all var(--transition-fast);
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
 }
 
-.domain-pill-card:hover {
-  border-color: var(--primary);
-  background: #ffffff;
-  color: var(--primary);
+.event-row-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
-.domain-pill-card svg {
-  width: 16px;
-  height: 16px;
-  color: var(--primary);
+.event-date-pill {
+  width: 50px;
+  height: 50px;
+  background: var(--primary-color);
+  color: #FFFFFF;
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+  font-size: 0.75rem;
+}
+
+.event-date-pill strong {
+  font-size: 1.125rem;
+}
+
+.event-row-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.event-row-meta {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
 }
 
 /* Coordinators Grid */
 .coordinators-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
 }
 
 .coordinator-card {
-  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
   border-radius: var(--radius-md);
-  padding: 1.25rem;
-  background: var(--bg-page);
+}
+
+.coordinator-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border-color);
+}
+
+.coordinator-name {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.coordinator-role {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* Sidebar Recruitment Widget */
+.club-sidebar-column {
+  position: relative;
+}
+
+.recruitment-widget-card {
+  position: sticky;
+  top: 90px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-card);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  transition: border-color var(--transition-fast);
+  gap: 18px;
 }
 
-.coordinator-card:hover {
-  border-color: var(--border-hover);
-}
-
-.coord-name {
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: 1rem;
-  color: var(--text-main);
-}
-
-.coord-role {
+.widget-tag {
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--primary);
   text-transform: uppercase;
+  color: var(--primary-color);
   letter-spacing: 0.05em;
-}
-
-.coord-contact {
-  font-size: 0.825rem;
-  color: var(--text-secondary);
-  margin-top: 0.25rem;
-}
-
-/* Events List on Club Page */
-.club-events-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.club-event-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.25rem;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  gap: 1rem;
-}
-
-.club-event-date-box {
-  text-align: center;
-  background: #ffffff;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 0.4rem 0.75rem;
-  min-width: 65px;
-}
-
-.club-event-month {
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--primary);
-}
-
-.club-event-day {
-  font-family: var(--font-heading);
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--text-main);
-  line-height: 1;
-}
-
-.club-event-info h4 {
-  font-size: 0.95rem;
-  font-weight: 700;
-  margin-bottom: 0.25rem;
-}
-
-.club-event-meta {
-  font-size: 0.8125rem;
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-/* Sidebar Styles */
-.club-sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.sidebar-sticky-widget {
-  position: sticky;
-  top: calc(var(--navbar-height) + 1.25rem);
-}
-
-.recruitment-callout-card {
-  background: #ffffff;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  padding: 1.75rem;
-  box-shadow: var(--shadow-md);
-}
-
-.recruitment-callout-card.open {
-  border-top: 4px solid var(--success);
-}
-
-.recruitment-callout-card.closed {
-  border-top: 4px solid var(--danger);
+  margin-bottom: 4px;
 }
 
 .widget-title {
-  font-family: var(--font-heading);
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
-  color: var(--navy-dark);
+  color: var(--text-primary);
+  margin-bottom: 6px;
 }
 
 .widget-desc {
   font-size: 0.875rem;
   color: var(--text-secondary);
-  line-height: 1.55;
-  margin-bottom: 1.5rem;
+  line-height: 1.5;
+  margin: 0;
 }
 
-.widget-list {
-  list-style: none;
+.recruitment-meta-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px;
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
-  margin-bottom: 1.75rem;
-  font-size: 0.85rem;
+  gap: 8px;
 }
 
-.widget-list-item {
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8125rem;
+}
+
+.meta-label {
+  color: var(--text-secondary);
+}
+
+.meta-value {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.meta-value.status-open {
+  color: var(--color-success);
+}
+
+.existing-app-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: rgba(21, 128, 61, 0.08);
+  border: 1px solid rgba(21, 128, 61, 0.25);
+  font-size: 0.8125rem;
+}
+
+.existing-app-banner .banner-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-success);
+  color: #FFFFFF;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  color: var(--text-main);
+  justify-content: center;
+  font-weight: 800;
+  font-size: 11px;
 }
 
-.widget-list-item svg {
-  color: var(--success);
-  flex-shrink: 0;
+.existing-app-banner .banner-title {
+  font-weight: 700;
+  color: var(--color-success);
 }
 
-.widget-list-item strong {
-  font-weight: 600;
+.existing-app-banner .banner-sub {
+  color: var(--text-secondary);
 }
 
-/* Responsive adjustments */
+.widget-footer-note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+/* Modal Dialog */
+.native-modal {
+  border: none;
+  border-radius: var(--radius-card);
+  background: var(--bg-card);
+  box-shadow: 0 20px 40px rgba(11, 18, 32, 0.2);
+  max-width: 580px;
+  width: 90%;
+  padding: 0;
+  color: var(--text-primary);
+}
+
+.native-modal::backdrop {
+  background: rgba(11, 18, 32, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.modal-inner {
+  padding: 24px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.modal-subtitle {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.modal-close:hover {
+  color: var(--text-primary);
+}
+
+.modal-body-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+  margin-top: 8px;
+}
+
 @media (max-width: 900px) {
-  .club-details-grid {
+  .club-content-layout {
     grid-template-columns: 1fr;
   }
-
-  .club-hero-banner {
-    height: 190px;
+  .recruitment-widget-card {
+    position: static;
   }
+}
 
-  .club-hero-top {
-    flex-direction: column;
-    align-items: flex-start;
+@media (max-width: 600px) {
+  .form-row {
+    grid-template-columns: 1fr;
   }
-
-  .club-social-links {
-    margin-left: 0;
+  .hero-header-row {
+    margin-top: -40px;
   }
 }

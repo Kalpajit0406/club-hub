@@ -1,8 +1,9 @@
-// js/dashboard.js - Logic for Student Dashboard & Application Tracker
+// js/dashboard.js - Logic for Student Dashboard & Campus Life Command Center
 
 document.addEventListener("DOMContentLoaded", () => {
   initDashboardTabs();
   refreshDashboard();
+  setupPassModal();
 });
 
 function initDashboardTabs() {
@@ -22,20 +23,25 @@ function initDashboardTabs() {
     });
   });
 
-  // Handle URL param ?tab=saved
+  // Handle URL param ?tab=events or ?tab=marketplace etc.
   const params = new URLSearchParams(window.location.search);
-  if (params.get("tab") === "saved") {
-    const savedTabBtn = document.querySelector('[data-tab="saved"]');
-    if (savedTabBtn) savedTabBtn.click();
+  const tabParam = params.get("tab");
+  if (tabParam) {
+    const targetBtn = document.querySelector(`[data-tab="${tabParam}"]`);
+    if (targetBtn) targetBtn.click();
   }
 }
 
 function refreshDashboard() {
   updateUserProfileHeader();
   renderApplicationsList();
-  renderSavedClubs();
+  renderStudentEvents();
+  renderStudentMarketplace();
+  renderStudentNetworkPosts();
+  renderStudentJobApplications();
+  renderStudentBadges();
   updateSummaryMetrics();
-  updateNavBadges();
+  if (typeof updateNavBadges === "function") updateNavBadges();
 }
 
 function updateUserProfileHeader() {
@@ -51,233 +57,458 @@ function updateUserProfileHeader() {
 
   if (nameEl) nameEl.textContent = user.name;
   if (avatarEl) {
-    const initials = user.name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
+    const initials = (user.name || "Aditya Verma").split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
     avatarEl.textContent = initials;
   }
-  if (rollEl) rollEl.textContent = `Roll No: ${user.roll || 'N/A'}`;
-  if (deptEl) deptEl.textContent = `${user.branch || ''} (${user.year || ''})`;
-  if (emailEl) emailEl.textContent = user.email || '';
+  if (rollEl) rollEl.textContent = `Roll No: ${user.rollNumber || user.roll || '23/CS/104'}`;
+  if (deptEl) deptEl.textContent = `${user.department || user.branch || 'Computer Science & Engineering'} (${user.year || '2'}nd Year)`;
+  if (emailEl) emailEl.textContent = user.email || 'aditya@tint.edu.in';
 }
 
-// ---------------- RENDER APPLICATIONS ----------------
+function updateSummaryMetrics() {
+  const user = typeof Storage !== "undefined" ? Storage.getCurrentUser() : null;
+  const userEmail = user ? user.email : "";
+
+  const apps = typeof Storage !== "undefined" ? Storage.getApplications() : [];
+  const allRegs = typeof Storage !== "undefined" ? Storage.getEventRegistrations() : [];
+  const userRegs = allRegs.filter(r => r.email === userEmail || r.studentEmail === userEmail);
+
+  const allItems = typeof Storage !== "undefined" ? Storage.getMarketplaceItems() : [];
+  const userItems = allItems.filter(i => i.sellerEmail === userEmail);
+
+  const badges = typeof Storage !== "undefined" ? Storage.getVerifiedBadges(userEmail) : [];
+
+  const appsEl = document.getElementById("metric-apps-count");
+  const eventsEl = document.getElementById("metric-events-count");
+  const mktEl = document.getElementById("metric-mkt-count");
+  const badgesEl = document.getElementById("metric-badges-count");
+
+  if (appsEl) appsEl.textContent = apps.length;
+  if (eventsEl) eventsEl.textContent = userRegs.length;
+  if (mktEl) mktEl.textContent = userItems.length;
+  if (badgesEl) badgesEl.textContent = badges.length;
+}
+
+// ---------------- 1. CLUB APPLICATIONS ----------------
 function renderApplicationsList() {
   const container = document.getElementById("applications-container");
-  if (!container || typeof Storage === "undefined") return;
+  if (!container) return;
 
-  const applications = Storage.getApplications();
-
-  // Update tab badge count
+  const applications = typeof Storage !== "undefined" ? Storage.getApplications() : [];
   const badgeEl = document.getElementById("tab-count-apps");
   if (badgeEl) badgeEl.textContent = applications.length;
 
   if (applications.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-state-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-            <line x1="16" y1="13" x2="8" y2="13"/>
-            <line x1="16" y1="17" x2="8" y2="17"/>
-            <polyline points="10 9 9 9 8 9"/>
-          </svg>
-        </div>
-        <h3 class="empty-state-title">No Club Applications Yet</h3>
-        <p class="empty-state-desc">
-          You haven't applied to any college clubs yet. Explore open recruitment drives and submit your first application!
-        </p>
-        <a href="clubs.html?filter=open" class="btn btn-primary">Browse Recruiting Clubs</a>
-      </div>
-    `;
+    if (typeof UIStates !== "undefined") {
+      UIStates.renderEmptyState(container, {
+        title: "No Club Applications Submitted",
+        message: "You haven't applied to any college societies yet. Explore active technical wings and cultural collectives recruiting this semester.",
+        actionText: "Explore Recognized Societies",
+        actionUrl: "clubs.html"
+      });
+    } else {
+      container.innerHTML = `<p>No club applications found.</p>`;
+    }
     return;
   }
 
   container.innerHTML = applications.map(app => {
-    // Lookup club logo and details if available
-    const club = typeof CLUBS_DATA !== "undefined" ? CLUBS_DATA.find(c => c.id === app.clubId) : null;
-    const logoUrl = club ? club.logo : "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=120&auto=format&fit=crop&q=80";
+    let badgeClass = "badge-warning";
+    let badgeLabel = "Pending Review";
+    const statusUpper = (app.status || "").toUpperCase();
+
+    if (statusUpper === "APPROVED" || statusUpper === "ACCEPTED") {
+      badgeClass = "badge-success";
+      badgeLabel = "Accepted & Onboarded";
+    } else if (statusUpper === "SHORTLISTED") {
+      badgeClass = "badge-primary";
+      badgeLabel = "Shortlisted for Interview";
+    } else if (statusUpper === "REJECTED") {
+      badgeClass = "badge-danger";
+      badgeLabel = "Not Shortlisted";
+    }
+
+    const appDate = app.appliedAt || app.appliedDate || new Date().toISOString();
+    const formattedDate = new Date(appDate).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" });
 
     return `
-      <article class="application-card" id="app-card-${app.id}">
-        <div class="app-card-header">
-          <div class="app-club-info">
-            <img src="${logoUrl}" alt="${escapeHTML(app.clubName)} logo" class="app-club-logo" loading="lazy">
-            <div>
-              <h3 class="app-club-title">
-                <a href="club-details.html?id=${app.clubId}">${escapeHTML(app.clubName)}</a>
-              </h3>
-              <div style="font-size: 0.825rem; color: var(--text-muted);">
-                ${getCategoryBadge(app.category || (club ? club.category : 'General'))}
-              </div>
+      <article class="dash-app-card">
+        <div class="dash-app-info">
+          <img src="${app.clubLogo || 'https://images.unsplash.com/photo-1573164713988-8665fc963095?w=100'}" alt="${escapeHTML(app.clubName)}" class="dash-app-logo" loading="lazy">
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <h4 class="dash-app-title">${escapeHTML(app.clubName)}</h4>
+              <span class="badge ${badgeClass}">${badgeLabel}</span>
+            </div>
+            <div class="dash-app-meta">
+              Target Wing: <strong>${escapeHTML(app.domain || 'Core Team')}</strong> &bull; Applied: ${formattedDate}
             </div>
           </div>
-          <div>
-            ${getApplicationStatusBadge(app.status)}
-          </div>
         </div>
 
-        <div class="app-details-grid">
-          <div class="app-detail-item">
-            <span class="app-detail-label">Preferred Wing</span>
-            <span class="app-detail-val">${escapeHTML(app.domain || 'General Member')}</span>
-          </div>
-          <div class="app-detail-item">
-            <span class="app-detail-label">Student Roll</span>
-            <span class="app-detail-val">${escapeHTML(app.studentRoll || 'N/A')}</span>
-          </div>
-          <div class="app-detail-item">
-            <span class="app-detail-label">Department & Year</span>
-            <span class="app-detail-val">${escapeHTML(app.branch || '')} (${escapeHTML(app.year || '')})</span>
-          </div>
-          <div class="app-detail-item">
-            <span class="app-detail-label">Applied Date</span>
-            <span class="app-detail-val">${formatDate(app.appliedDate)}</span>
-          </div>
-        </div>
-
-        ${app.interviewNotes ? `
-          <div class="app-notes-box">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="8" x2="12" y2="12"/>
-              <line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            <div>
-              <strong>Club Coordinator Update:</strong> ${escapeHTML(app.interviewNotes)}
-            </div>
-          </div>
-        ` : ''}
-
-        <div class="app-card-footer">
-          <div>
-            Application ID: <code style="font-family: monospace; font-size: 0.8rem; background: var(--bg-surface); padding: 2px 6px; border-radius: 4px;">#${escapeHTML(app.id)}</code>
-          </div>
-          <div style="display: flex; gap: 0.5rem;">
-            <a href="club-details.html?id=${app.clubId}" class="btn btn-outline btn-sm">Club Page</a>
-            <button 
-              type="button" 
-              class="btn btn-danger btn-sm" 
-              onclick="confirmWithdrawApplication('${app.id}', '${escapeHTML(app.clubName)}')"
-            >
-              Withdraw
-            </button>
-          </div>
-        </div>
-      </article>
-    `;
-  }).join("");
-}
-
-// ---------------- RENDER SAVED CLUBS ----------------
-function renderSavedClubs() {
-  const container = document.getElementById("saved-clubs-grid");
-  if (!container || typeof Storage === "undefined" || typeof CLUBS_DATA === "undefined") return;
-
-  const savedIds = Storage.getBookmarks();
-  const badgeEl = document.getElementById("tab-count-saved");
-  if (badgeEl) badgeEl.textContent = savedIds.length;
-
-  const savedClubs = CLUBS_DATA.filter(club => savedIds.includes(club.id));
-
-  if (savedClubs.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state" style="grid-column: 1 / -1;">
-        <div class="empty-state-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-          </svg>
-        </div>
-        <h3 class="empty-state-title">No Bookmarked Clubs</h3>
-        <p class="empty-state-desc">
-          You haven't bookmarked any clubs yet. Click the bookmark icon on any club card to save it for quick access.
-        </p>
-        <a href="clubs.html" class="btn btn-primary">Explore Directory</a>
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = savedClubs.map(club => {
-    return `
-      <article class="club-card">
-        <div class="club-card-banner">
-          <img src="${club.banner}" alt="${escapeHTML(club.name)} banner" loading="lazy">
-          <div class="club-card-status-badge">
-            ${getStatusBadge(club.status)}
-          </div>
-          <button 
-            class="club-card-bookmark-btn saved" 
-            data-club-id="${club.id}" 
-            title="Remove from saved"
-            onclick="removeBookmark('${club.id}')"
-          >
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="#e11d48" stroke="currentColor" stroke-width="2.2">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-            </svg>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <a href="club-details.html?id=${app.clubId}" class="btn btn-outline btn-sm">View Society</a>
+          <button class="btn btn-outline btn-sm" onclick="withdrawApp('${app.id}')" style="color: var(--color-error); border-color: var(--border-color);">
+            Withdraw
           </button>
         </div>
-        
-        <div class="club-card-body">
-          <img src="${club.logo}" alt="${escapeHTML(club.name)} logo" class="club-card-avatar" loading="lazy">
-          <div class="club-card-header">
-            <h3 class="club-card-title">
-              <a href="club-details.html?id=${club.id}">${escapeHTML(club.name)}</a>
-            </h3>
-            <div class="club-card-meta">
-              ${getCategoryBadge(club.category)}
-            </div>
-          </div>
-          
-          <p class="club-card-desc">${escapeHTML(club.tagline)}</p>
-          
-          <div class="club-card-footer">
-            <a href="club-details.html?id=${club.id}" class="btn btn-outline btn-sm">View Details</a>
-            ${club.status === "OPEN" 
-              ? `<a href="club-details.html?id=${club.id}&apply=true" class="btn btn-primary btn-sm">Apply</a>` 
-              : `<span class="badge badge-status-closed">Closed</span>`
-            }
-          </div>
-        </div>
       </article>
     `;
   }).join("");
 }
 
-// ---------------- ACTIONS ----------------
-function confirmWithdrawApplication(appId, clubName) {
-  const confirmed = window.confirm(`Are you sure you want to withdraw your application for ${clubName}? This action cannot be undone.`);
-  if (confirmed && typeof Storage !== "undefined") {
-    Storage.withdrawApplication(appId);
+function withdrawApp(id) {
+  if (confirm("Are you sure you wish to withdraw this society application?")) {
+    if (typeof Storage !== "undefined") {
+      Storage.deleteApplication(id);
+    }
     refreshDashboard();
-    showToast(`Application for ${clubName} was withdrawn`, "info");
+    if (typeof UIStates !== "undefined") {
+      UIStates.showToast("Application withdrawn successfully.", "info");
+    }
   }
 }
 
-function removeBookmark(clubId) {
+// Global helpers from secondary branch
+function handleWithdrawApplication(appId) {
+  withdrawApp(appId);
+}
+
+function handleRemoveBookmark(clubId) {
   if (typeof Storage !== "undefined") {
     Storage.toggleBookmark(clubId);
     refreshDashboard();
-    showToast("Club removed from bookmarks", "info");
+    if (typeof UIStates !== "undefined") {
+      UIStates.showToast("Society removed from saved list.", "info");
+    }
   }
 }
 
-// ---------------- UPDATE METRICS ----------------
-function updateSummaryMetrics() {
-  if (typeof Storage === "undefined") return;
+// ---------------- 2. REGISTERED EVENTS & PASSES ----------------
+function renderStudentEvents() {
+  const container = document.getElementById("dash-events-container");
+  if (!container) return;
 
-  const applications = Storage.getApplications();
-  const savedIds = Storage.getBookmarks();
+  const user = typeof Storage !== "undefined" ? Storage.getCurrentUser() : null;
+  const userEmail = user ? user.email : "";
+  const allRegs = typeof Storage !== "undefined" ? Storage.getEventRegistrations() : [];
+  const regs = allRegs.filter(r => r.email === userEmail || r.studentEmail === userEmail);
 
-  const totalAppsEl = document.getElementById("metric-total-apps");
-  const activeAppsEl = document.getElementById("metric-active-apps");
-  const savedClubsEl = document.getElementById("metric-saved-clubs");
+  const badgeEl = document.getElementById("tab-count-events");
+  if (badgeEl) badgeEl.textContent = regs.length;
 
-  if (totalAppsEl) totalAppsEl.textContent = applications.length;
-
-  if (activeAppsEl) {
-    const shortlistedCount = applications.filter(a => a.status === "SHORTLISTED" || a.status === "PENDING").length;
-    activeAppsEl.textContent = shortlistedCount;
+  if (regs.length === 0) {
+    if (typeof UIStates !== "undefined") {
+      UIStates.renderEmptyState(container, {
+        title: "No Event Passes Registered",
+        message: "You haven't registered for any campus hackathons or workshops yet. RSVP to events to generate verified digital entry passes.",
+        actionText: "Browse Campus Events",
+        actionUrl: "events.html"
+      });
+    }
+    return;
   }
 
-  if (savedClubsEl) savedClubsEl.textContent = savedIds.length;
+  container.innerHTML = `
+    <div class="dash-events-grid">
+      ${regs.map(reg => {
+        const d = new Date(reg.eventDate || reg.date || Date.now());
+        const dateStr = d.toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" });
+
+        return `
+          <div class="dash-event-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+              <span class="badge badge-teal">✓ Entry Pass Issued</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">${dateStr}</span>
+            </div>
+            <h4 style="font-size: 1.0625rem; font-weight: 700; margin: 0 0 6px;">${escapeHTML(reg.eventTitle || reg.title)}</h4>
+            <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 14px;">
+              📍 ${escapeHTML(reg.eventVenue || reg.venue || 'Campus Auditorium')} &bull; Code: <code>${escapeHTML(reg.passCode || 'PASS-CONFIRMED')}</code>
+            </div>
+            <button class="btn btn-primary btn-sm btn-block" onclick="openPassModal('${reg.passCode || reg.id}')">
+              View Digital Pass
+            </button>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+function openPassModal(codeOrId) {
+  const allRegs = typeof Storage !== "undefined" ? Storage.getEventRegistrations() : [];
+  const pass = allRegs.find(r => r.passCode === codeOrId || r.id === codeOrId) || allRegs[0];
+  if (!pass) return;
+
+  const modal = document.getElementById("dash-pass-modal");
+  const body = document.getElementById("dash-pass-modal-body");
+  if (!modal || !body) return;
+
+  const d = new Date(pass.eventDate || pass.date || Date.now());
+  const formattedDate = d.toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" });
+
+  body.innerHTML = `
+    <div class="digital-pass-card">
+      <span class="digital-pass-badge">✓ OFFICIAL ENTRY PASS</span>
+      <h3 style="margin: 0 0 4px; font-size: 1.125rem; font-weight: 800;">${escapeHTML(pass.eventTitle || pass.title)}</h3>
+      <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 12px;">
+        ${escapeHTML(pass.eventVenue || pass.venue || 'Campus Auditorium')} &bull; ${formattedDate}
+      </div>
+
+      <div class="digital-pass-code">${escapeHTML(pass.passCode || 'PASS-ENTRY')}</div>
+
+      <div class="digital-pass-barcode">
+        ${Array.from({ length: 30 }).map((_, i) => `<div class="barcode-bar" style="height: ${18 + (i % 5) * 5}px;"></div>`).join("")}
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; text-align: left; font-size: 0.75rem; background: var(--bg-surface); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-top: 14px;">
+        <div><strong>Attendee:</strong> ${escapeHTML(pass.studentName || 'Aditya Verma')}</div>
+        <div><strong>Roll No:</strong> ${escapeHTML(pass.rollNumber || pass.studentRoll || '23/CS/104')}</div>
+      </div>
+    </div>
+
+    <div class="modal-footer" style="margin-top: 16px;">
+      <button type="button" class="btn btn-outline" onclick="closePassModal()">Done</button>
+      <button type="button" class="btn btn-primary" onclick="window.print()">Print Entry Pass</button>
+    </div>
+  `;
+
+  if (typeof modal.showModal === "function") modal.showModal();
+  else modal.style.display = "block";
+}
+
+function closePassModal() {
+  const modal = document.getElementById("dash-pass-modal");
+  if (!modal) return;
+  if (typeof modal.close === "function") modal.close();
+  else modal.style.display = "none";
+}
+
+function setupPassModal() {
+  const closeBtn = document.getElementById("dash-pass-close");
+  if (closeBtn) closeBtn.onclick = closePassModal;
+}
+
+// ---------------- 3. MARKETPLACE ITEMS ----------------
+function renderStudentMarketplace() {
+  const container = document.getElementById("dash-mkt-container");
+  if (!container) return;
+
+  const user = typeof Storage !== "undefined" ? Storage.getCurrentUser() : null;
+  const userEmail = user ? user.email : "";
+  const allItems = typeof Storage !== "undefined" ? Storage.getMarketplaceItems() : [];
+  const items = allItems.filter(i => i.sellerEmail === userEmail);
+
+  const badgeEl = document.getElementById("tab-count-mkt");
+  if (badgeEl) badgeEl.textContent = items.length;
+
+  if (items.length === 0) {
+    if (typeof UIStates !== "undefined") {
+      UIStates.renderEmptyState(container, {
+        title: "No Marketplace Items Listed",
+        message: "You haven't posted any engineering textbooks, calculators, or lab gear for sale yet.",
+        actionText: "Post an Item on Marketplace",
+        actionUrl: "marketplace.html"
+      });
+    }
+    return;
+  }
+
+  container.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      ${items.map(item => {
+        const isSold = item.status === "SOLD";
+
+        return `
+          <div class="dash-app-card">
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <img src="${item.image || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=100'}" alt="${escapeHTML(item.title)}" style="width: 52px; height: 52px; border-radius: var(--radius-md); object-fit: cover; border: 1px solid var(--border-color);">
+              <div>
+                <h4 style="margin: 0 0 2px 0; font-size: 0.9375rem; font-weight: 700;">${escapeHTML(item.title)}</h4>
+                <div style="font-size: 0.8125rem; color: var(--text-secondary);">
+                  Price: <strong>₹${item.price}</strong> &bull; Condition: ${escapeHTML(item.condition || 'Good')} &bull; Pickup: ${escapeHTML(item.location || 'Campus')}
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span class="badge ${isSold ? 'badge-status-closed' : 'badge-status-open'}">${isSold ? 'Marked Sold' : 'Active Listing'}</span>
+              <button class="btn btn-outline btn-sm" onclick="toggleItemSoldStatus('${item.id}')">
+                ${isSold ? 'Relist as Available' : 'Mark as Sold'}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+function toggleItemSoldStatus(itemId) {
+  if (typeof Storage !== "undefined") {
+    const allItems = Storage.getMarketplaceItems();
+    const item = allItems.find(i => i.id === itemId);
+    if (item) {
+      item.status = item.status === "SOLD" ? "AVAILABLE" : "SOLD";
+      Storage.saveMarketplaceItems(allItems);
+      refreshDashboard();
+      if (typeof UIStates !== "undefined") {
+        UIStates.showToast(`Item updated to: ${item.status}`, "info");
+      }
+    }
+  }
+}
+
+// ---------------- 4. MY COLLAB POSTS ----------------
+function renderStudentNetworkPosts() {
+  const container = document.getElementById("dash-network-container");
+  if (!container) return;
+
+  const user = typeof Storage !== "undefined" ? Storage.getCurrentUser() : null;
+  const userName = user ? user.name : "Aditya Verma";
+  const allPosts = typeof Storage !== "undefined" ? Storage.getNetworkPosts() : [];
+  const posts = allPosts.filter(p => p.authorName === userName);
+
+  const badgeEl = document.getElementById("tab-count-posts");
+  if (badgeEl) badgeEl.textContent = posts.length;
+
+  if (posts.length === 0) {
+    if (typeof UIStates !== "undefined") {
+      UIStates.renderEmptyState(container, {
+        title: "No Collaboration Posts Yet",
+        message: "Find hackathon teammates, create study groups, or discuss engineering projects on the campus feed.",
+        actionText: "Post on Peer Network",
+        actionUrl: "network.html"
+      });
+    }
+    return;
+  }
+
+  container.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      ${posts.map(p => `
+        <div class="dash-app-card">
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+              <span class="badge badge-teal">${escapeHTML(p.tag)}</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">${new Date(p.timestamp).toLocaleDateString("en-IN", { month: "short", day: "numeric" })}</span>
+            </div>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); margin: 0; line-height: 1.5;">
+              ${escapeHTML(p.content)}
+            </p>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 12px; font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary);">
+            <span>▲ ${p.upvotes || 0} Upvotes</span>
+            <span>💬 ${(p.comments || []).length} Replies</span>
+            <a href="network.html" class="btn btn-outline btn-sm">View in Feed</a>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+// ---------------- 5. INTERNSHIP APPLICATIONS ----------------
+function renderStudentJobApplications() {
+  const container = document.getElementById("dash-jobs-container");
+  if (!container) return;
+
+  const user = typeof Storage !== "undefined" ? Storage.getCurrentUser() : null;
+  const userEmail = user ? user.email : "";
+  const allJobApps = typeof Storage !== "undefined" ? Storage.getJobApplications() : [];
+  const apps = allJobApps.filter(a => a.studentEmail === userEmail);
+
+  const badgeEl = document.getElementById("tab-count-jobs");
+  if (badgeEl) badgeEl.textContent = apps.length;
+
+  if (apps.length === 0) {
+    if (typeof UIStates !== "undefined") {
+      UIStates.renderEmptyState(container, {
+        title: "No Placement Applications Submitted",
+        message: "Apply for corporate campus drives and engineering internships from top employers like Microsoft, Google, TCS, and Swiggy.",
+        actionText: "Explore Campus Drives",
+        actionUrl: "recruiters.html"
+      });
+    }
+    return;
+  }
+
+  container.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      ${apps.map(app => {
+        let statusBadge = `<span class="badge badge-warning">Under Review</span>`;
+        if (app.status === "Shortlisted" || app.status === "SHORTLISTED") {
+          statusBadge = `<span class="badge badge-primary">Shortlisted for Interview</span>`;
+        } else if (app.status === "Offer Extended" || app.status === "ACCEPTED") {
+          statusBadge = `<span class="badge badge-success">Offer Extended</span>`;
+        } else if (app.status === "Not Selected" || app.status === "REJECTED") {
+          statusBadge = `<span class="badge badge-danger">Not Selected</span>`;
+        }
+
+        return `
+          <div class="dash-app-card">
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <h4 style="margin: 0; font-size: 1rem; font-weight: 700;">${escapeHTML(app.jobRole || app.role || 'Software Intern')}</h4>
+                ${statusBadge}
+              </div>
+              <div class="dash-app-meta">
+                Company: <strong style="color: var(--primary-color);">${escapeHTML(app.company || 'Corporate Partner')}</strong> &bull; Applied: ${new Date(app.appliedDate).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
+              </div>
+            </div>
+
+            <div>
+              <a href="${app.resume || app.resumeUrl || '#'}" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm">
+                View Submitted CV
+              </a>
+            </div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+// ---------------- 6. VERIFIED BADGES ----------------
+function renderStudentBadges() {
+  const container = document.getElementById("dash-badges-container");
+  if (!container) return;
+
+  const user = typeof Storage !== "undefined" ? Storage.getCurrentUser() : null;
+  const userEmail = user ? user.email : "";
+  const badges = typeof Storage !== "undefined" ? Storage.getVerifiedBadges(userEmail) : [];
+
+  const badgeEl = document.getElementById("tab-count-badges");
+  if (badgeEl) badgeEl.textContent = badges.length;
+
+  if (badges.length === 0) {
+    if (typeof UIStates !== "undefined") {
+      UIStates.renderEmptyState(container, {
+        title: "No Verified Badges Earned Yet",
+        message: "Participate in hackathons, complete society core projects, and maintain strong academic honors to receive digitally verified badges.",
+        actionText: "Explore Campus Events",
+        actionUrl: "events.html"
+      });
+    }
+    return;
+  }
+
+  const shieldIcon = typeof Icons !== "undefined" ? Icons.render("shield-check", { width: 22, height: 22 }) : "🛡️";
+
+  container.innerHTML = badges.map(b => `
+    <div class="badge-cert-card">
+      <div class="badge-cert-icon">
+        ${shieldIcon}
+      </div>
+      <div>
+        <div class="badge-cert-title">${escapeHTML(b.title)}</div>
+        <div class="badge-cert-issuer">Issued by: ${escapeHTML(b.issuer)} &bull; ${escapeHTML(b.issueDate || '2026')}</div>
+        <p class="badge-cert-desc">${escapeHTML(b.description)}</p>
+        <div style="font-size: 0.6875rem; color: var(--text-muted); margin-top: 8px; font-family: monospace;">
+          Hash: ${escapeHTML(b.verificationHash || 'SHA-256-AUTHENTICATED')}
+        </div>
+      </div>
+    </div>
+  `).join("");
 }

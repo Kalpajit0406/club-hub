@@ -3,230 +3,258 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Student Dashboard & Application Tracker | CampusConnect</title>
-  <meta name="description" content="Track your club membership applications, view interview schedules, and manage your saved bookmarks.">
+  <title>Student Command Center &amp; Tracker | ClubHub</title>
+  <meta name="description" content="Track your club applications, view digital event passes, manage your listed marketplace items, and inspect verified achievement badges.">
+
+  <!-- Anti-Flicker Theme & Palette Init -->
+  <script>
+    (function() {
+      var savedTheme = localStorage.getItem("clubhub_theme_mode_v2") || "light";
+      var savedPalette = localStorage.getItem("clubhub_active_palette") || "default";
+      document.documentElement.setAttribute("data-theme", savedTheme);
+      document.documentElement.setAttribute("data-palette", savedPalette);
+    })();
+  </script>
 
   <!-- Google Fonts: Plus Jakarta Sans & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- CSS Stylesheets -->
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/palette.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/dashboard.css">
 </head>
 <body>
 
-  <!-- ==================== NAVIGATION BAR ==================== -->
+  <!-- GLOBAL NAVBAR -->
   <header class="navbar">
-    <div class="container nav-container">
-      <a href="index.html" class="brand-logo" aria-label="CampusConnect Home">
-        <div class="brand-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
-            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-          </svg>
-        </div>
-        <div class="brand-text">
-          Campus<span>Connect</span>
-          <span class="brand-sub">Student Life Platform</span>
-        </div>
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand" aria-label="ClubHub Home">
+        <span class="brand-name">Club<span>Hub</span></span>
       </a>
 
-      <nav>
-        <ul class="nav-links">
-          <li><a href="index.html" class="nav-link">Home</a></li>
-          <li><a href="clubs.html" class="nav-link">Explore Clubs</a></li>
-          <li>
-            <a href="dashboard.html" class="nav-link active">
-              My Dashboard
-              <span id="nav-app-count" class="nav-counter" style="display: none;">0</span>
-            </a>
-          </li>
-        </ul>
+      <nav class="nav-links">
+        <a href="clubs.html" class="nav-link">Clubs</a>
+        <a href="events.html" class="nav-link">Events</a>
+        <a href="marketplace.html" class="nav-link">Marketplace</a>
+        <a href="network.html" class="nav-link">Network</a>
+        <a href="recruiters.html" class="nav-link">Placements</a>
       </nav>
 
       <div class="nav-actions">
         <div id="nav-auth-box"></div>
-        <a href="clubs.html" class="btn btn-primary btn-sm">Explore More Clubs</a>
-        <button class="mobile-nav-toggle" aria-label="Toggle Navigation Menu" aria-expanded="false">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="3" y1="12" x2="21" y2="12"/>
-            <line x1="3" y1="6" x2="21" y2="6"/>
-            <line x1="3" y1="18" x2="21" y2="18"/>
-          </svg>
+        <button type="button" class="mobile-nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- ==================== MAIN CONTENT ==================== -->
-  <main class="main-content">
-
-    <!-- STUDENT PROFILE HEADER -->
-    <section class="dashboard-header">
-      <div class="container">
-        <div class="profile-card">
-          <div class="profile-identity">
-            <div class="profile-avatar" id="dash-user-avatar">AV</div>
-            <div class="profile-info">
-              <h1 id="dash-user-name">Aditya Verma</h1>
-              <div class="profile-meta">
-                <span>
-                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                  <span id="dash-user-roll">Roll No: 2023CSB1042</span>
-                </span>
-                <span>•</span>
-                <span id="dash-user-dept">B.Tech in Computer Science & Engineering (2nd Year)</span>
-                <span>•</span>
-                <span id="dash-user-email">aditya.cs23@campus.edu</span>
-              </div>
+  <!-- STUDENT PROFILE HEADER -->
+  <section class="dashboard-header">
+    <div class="container">
+      <div class="profile-card">
+        <div class="profile-identity">
+          <div class="profile-avatar" id="dash-user-avatar">AV</div>
+          <div class="profile-info">
+            <h1 id="dash-user-name">Aditya Verma</h1>
+            <div class="profile-meta">
+              <span>
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span id="dash-user-roll">Roll No: 23/CS/104</span>
+              </span>
+              <span>&bull;</span>
+              <span id="dash-user-dept">Computer Science &amp; Engineering (2nd Year)</span>
+              <span>&bull;</span>
+              <span id="dash-user-email">aditya@tint.edu.in</span>
             </div>
           </div>
+        </div>
 
-          <div>
-            <a href="clubs.html" class="btn btn-outline btn-sm">
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              Browse New Clubs
-            </a>
-          </div>
+        <div class="profile-actions">
+          <a href="clubs.html" class="btn btn-outline btn-sm">Explore Clubs</a>
+          <a href="events.html" class="btn btn-primary btn-sm">Campus Events</a>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <div class="container">
-
-      <!-- KEY METRIC SUMMARY STATS -->
-      <section class="dashboard-stats-grid" aria-label="Summary Statistics">
-        <div class="dashboard-stat-card">
-          <div class="stat-icon-wrapper blue">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="16" y1="13" x2="8" y2="13"/>
-              <line x1="16" y1="17" x2="8" y2="17"/>
-            </svg>
-          </div>
-          <div class="stat-details">
-            <div class="stat-val" id="metric-total-apps">0</div>
-            <div class="stat-lbl">Applications Submitted</div>
-          </div>
-        </div>
-
-        <div class="dashboard-stat-card">
-          <div class="stat-icon-wrapper amber">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <polyline points="12 6 12 12 14 14"/>
-            </svg>
-          </div>
-          <div class="stat-details">
-            <div class="stat-val" id="metric-active-apps">0</div>
-            <div class="stat-lbl">In Review / Shortlisted</div>
-          </div>
-        </div>
-
-        <div class="dashboard-stat-card">
-          <div class="stat-icon-wrapper rose">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-            </svg>
-          </div>
-          <div class="stat-details">
-            <div class="stat-val" id="metric-saved-clubs">0</div>
-            <div class="stat-lbl">Saved / Bookmarked Clubs</div>
-          </div>
-        </div>
-      </section>
-
-      <!-- TAB SELECTION BAR -->
-      <div class="dashboard-tabs-bar" role="tablist">
-        <button type="button" class="dashboard-tab-btn active" data-tab="applications" role="tab">
-          My Applications
-          <span class="tab-badge" id="tab-count-apps">0</span>
-        </button>
-        <button type="button" class="dashboard-tab-btn" data-tab="saved" role="tab">
-          Saved Bookmarks
-          <span class="tab-badge" id="tab-count-saved">0</span>
-        </button>
+  <!-- MAIN DASHBOARD CONTENT -->
+  <main class="container dashboard-main-content">
+    
+    <!-- 4 Key Summary Metrics -->
+    <div class="dashboard-stats-grid">
+      <div class="dash-stat-tile">
+        <div class="dash-stat-number" id="metric-apps-count">0</div>
+        <div class="dash-stat-label">Society Applications</div>
       </div>
+      <div class="dash-stat-tile">
+        <div class="dash-stat-number" id="metric-events-count">0</div>
+        <div class="dash-stat-label">Event Passes Issued</div>
+      </div>
+      <div class="dash-stat-tile">
+        <div class="dash-stat-number" id="metric-mkt-count">0</div>
+        <div class="dash-stat-label">Marketplace Items</div>
+      </div>
+      <div class="dash-stat-tile">
+        <div class="dash-stat-number" id="metric-badges-count" style="color: var(--primary-color);">0</div>
+        <div class="dash-stat-label">Verified Credentials</div>
+      </div>
+    </div>
 
-      <!-- TAB 1: APPLICATIONS LIST -->
-      <section id="pane-applications" class="dashboard-tab-pane" role="tabpanel">
-        <div id="applications-container" class="applications-list">
-          <!-- Dynamically populated by js/dashboard.js -->
-        </div>
-      </section>
+    <!-- Tab Navigation (6 Tabs) -->
+    <div class="dashboard-tabs-nav" role="tablist">
+      <button class="dashboard-tab-btn active" data-tab="applications">
+        Society Applications (<span id="tab-count-apps">0</span>)
+      </button>
+      <button class="dashboard-tab-btn" data-tab="events">
+        Registered Events (<span id="tab-count-events">0</span>)
+      </button>
+      <button class="dashboard-tab-btn" data-tab="marketplace">
+        My Marketplace Items (<span id="tab-count-mkt">0</span>)
+      </button>
+      <button class="dashboard-tab-btn" data-tab="network">
+        My Collab Posts (<span id="tab-count-posts">0</span>)
+      </button>
+      <button class="dashboard-tab-btn" data-tab="internships">
+        Internship Applications (<span id="tab-count-jobs">0</span>)
+      </button>
+      <button class="dashboard-tab-btn" data-tab="badges">
+        Verified Badges (<span id="tab-count-badges">0</span>)
+      </button>
+    </div>
 
-      <!-- TAB 2: SAVED BOOKMARKS GRID -->
-      <section id="pane-saved" class="dashboard-tab-pane" role="tabpanel" style="display: none;">
-        <div id="saved-clubs-grid" class="clubs-grid">
-          <!-- Dynamically populated by js/dashboard.js -->
-        </div>
-      </section>
+    <!-- PANE 1: Club Applications -->
+    <div id="pane-applications" class="dashboard-tab-pane">
+      <div id="applications-container" class="applications-list">
+        <!-- Injected by dashboard.js -->
+      </div>
+    </div>
 
+    <!-- PANE 2: Registered Events -->
+    <div id="pane-events" class="dashboard-tab-pane" style="display: none;">
+      <div id="dash-events-container">
+        <!-- Injected by dashboard.js -->
+      </div>
+    </div>
+
+    <!-- PANE 3: Marketplace Items -->
+    <div id="pane-marketplace" class="dashboard-tab-pane" style="display: none;">
+      <div id="dash-mkt-container">
+        <!-- Injected by dashboard.js -->
+      </div>
+    </div>
+
+    <!-- PANE 4: Collab Posts -->
+    <div id="pane-network" class="dashboard-tab-pane" style="display: none;">
+      <div id="dash-network-container">
+        <!-- Injected by dashboard.js -->
+      </div>
+    </div>
+
+    <!-- PANE 5: Internship Applications -->
+    <div id="pane-internships" class="dashboard-tab-pane" style="display: none;">
+      <div id="dash-jobs-container">
+        <!-- Injected by dashboard.js -->
+      </div>
+    </div>
+
+    <!-- PANE 6: Verified Credentials & Badges -->
+    <div id="pane-badges" class="dashboard-tab-pane" style="display: none;">
+      <div style="margin-bottom: 20px;">
+        <h3 style="font-size: 1.125rem; font-weight: 700; margin: 0 0 6px 0; color: var(--text-primary);">Verified Collegiate Credentials &amp; Badges</h3>
+        <p style="font-size: 0.8125rem; color: var(--text-secondary); margin: 0;">These digital achievements are cryptographically verified by the university administration and automatically shared with campus recruiters.</p>
+      </div>
+      <div id="dash-badges-container" class="badges-grid">
+        <!-- Injected by dashboard.js -->
+      </div>
     </div>
 
   </main>
 
-  <!-- ==================== FOOTER ==================== -->
+  <!-- DIGITAL PASS POPUP MODAL (FOR VIEWING TICKETS) -->
+  <dialog id="dash-pass-modal" class="native-modal">
+    <div class="modal-inner" style="max-width: 500px;">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Event Digital Entry Pass</h3>
+          <p class="modal-subtitle">Official Student Entry Pass</p>
+        </div>
+        <button class="modal-close" id="dash-pass-close" aria-label="Close modal">&times;</button>
+      </div>
+      <div id="dash-pass-modal-body">
+        <!-- Injected by dashboard.js -->
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ENTERPRISE FOOTER -->
   <footer class="footer">
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-brand">
-          <div class="brand-logo">
-            <div class="brand-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
-                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-                <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-              </svg>
-            </div>
-            <div class="brand-text">
-              Campus<span>Connect</span>
-            </div>
-          </div>
-          <p>The centralized hub for extracurricular student life, technical innovation, and creative societies.</p>
-        </div>
-
-        <div>
-          <h4 class="footer-heading">Navigation</h4>
-          <ul class="footer-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="clubs.html">Explore Clubs</a></li>
-            <li><a href="dashboard.html">Student Dashboard</a></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 class="footer-heading">Categories</h4>
-          <ul class="footer-links">
-            <li><a href="clubs.html?category=Technical">Technical & Coding</a></li>
-            <li><a href="clubs.html?category=Cultural">Cultural & Arts</a></li>
-            <li><a href="clubs.html?category=Sports">Sports & Athletics</a></li>
-            <li><a href="clubs.html?category=Literary">Literary & Debate</a></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 class="footer-heading">Help</h4>
-          <ul class="footer-links">
-            <li><a href="mailto:support@campusconnect.edu">support@campusconnect.edu</a></li>
-            <li><a href="#">Report Issue</a></li>
-          </ul>
-        </div>
+    <div class="container footer-content">
+      <div class="footer-col footer-col-brand">
+        <a href="index.html" class="nav-brand" style="margin-bottom: 12px; display: inline-flex;">
+          <span class="brand-name">Club<span>Hub</span></span>
+        </a>
+        <p class="footer-description">
+          The all-in-one university campus operating system. Discover societies, attend hackathons, trade student goods, and find collaborative teams.
+        </p>
       </div>
 
-      <div class="footer-bottom">
-        <div>&copy; 2026 CampusConnect. All rights reserved. Built for College Students.</div>
-        <div>Modern SaaS Architecture • Pure HTML5, CSS3 & JavaScript</div>
+      <div class="footer-col">
+        <div class="footer-col-title">Campus Hubs</div>
+        <ul class="footer-links">
+          <li><a href="clubs.html">All Societies</a></li>
+          <li><a href="events.html">Campus Events</a></li>
+          <li><a href="marketplace.html">Student Exchange</a></li>
+          <li><a href="network.html">Peer Network</a></li>
+          <li><a href="recruiters.html">Career Drives</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <div class="footer-col-title">Command Center</div>
+        <ul class="footer-links">
+          <li><a href="dashboard.html">Student Profile</a></li>
+          <li><a href="recruiter-dashboard.html">Recruiter Portal</a></li>
+          <li><a href="admin.html">Secretariat Access</a></li>
+          <li><a href="login.html">Account Sign In</a></li>
+          <li><a href="register.html">Student Onboarding</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <div class="footer-col-title">System Status</div>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 8px;">
+          FastAPI Backend &bull; Operational<br>
+          Connected Node Architecture<br>
+          Vercel &amp; Firebase Hosted
+        </p>
+        <span class="badge badge-teal" style="font-size: 12px; padding: 4px 10px;">v2.4 Production</span>
+      </div>
+    </div>
+
+    <div class="container footer-bottom">
+      <div>&copy; 2026 <strong>ClubHub</strong> &bull; The University Campus Operating System. All rights reserved.</div>
+      <div style="display: flex; gap: 16px; font-size: 13px;">
+        <a href="clubs.html" style="color: var(--text-secondary);">Societies</a>
+        <a href="events.html" style="color: var(--text-secondary);">Events</a>
+        <a href="marketplace.html" style="color: var(--text-secondary);">Exchange</a>
+        <a href="network.html" style="color: var(--text-secondary);">Network</a>
+        <a href="dashboard.html" style="color: var(--text-secondary);">Command Center</a>
       </div>
     </div>
   </footer>
 
-  <!-- Core Scripts -->
+  <!-- Scripts -->
+  <script src="js/icons.js"></script>
+  <script src="js/states.js"></script>
+  <script src="js/brand.js"></script>
   <script src="js/data.js"></script>
   <script src="js/storage.js"></script>
+  <script src="js/palette.js"></script>
   <script src="js/common.js"></script>
   <script src="js/dashboard.js"></script>
 </body>

@@ -3,369 +3,403 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin & Club Lead Portal | CampusConnect</title>
-  <meta name="description" content="CampusConnect Administrative portal for reviewing applicant submissions, shortlisting, member management, and event operations.">
+  <title>Collegiate Secretariat &amp; Admin | ClubHub</title>
+  <meta name="description" content="Collegiate society management portal. Review candidate applications, publish campus events, and manage inducted club members.">
+
+  <!-- Anti-Flicker Theme & Palette Init -->
+  <script>
+    (function() {
+      var savedTheme = localStorage.getItem("clubhub_theme_mode_v2") || "light";
+      var savedPalette = localStorage.getItem("clubhub_active_palette") || "default";
+      document.documentElement.setAttribute("data-theme", savedTheme);
+      document.documentElement.setAttribute("data-palette", savedPalette);
+    })();
+  </script>
 
   <!-- Google Fonts: Plus Jakarta Sans & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- CSS Stylesheets -->
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/palette.css">
   <link rel="stylesheet" href="css/components.css">
-  <link rel="stylesheet" href="css/dashboard.css">
   <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
 
-  <!-- ==================== NAVIGATION BAR ==================== -->
+  <!-- GLOBAL NAVBAR -->
   <header class="navbar">
-    <div class="container nav-container">
-      <a href="index.html" class="brand-logo" aria-label="CampusConnect Home">
-        <div class="brand-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
-            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-          </svg>
-        </div>
-        <div class="brand-text">
-          Campus<span>Connect</span>
-          <span class="brand-sub">Student Life Platform</span>
-        </div>
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand" aria-label="ClubHub Home">
+        <span class="brand-name">Club<span>Hub</span></span>
       </a>
 
-      <nav>
-        <ul class="nav-links">
-          <li><a href="index.html" class="nav-link">Home</a></li>
-          <li><a href="clubs.html" class="nav-link">Explore Clubs</a></li>
-          <li>
-            <a href="dashboard.html" class="nav-link">
-              My Dashboard
-              <span id="nav-app-count" class="nav-counter" style="display: none;">0</span>
-            </a>
-          </li>
-          <li>
-            <a href="admin.html" class="nav-link active">
-              Admin Portal
-            </a>
-          </li>
-        </ul>
+      <nav class="nav-links">
+        <a href="clubs.html" class="nav-link">Clubs</a>
+        <a href="events.html" class="nav-link">Events</a>
+        <a href="marketplace.html" class="nav-link">Marketplace</a>
+        <a href="network.html" class="nav-link">Network</a>
+        <a href="recruiters.html" class="nav-link">Placements</a>
       </nav>
 
       <div class="nav-actions">
-        <a href="dashboard.html" class="btn btn-outline btn-sm">Student View</a>
-        <button class="mobile-nav-toggle" aria-label="Toggle Navigation Menu" aria-expanded="false">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="3" y1="12" x2="21" y2="12"/>
-            <line x1="3" y1="6" x2="21" y2="6"/>
-            <line x1="3" y1="18" x2="21" y2="18"/>
-          </svg>
+        <div id="nav-auth-box"></div>
+        <button type="button" class="mobile-nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- ==================== MAIN CONTENT ==================== -->
-  <main class="main-content">
-
-    <!-- ADMIN CONSOLE HEADER -->
-    <section class="admin-header">
-      <div class="container">
-        <div class="admin-header-row">
-          <div class="admin-title-box">
-            <span class="admin-badge">Faculty & Club Lead Console</span>
-            <h1>CampusConnect Management Portal</h1>
-            <p>Review incoming student applications, update recruitment stages, oversee chapter memberships, and schedule campus events.</p>
-          </div>
-
-          <div style="display: flex; gap: 0.75rem;">
-            <a href="clubs.html" class="btn btn-outline btn-sm">Directory View</a>
-            <button class="btn btn-primary btn-sm" onclick="showToast('Exporting applicant database to CSV...', 'info')">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Export CSV
-            </button>
-          </div>
-        </div>
+  <!-- ADMIN HEADER -->
+  <section class="page-header">
+    <div class="container page-title-row">
+      <div>
+        <div class="page-category-eyebrow">⚡ Club Lead &amp; Secretariat Portal</div>
+        <h1 class="page-title">Society Secretariat &amp; Admin</h1>
+        <p class="page-description">
+          Review candidate recruitment forms, shortlist talent, publish campus tech fests, and manage inducted club rosters.
+        </p>
       </div>
-    </section>
-
-    <div class="container">
-
-      <!-- 4-METRIC OVERVIEW -->
-      <section class="admin-metrics-grid" aria-label="Recruitment Metrics">
-        <div class="admin-metric-card">
-          <div class="metric-icon-box navy">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-          </div>
-          <div>
-            <div class="metric-value" id="admin-metric-total">0</div>
-            <div class="metric-label">Total Applicants</div>
-          </div>
-        </div>
-
-        <div class="admin-metric-card">
-          <div class="metric-icon-box amber">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <polyline points="12 6 12 12 14 14"/>
-            </svg>
-          </div>
-          <div>
-            <div class="metric-value" id="admin-metric-pending">0</div>
-            <div class="metric-label">Pending Review</div>
-          </div>
-        </div>
-
-        <div class="admin-metric-card">
-          <div class="metric-icon-box blue">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="9 11 12 14 22 4"/>
-              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-            </svg>
-          </div>
-          <div>
-            <div class="metric-value" id="admin-metric-shortlisted">0</div>
-            <div class="metric-label">Shortlisted for Round 1</div>
-          </div>
-        </div>
-
-        <div class="admin-metric-card">
-          <div class="metric-icon-box green">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-              <polyline points="22 4 12 14.01 9 11.01"/>
-            </svg>
-          </div>
-          <div>
-            <div class="metric-value" id="admin-metric-approved">0</div>
-            <div class="metric-label">Accepted / Onboarded</div>
-          </div>
-        </div>
-      </section>
-
-      <!-- TAB SELECTION BAR -->
-      <div class="admin-tabs-bar" role="tablist">
-        <button type="button" class="admin-tab-btn active" data-tab="applications" role="tab">
-          Application Management
-          <span class="tab-badge" id="tab-count-admin-apps">0</span>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button type="button" id="open-add-club-btn" class="btn btn-outline btn-sm">
+          + Add New Club
         </button>
-        <button type="button" class="admin-tab-btn" data-tab="members" role="tab">
-          Active Members Directory
-          <span class="tab-badge" id="tab-count-admin-members">0</span>
-        </button>
-        <button type="button" class="admin-tab-btn" data-tab="events" role="tab">
-          Campus Events & Operations
-          <span class="tab-badge" id="tab-count-admin-events">0</span>
+        <button type="button" id="open-create-event-btn" class="btn btn-primary btn-sm">
+          + Schedule Event
         </button>
       </div>
+    </div>
+  </section>
 
-      <!-- ==================== TAB 1: APPLICATIONS ==================== -->
-      <section id="pane-applications" class="admin-tab-pane" role="tabpanel">
-        
-        <!-- Filter Toolbar -->
-        <div class="admin-toolbar">
-          <div class="toolbar-filters">
-            <select id="admin-club-filter" class="filter-select">
-              <!-- Populated by js/admin.js -->
-            </select>
+  <main class="container admin-main-content">
 
-            <select id="admin-status-filter" class="filter-select">
-              <option value="ALL">All Application Stages</option>
-              <option value="PENDING">Pending Review</option>
-              <option value="SHORTLISTED">Shortlisted</option>
-              <option value="ACCEPTED">Approved & Accepted</option>
-              <option value="REJECTED">Not Shortlisted</option>
-            </select>
-          </div>
+    <!-- METRIC STATS -->
+    <div class="admin-stats-grid">
+      <div class="admin-stat-card">
+        <div class="admin-stat-num" id="admin-metric-apps">0</div>
+        <div class="admin-stat-label">Pending Reviews</div>
+      </div>
+      <div class="admin-stat-card">
+        <div class="admin-stat-num" id="admin-metric-members">0</div>
+        <div class="admin-stat-label">Active Core Members</div>
+      </div>
+      <div class="admin-stat-card">
+        <div class="admin-stat-num" id="admin-metric-events">0</div>
+        <div class="admin-stat-label">Scheduled Campus Events</div>
+      </div>
+      <div class="admin-stat-card">
+        <div class="admin-stat-num" id="admin-metric-rate" style="color: var(--primary-color);">0%</div>
+        <div class="admin-stat-label">Acceptance Rate</div>
+      </div>
+    </div>
 
-          <div class="search-field-wrapper">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"/>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-            <input type="text" id="admin-search-input" placeholder="Search applicant name, roll number, or domain...">
-          </div>
-        </div>
+    <!-- TABS -->
+    <div class="admin-tabs-nav" role="tablist">
+      <button class="admin-tab-btn active" data-tab="applications">
+        Review Applications (<span id="admin-tab-badge-apps">0</span>)
+      </button>
+      <button class="admin-tab-btn" data-tab="events">
+        Events Manager (<span id="admin-tab-badge-events">0</span>)
+      </button>
+      <button class="admin-tab-btn" data-tab="members">
+        Club Members Roster (<span id="admin-tab-badge-members">0</span>)
+      </button>
+    </div>
 
-        <!-- Applications Table -->
-        <div class="table-responsive">
-          <table class="saas-table" aria-label="Student Applications Table">
-            <thead>
-              <tr>
-                <th>Applicant Details</th>
-                <th>Target Club & Wing</th>
-                <th>Submitted</th>
-                <th>Current Status</th>
-                <th>Review Actions</th>
-              </tr>
-            </thead>
-            <tbody id="admin-applications-tbody">
-              <!-- Dynamically populated by js/admin.js -->
-            </tbody>
-          </table>
-        </div>
+    <!-- PANE 1: APPLICATIONS -->
+    <div id="admin-pane-applications" class="admin-tab-pane">
+      <div class="admin-filter-bar">
+        <input type="text" id="admin-app-search" class="form-input" placeholder="Search candidate by name, roll, club, or domain..." autocomplete="off">
+        <select id="admin-app-status-filter" class="form-select" style="max-width: 220px;">
+          <option value="ALL">All Application States</option>
+          <option value="PENDING">Pending Review</option>
+          <option value="SHORTLISTED">Shortlisted</option>
+          <option value="APPROVED">Approved / Accepted</option>
+          <option value="REJECTED">Not Shortlisted</option>
+        </select>
+      </div>
 
-      </section>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Applicant</th>
+              <th>Target Society &amp; Wing</th>
+              <th>Academic Info</th>
+              <th>Status</th>
+              <th>Applied Date</th>
+              <th>Review Actions</th>
+            </tr>
+          </thead>
+          <tbody id="admin-apps-tbody">
+            <!-- Injected by admin.js -->
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-      <!-- ==================== TAB 2: MEMBERS ==================== -->
-      <section id="pane-members" class="admin-tab-pane" role="tabpanel" style="display: none;">
-        <div class="table-responsive">
-          <table class="saas-table" aria-label="Active Members Table">
-            <thead>
-              <tr>
-                <th>Student Name & Roll No</th>
-                <th>Club & Wing</th>
-                <th>Designated Role</th>
-                <th>Member Since</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="admin-members-tbody">
-              <!-- Dynamically populated by js/admin.js -->
-            </tbody>
-          </table>
-        </div>
-      </section>
+    <!-- PANE 2: EVENTS MANAGER -->
+    <div id="admin-pane-events" class="admin-tab-pane" style="display: none;">
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Event Title</th>
+              <th>Category</th>
+              <th>Date &amp; Venue</th>
+              <th>Confirmed RSVPs</th>
+              <th>Fee &amp; Prizes</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="admin-events-tbody">
+            <!-- Injected by admin.js -->
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-      <!-- ==================== TAB 3: EVENTS ==================== -->
-      <section id="pane-events" class="admin-tab-pane" role="tabpanel" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-          <div>
-            <h3 style="font-family: var(--font-heading); font-size: 1.25rem;">Upcoming Campus Events</h3>
-            <p style="font-size: 0.875rem; color: var(--text-secondary);">Manage schedules, attendance, and venue bookings for official club initiatives.</p>
-          </div>
-          <button class="btn btn-primary btn-sm" onclick="showToast('Event booking wizard initialized', 'info')">+ Schedule New Event</button>
-        </div>
-
-        <div id="admin-events-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 1.5rem;">
-          <!-- Dynamically populated by js/admin.js -->
-        </div>
-      </section>
-
+    <!-- PANE 3: MEMBERS ROSTER -->
+    <div id="admin-pane-members" class="admin-tab-pane" style="display: none;">
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Member Name</th>
+              <th>Roll Number</th>
+              <th>Club &amp; Domain</th>
+              <th>Leadership Role</th>
+              <th>Joined Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="admin-members-tbody">
+            <!-- Injected by admin.js -->
+          </tbody>
+        </table>
+      </div>
     </div>
 
   </main>
 
-  <!-- ==================== VIEW APPLICATION DETAIL MODAL ==================== -->
-  <dialog id="viewAppModal" class="modal" aria-labelledby="view-modal-name" aria-modal="true">
-    <div class="modal-header">
+  <!-- CREATE EVENT MODAL -->
+  <dialog id="create-event-modal" class="native-modal">
+    <div class="modal-inner" style="max-width: 580px;">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Schedule &amp; Publish Campus Event</h3>
+          <p class="modal-subtitle">Official Society Calendar Announcement</p>
+        </div>
+        <button id="close-create-event-modal" class="modal-close" aria-label="Close modal">&times;</button>
+      </div>
       <div>
-        <div style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">Application Details</div>
-        <h3 id="view-modal-name" class="modal-title">Applicant Name</h3>
-      </div>
-      <button id="modal-view-close-btn" class="modal-close-btn" aria-label="Close dialog">&times;</button>
-    </div>
+        <form id="create-event-form" class="modal-body-form">
+          <div class="form-group">
+            <label class="form-label" for="event-title-input">Event Title <span class="required">*</span></label>
+            <input type="text" id="event-title-input" class="form-input" required placeholder="e.g. HackTINT 2026: 36h National Hackathon">
+          </div>
 
-    <div class="modal-body">
-      <div class="app-view-details-grid">
-        <div>
-          <div class="app-view-field-label">Target Organization & Wing</div>
-          <div class="app-view-field-val" id="view-modal-club"></div>
-        </div>
-        <div>
-          <div class="app-view-field-label">Current Status</div>
-          <div style="margin-top: 4px;" id="view-modal-status"></div>
-        </div>
-        <div>
-          <div class="app-view-field-label">Roll Number</div>
-          <div class="app-view-field-val" id="view-modal-roll"></div>
-        </div>
-        <div>
-          <div class="app-view-field-label">Department & Year</div>
-          <div class="app-view-field-val" id="view-modal-dept"></div>
-        </div>
-        <div>
-          <div class="app-view-field-label">College Email</div>
-          <div class="app-view-field-val" id="view-modal-email"></div>
-        </div>
-        <div>
-          <div class="app-view-field-label">Date Submitted</div>
-          <div class="app-view-field-val" id="view-modal-date"></div>
-        </div>
-      </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="event-club-input">Organizing Club <span class="required">*</span></label>
+              <input type="text" id="event-club-input" class="form-input" required placeholder="e.g. Google Developer Student Club">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="event-type-input">Category <span class="required">*</span></label>
+              <select id="event-type-input" class="form-select" required>
+                <option value="Hackathon">Hackathon</option>
+                <option value="Competition">Robowars &amp; Contests</option>
+                <option value="Workshop">Workshop</option>
+                <option value="Cultural">Cultural</option>
+                <option value="Entrepreneurship">Entrepreneurship</option>
+              </select>
+            </div>
+          </div>
 
-      <div style="margin-bottom: 1.25rem;">
-        <div class="app-view-field-label">Portfolio, GitHub, or Resume URL</div>
-        <div style="font-size: 0.875rem; margin-top: 0.35rem;" id="view-modal-portfolio"></div>
-      </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="event-date-input">Date &amp; Time <span class="required">*</span></label>
+              <input type="datetime-local" id="event-date-input" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="event-venue-input">Campus Venue <span class="required">*</span></label>
+              <input type="text" id="event-venue-input" class="form-input" required placeholder="Main Auditorium">
+            </div>
+          </div>
 
-      <div>
-        <div class="app-view-field-label">Statement of Purpose / Why do they want to join?</div>
-        <div class="app-view-sop-box" id="view-modal-sop"></div>
-      </div>
-    </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="event-fee-input">Registration Fee</label>
+              <input type="text" id="event-fee-input" class="form-input" placeholder="Free">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="event-prizes-input">Prize Pool</label>
+              <input type="text" id="event-prizes-input" class="form-input" placeholder="₹50,000 Cash Pool">
+            </div>
+          </div>
 
-    <div class="modal-footer">
-      <div id="view-modal-actions" style="display: flex; gap: 0.5rem;">
-        <!-- Dynamically injected action buttons -->
+          <div class="form-group">
+            <label class="form-label" for="event-desc-input">Description &amp; Rules</label>
+            <textarea id="event-desc-input" class="form-textarea" rows="3" placeholder="Overview of tracks, rules, and schedule..."></textarea>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" id="cancel-create-event-btn">Cancel</button>
+            <button type="submit" class="btn btn-primary">Publish to Campus</button>
+          </div>
+        </form>
       </div>
     </div>
   </dialog>
 
-  <!-- ==================== FOOTER ==================== -->
-  <footer class="footer">
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-brand">
-          <div class="brand-logo">
-            <div class="brand-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
-                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-                <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-              </svg>
+  <!-- ADD NEW CLUB MODAL -->
+  <dialog id="add-club-modal" class="native-modal">
+    <div class="modal-inner" style="max-width: 580px;">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Register New Student Society</h3>
+          <p class="modal-subtitle">Add official chartered chapter to directory</p>
+        </div>
+        <button id="close-add-club-modal" class="modal-close" aria-label="Close modal">&times;</button>
+      </div>
+      <div>
+        <form id="add-club-form" class="modal-body-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="new-club-name">Club Full Name <span class="required">*</span></label>
+              <input type="text" id="new-club-name" class="form-input" required placeholder="e.g. AI &amp; Quantum Society">
             </div>
-            <div class="brand-text">
-              Campus<span>Connect</span>
+            <div class="form-group">
+              <label class="form-label" for="new-club-acronym">Acronym <span class="required">*</span></label>
+              <input type="text" id="new-club-acronym" class="form-input" required placeholder="e.g. AQS">
             </div>
           </div>
-          <p>The centralized hub for extracurricular student life, technical innovation, and creative societies.</p>
-        </div>
 
-        <div>
-          <h4 class="footer-heading">Navigation</h4>
-          <ul class="footer-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="clubs.html">Explore Clubs</a></li>
-            <li><a href="dashboard.html">Student Dashboard</a></li>
-            <li><a href="admin.html">Admin Portal</a></li>
-          </ul>
-        </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="new-club-category">Category <span class="required">*</span></label>
+              <select id="new-club-category" class="form-select" required>
+                <option value="Technical">Technical &amp; Coding</option>
+                <option value="Cultural">Cultural &amp; Arts</option>
+                <option value="Sports">Sports &amp; Athletics</option>
+                <option value="Literary">Literary &amp; Debating</option>
+                <option value="Social">Social &amp; Community</option>
+                <option value="Entrepreneurship">E-Cell &amp; Business</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="new-club-meeting">Meeting Info</label>
+              <input type="text" id="new-club-meeting" class="form-input" placeholder="Fridays at 5:00 PM | Tech Lab 2">
+            </div>
+          </div>
 
-        <div>
-          <h4 class="footer-heading">Administration</h4>
-          <ul class="footer-links">
-            <li><a href="#">Recruitment Policies</a></li>
-            <li><a href="#">Interview Adjudication Criteria</a></li>
-            <li><a href="#">Auditorium & Lab Bookings</a></li>
-            <li><a href="#">Budget Sanctions</a></li>
-          </ul>
-        </div>
+          <div class="form-group">
+            <label class="form-label" for="new-club-tagline">Tagline <span class="required">*</span></label>
+            <input type="text" id="new-club-tagline" class="form-input" required placeholder="e.g. Exploring quantum frontiers and intelligent architectures.">
+          </div>
 
+          <div class="form-group">
+            <label class="form-label" for="new-club-desc">Detailed Description</label>
+            <textarea id="new-club-desc" class="form-textarea" rows="3" placeholder="Tell students about activities, workshops, and recruitment expectations..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="new-club-domains">Recruitment Wings (Comma separated) <span class="required">*</span></label>
+            <input type="text" id="new-club-domains" class="form-input" required placeholder="AI Research, Quantum Computing, Web Dev, PR &amp; Media">
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" id="cancel-add-club-btn">Cancel</button>
+            <button type="submit" class="btn btn-primary">Register Society</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- APPLICATION DETAIL MODAL -->
+  <dialog id="admin-app-detail-modal" class="native-modal">
+    <div class="modal-inner" style="max-width: 540px;">
+      <div class="modal-header">
         <div>
-          <h4 class="footer-heading">Helpdesk</h4>
-          <ul class="footer-links">
-            <li><a href="mailto:admin@campusconnect.edu">admin@campusconnect.edu</a></li>
-            <li><a href="#">Dean of Student Affairs</a></li>
-          </ul>
+          <h3 id="admin-modal-applicant-name" class="modal-title">Applicant Review</h3>
+          <p class="modal-subtitle">Candidate screening &amp; decision logger</p>
         </div>
+        <button id="admin-modal-close" class="modal-close" aria-label="Close modal">&times;</button>
+      </div>
+      <div id="admin-modal-applicant-body">
+        <!-- Injected by admin.js -->
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ENTERPRISE FOOTER -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <div class="footer-col footer-col-brand">
+        <a href="index.html" class="nav-brand" style="margin-bottom: 12px; display: inline-flex;">
+          <span class="brand-name">Club<span>Hub</span></span>
+        </a>
+        <p class="footer-description">
+          The all-in-one university campus operating system. Discover societies, attend hackathons, trade student goods, and find collaborative teams.
+        </p>
       </div>
 
-      <div class="footer-bottom">
-        <div>&copy; 2026 CampusConnect. All rights reserved. Administrator & Leadership Console.</div>
-        <div>Modern SaaS Architecture • Pure HTML5, CSS3 & JavaScript</div>
+      <div class="footer-col">
+        <div class="footer-col-title">Campus Hubs</div>
+        <ul class="footer-links">
+          <li><a href="clubs.html">All Societies</a></li>
+          <li><a href="events.html">Campus Events</a></li>
+          <li><a href="marketplace.html">Student Exchange</a></li>
+          <li><a href="network.html">Peer Network</a></li>
+          <li><a href="recruiters.html">Career Drives</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <div class="footer-col-title">Command Center</div>
+        <ul class="footer-links">
+          <li><a href="dashboard.html">Student Profile</a></li>
+          <li><a href="recruiter-dashboard.html">Recruiter Portal</a></li>
+          <li><a href="admin.html">Secretariat Access</a></li>
+          <li><a href="login.html">Account Sign In</a></li>
+          <li><a href="register.html">Student Onboarding</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <div class="footer-col-title">System Status</div>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 8px;">
+          FastAPI Backend &bull; Operational<br>
+          Connected Node Architecture<br>
+          Vercel &amp; Firebase Hosted
+        </p>
+        <span class="badge badge-teal" style="font-size: 12px; padding: 4px 10px;">v2.4 Production</span>
+      </div>
+    </div>
+
+    <div class="container footer-bottom">
+      <div>&copy; 2026 <strong>ClubHub</strong> &bull; The University Campus Operating System. All rights reserved.</div>
+      <div style="display: flex; gap: 16px; font-size: 13px;">
+        <a href="clubs.html" style="color: var(--text-secondary);">Societies</a>
+        <a href="events.html" style="color: var(--text-secondary);">Events</a>
+        <a href="marketplace.html" style="color: var(--text-secondary);">Exchange</a>
+        <a href="network.html" style="color: var(--text-secondary);">Network</a>
+        <a href="dashboard.html" style="color: var(--text-secondary);">Command Center</a>
       </div>
     </div>
   </footer>
 
-  <!-- Core Scripts -->
+  <!-- Scripts -->
+  <script src="js/icons.js"></script>
+  <script src="js/states.js"></script>
+  <script src="js/brand.js"></script>
   <script src="js/data.js"></script>
   <script src="js/storage.js"></script>
+  <script src="js/palette.js"></script>
   <script src="js/common.js"></script>
   <script src="js/admin.js"></script>
 </body>
