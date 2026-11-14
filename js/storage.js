@@ -16,6 +16,16 @@ const STORAGE_KEYS = {
   INITIALIZED: "clubhub_initialized_v2"
 };
 
+const DEFAULT_USER = {
+  name: "Aditya Verma",
+  email: "aditya.cs23@campus.edu",
+  roll: "2023CSB1042",
+  branch: "Computer Science & Engineering",
+  year: "2nd Year",
+  role: "student",
+  password: "password123"
+};
+
 const Storage = {
   // Initialize seeded data on very first run
   init() {
@@ -61,10 +71,10 @@ const Storage = {
   getCurrentUser() {
     this.init();
     try {
-      const data = localStorage.getItem(STORAGE_KEYS.AUTH_USER);
-      return data ? JSON.parse(data) : null;
+      const data = localStorage.getItem(STORAGE_KEYS.AUTH_USER) || localStorage.getItem("campus_connect_user_v1");
+      return data ? JSON.parse(data) : DEFAULT_USER;
     } catch (e) {
-      return null;
+      return DEFAULT_USER;
     }
   },
 
@@ -168,6 +178,18 @@ const Storage = {
     apps.unshift(newApp);
     localStorage.setItem(STORAGE_KEYS.APPLICATIONS, JSON.stringify(apps));
     return newApp;
+  },
+
+  submitApplication(appData) {
+    return this.saveApplication(appData);
+  },
+
+  withdrawApplication(appId) {
+    return this.deleteApplication(appId);
+  },
+
+  hasApplied(clubId) {
+    return this.getApplications().some(app => app.clubId === clubId);
   },
 
   updateApplicationStatus(id, newStatus, notes) {

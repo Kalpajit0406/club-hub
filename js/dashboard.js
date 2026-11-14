@@ -169,6 +169,21 @@ function withdrawApp(id) {
   }
 }
 
+// Global helpers from secondary branch
+function handleWithdrawApplication(appId) {
+  withdrawApp(appId);
+}
+
+function handleRemoveBookmark(clubId) {
+  if (typeof Storage !== "undefined") {
+    Storage.toggleBookmark(clubId);
+    refreshDashboard();
+    if (typeof UIStates !== "undefined") {
+      UIStates.showToast("Society removed from saved list.", "info");
+    }
+  }
+}
+
 // ---------------- 2. REGISTERED EVENTS & PASSES ----------------
 function renderStudentEvents() {
   const container = document.getElementById("dash-events-container");

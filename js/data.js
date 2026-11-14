@@ -660,6 +660,17 @@ const SEEDED_USERS = [
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
   },
   {
+    id: "usr-01-sec",
+    name: "Aditya Verma",
+    email: "aditya.cs23@campus.edu",
+    roll: "2023CSB1042",
+    branch: "Computer Science & Engineering",
+    year: "2nd Year",
+    role: "student",
+    password: "password123",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
+  },
+  {
     id: "usr-02",
     name: "Aarav Sharma",
     email: "gdsc.lead@tint.edu.in",
@@ -681,5 +692,26 @@ const SEEDED_USERS = [
     role: "recruiter",
     password: "recruiterpassword",
     avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80"
+  },
+  {
+    id: "usr-04",
+    name: "Dr. K. S. Mukherjee",
+    email: "admin@tint.edu.in",
+    role: "admin",
+    password: "adminpassword",
+    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=80"
   }
 ];
+
+// Campus Members for Admin & Directory Management
+const CAMPUS_MEMBERS = [
+  { id: "mem-01", name: "Aarav Sharma", roll: "2022CSB1001", clubId: "gdsc", clubName: "Google Developer Student Club", role: "Club Lead", domain: "Cloud & DevOps", joined: "Aug 2023", email: "aarav.gdsc@campus.edu", status: "Active" },
+  { id: "mem-02", name: "Pooja Patel", roll: "2023CSB1034", clubId: "gdsc", clubName: "Google Developer Student Club", role: "Technical Head", domain: "Web Development", joined: "Jan 2024", email: "pooja.tech@campus.edu", status: "Active" },
+  { id: "mem-03", name: "Vikram Sengupta", roll: "2022MEB1020", clubId: "robotics-society", clubName: "Autonomous Robotics Society", role: "Chief Engineer", domain: "CAD & Dynamics", joined: "Sep 2023", email: "vikram.ars@campus.edu", status: "Active" },
+  { id: "mem-04", name: "Tanvi Deshmukh", roll: "2023ECB1045", clubId: "dhwani-music", clubName: "Dhwani Music & Symphony Club", role: "Club President", domain: "Vocals", joined: "Oct 2023", email: "tanvi.dhwani@campus.edu", status: "Active" },
+  { id: "mem-05", name: "Rohan Varma", roll: "2022CSB1072", clubId: "debsoc", clubName: "The Literary & Debating Society", role: "President", domain: "Parliamentary Debate", joined: "Aug 2022", email: "rohan.debsoc@campus.edu", status: "Active" },
+  { id: "mem-06", name: "Riya Sen", roll: "2024ECB1015", clubId: "robotics-society", clubName: "Autonomous Robotics Society", role: "Core Member", domain: "Embedded Systems", joined: "Nov 2026", email: "riya.ec24@campus.edu", status: "Active" }
+];
+
+// Alias CAMPUS_EVENTS to SEEDED_EVENTS
+const CAMPUS_EVENTS = typeof SEEDED_EVENTS !== "undefined" ? SEEDED_EVENTS : [];

@@ -464,3 +464,34 @@ function saveAppReview(appId, status) {
     UIStates.showToast(`Candidate application updated to: ${status}`, "success");
   }
 }
+
+// Quick action handlers from secondary branch
+function handleAccept(appId) {
+  if (typeof Storage !== "undefined") {
+    Storage.updateApplicationStatus(appId, "APPROVED", "Profile accepted. Welcome aboard!");
+    if (typeof UIStates !== "undefined") {
+      UIStates.showToast("Application approved!", "success");
+    }
+    refreshAdminDashboard();
+  }
+}
+
+function handleReject(appId) {
+  if (typeof Storage !== "undefined") {
+    Storage.updateApplicationStatus(appId, "REJECTED", "Position filled. Thank you for your interest.");
+    if (typeof UIStates !== "undefined") {
+      UIStates.showToast("Application marked as not shortlisted.", "info");
+    }
+    refreshAdminDashboard();
+  }
+}
+
+function handleShortlist(appId) {
+  if (typeof Storage !== "undefined") {
+    Storage.updateApplicationStatus(appId, "SHORTLISTED", "Selected for interview stage.");
+    if (typeof UIStates !== "undefined") {
+      UIStates.showToast("Application shortlisted for interviews.", "info");
+    }
+    refreshAdminDashboard();
+  }
+}
