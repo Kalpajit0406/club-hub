@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Create Student Account | CampusConnect</title>
-  <meta name="description" content="Register for a CampusConnect account to apply for college clubs and track recruitment stages.">
+  <title>Enroll Candidate Account | CampusClubs</title>
+  <meta name="description" content="Register for a CampusClubs account to apply for college societies and track recruitment stages.">
 
   <!-- Dark / Light Theme Immediate Init (Anti-Flicker) -->
   <script>
@@ -14,10 +14,10 @@
     })();
   </script>
 
-  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <!-- Google Fonts: Playfair Display & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600;1,700&display=swap" rel="stylesheet">
 
   <!-- CSS Stylesheets -->
   <link rel="stylesheet" href="css/style.css">
@@ -30,17 +30,17 @@
     
     <!-- BRAND & HEADER -->
     <div class="auth-header">
-      <a href="index.html" class="auth-brand" aria-label="Return to CampusConnect Home">
+      <a href="index.html" class="auth-brand" aria-label="Return to CampusClubs Home">
         <div class="brand-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
-            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/>
+            <polyline points="9 12 11 14 15 10"/>
           </svg>
         </div>
-        <div>Campus<span>Connect</span></div>
+        <div>Campus<span>Clubs</span></div>
       </a>
-      <h1 class="auth-title">Create your student account</h1>
-      <p class="auth-subtitle">Join over 1,800 students exploring university clubs, applying for leadership, and attending workshops.</p>
+      <h1 class="auth-title">Enroll as a Candidate Scholar</h1>
+      <p class="auth-subtitle">Join over 1,800 students exploring university societies, applying for leadership wings, and attending campus convocations.</p>
     </div>
 
     <!-- AUTH CARD -->
@@ -62,7 +62,7 @@
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
           <div class="form-group">
-            <label for="reg-roll" class="form-label">Student Roll Number <span class="required">*</span></label>
+            <label for="reg-roll" class="form-label">University Roll Number <span class="required">*</span></label>
             <input 
               type="text" 
               id="reg-roll" 
@@ -73,7 +73,7 @@
           </div>
 
           <div class="form-group">
-            <label for="reg-year" class="form-label">Year of Study <span class="required">*</span></label>
+            <label for="reg-year" class="form-label">Academic Year <span class="required">*</span></label>
             <select id="reg-year" class="form-select" required>
               <option value="1st Year">1st Year (Freshman)</option>
               <option value="2nd Year" selected>2nd Year (Sophomore)</option>
@@ -85,7 +85,7 @@
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
           <div class="form-group">
-            <label for="reg-branch" class="form-label">Branch / Department <span class="required">*</span></label>
+            <label for="reg-branch" class="form-label">Branch & Degree <span class="required">*</span></label>
             <input 
               type="text" 
               id="reg-branch" 
@@ -96,7 +96,7 @@
           </div>
 
           <div class="form-group">
-            <label for="reg-email" class="form-label">College Email Address <span class="required">*</span></label>
+            <label for="reg-email" class="form-label">University Email Address <span class="required">*</span></label>
             <input 
               type="email" 
               id="reg-email" 
@@ -153,12 +153,12 @@
         <div class="form-group" style="margin-bottom: 1.5rem;">
           <label class="auth-checkbox-label">
             <input type="checkbox" id="reg-terms" checked required>
-            <span>I agree to the <a href="#" class="auth-link">Campus Student Code of Conduct</a> and Extracurricular Activity Guidelines.</span>
+            <span>I agree to the <a href="#" class="auth-link">University Collegiate Honor Code</a> and Extracurricular Guidelines.</span>
           </label>
         </div>
 
         <button type="submit" class="btn btn-primary auth-submit-btn">
-          Create Account & Access Dashboard
+          Enroll & Enter CampusClubs
         </button>
       </form>
     </div>
@@ -169,8 +169,8 @@
       <a href="login.html" class="auth-link">Sign in here</a>
     </div>
 
-    <div style="text-align: center; margin-top: 1.25rem;">
-      <a href="index.html" style="font-size: 0.8125rem; color: var(--text-secondary);">&larr; Back to CampusConnect Home</a>
+    <div style="text-align: center; margin-top: 1.5rem;">
+      <a href="index.html" style="font-size: 0.85rem; color: var(--text-secondary);">&larr; Back to CampusClubs Home</a>
     </div>
 
   </div>
