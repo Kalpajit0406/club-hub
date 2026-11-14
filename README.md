@@ -1,5 +1,8 @@
 # ClubHub — All-in-One Smart Campus Operating System
 
+[![Vercel Deployment](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://club-hub-inky.vercel.app)
+**Live Demo:** [https://club-hub-inky.vercel.app](https://club-hub-inky.vercel.app)
+
 **ClubHub** is an interactive, production-ready smart campus SaaS platform built using pure **HTML5**, **CSS3**, and **Vanilla JavaScript (ES6+)**. It unifies extracurricular club management, central campus event ticketing, student-to-student peer marketplace, collaboration feed, corporate placement drives, and cryptographically verifiable digital achievement badges.
 
 ---
