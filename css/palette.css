@@ -20,6 +20,17 @@
   --border-focus: #717744;
   --gold: #BCBD8B;
   --gold-light: #EFF1ED;
+
+  /* Dynamic Header & Footer */
+  --header-bg: #373D20;
+  --header-border: #717744;
+  --header-text: #EFF1ED;
+  --header-nav-link: #BCBD8B;
+  --header-nav-link-hover: #FFFFFF;
+  --footer-bg: #373D20;
+  --footer-border: #717744;
+  --footer-text: #EFF1ED;
+  --footer-muted: #BCBD8B;
 }
 :root[data-palette="olive-earthy"][data-theme="dark"] {
   --primary: #BCBD8B;
@@ -32,6 +43,11 @@
   --text-main: #EFF1ED;
   --text-secondary: #BCBD8B;
   --border: #3D442B;
+
+  --header-bg: #1C2012;
+  --header-border: #717744;
+  --footer-bg: #1C2012;
+  --footer-border: #3D442B;
 }
 
 /* 2. Solar Blue & Amber (8ecae6 - 219ebc - 023047 - ffb703 - fb8500) */
@@ -56,6 +72,17 @@
   --gold-light: #FFF8EE;
   --warning: #FB8500;
   --warning-bg: #FFF7EB;
+
+  /* Dynamic Header & Footer */
+  --header-bg: #023047;
+  --header-border: #FB8500;
+  --header-text: #FFFFFF;
+  --header-nav-link: #8ECAE6;
+  --header-nav-link-hover: #FFB703;
+  --footer-bg: #023047;
+  --footer-border: #FB8500;
+  --footer-text: #F0F7FB;
+  --footer-muted: #8ECAE6;
 }
 :root[data-palette="solar-blue"][data-theme="dark"] {
   --primary: #8ECAE6;
@@ -68,6 +95,11 @@
   --text-main: #F0F7FB;
   --text-secondary: #8ECAE6;
   --border: #0C4666;
+
+  --header-bg: #011824;
+  --header-border: #FB8500;
+  --footer-bg: #011824;
+  --footer-border: #0C4666;
 }
 
 /* 3. Deep Ocean Gradient (03045e - 023e8a - 0077b6 - 0096c7 - 00b4d8 - 48cae4 - 90e0ef - ade8f4 - caf0f8) */
@@ -90,6 +122,17 @@
   --border-focus: #0077B6;
   --gold: #00B4D8;
   --gold-light: #CAF0F8;
+
+  /* Dynamic Header & Footer */
+  --header-bg: #03045E;
+  --header-border: #00B4D8;
+  --header-text: #FFFFFF;
+  --header-nav-link: #CAF0F8;
+  --header-nav-link-hover: #FFFFFF;
+  --footer-bg: #03045E;
+  --footer-border: #0096C7;
+  --footer-text: #CAF0F8;
+  --footer-muted: #90E0EF;
 }
 :root[data-palette="deep-ocean"][data-theme="dark"] {
   --primary: #48CAE4;
@@ -102,6 +145,11 @@
   --text-main: #CAF0F8;
   --text-secondary: #90E0EF;
   --border: #0F277A;
+
+  --header-bg: #02032B;
+  --header-border: #0096C7;
+  --footer-bg: #02032B;
+  --footer-border: #0F277A;
 }
 
 /* 4. Nordic Sage & Pine (01161e - 124559 - 598392 - aec3b0 - eff6e0) */
@@ -124,6 +172,17 @@
   --border-focus: #124559;
   --gold: #598392;
   --gold-light: #EFF6E0;
+
+  /* Dynamic Header & Footer */
+  --header-bg: #01161E;
+  --header-border: #AEC3B0;
+  --header-text: #EFF6E0;
+  --header-nav-link: #AEC3B0;
+  --header-nav-link-hover: #EFF6E0;
+  --footer-bg: #01161E;
+  --footer-border: #124559;
+  --footer-text: #EFF6E0;
+  --footer-muted: #AEC3B0;
 }
 :root[data-palette="nordic-sage"][data-theme="dark"] {
   --primary: #AEC3B0;
@@ -136,6 +195,11 @@
   --text-main: #EFF6E0;
   --text-secondary: #AEC3B0;
   --border: #183C4A;
+
+  --header-bg: #020D12;
+  --header-border: #598392;
+  --footer-bg: #020D12;
+  --footer-border: #183C4A;
 }
 
 /* 5. Warm Slate & Cream (0d1321 - 1d2d44 - 3e5c76 - 748cab - f0ebd8) */
@@ -158,6 +222,17 @@
   --border-focus: #1D2D44;
   --gold: #748CAB;
   --gold-light: #F0EBD8;
+
+  /* Dynamic Header & Footer */
+  --header-bg: #0D1321;
+  --header-border: #748CAB;
+  --header-text: #F0EBD8;
+  --header-nav-link: #748CAB;
+  --header-nav-link-hover: #FFFFFF;
+  --footer-bg: #0D1321;
+  --footer-border: #3E5C76;
+  --footer-text: #F0EBD8;
+  --footer-muted: #748CAB;
 }
 :root[data-palette="warm-slate"][data-theme="dark"] {
   --primary: #748CAB;
@@ -170,6 +245,11 @@
   --text-main: #F0EBD8;
   --text-secondary: #748CAB;
   --border: #263447;
+
+  --header-bg: #080C14;
+  --header-border: #748CAB;
+  --footer-bg: #080C14;
+  --footer-border: #263447;
 }
 
 /* 6. Indigo Steel Spectrum (0466c8 - 0353a4 - 023e7d - 002855 - 001845 - 001233 - 33415c - 5c677d - 7d8597 - 979dac) */
@@ -192,6 +272,17 @@
   --border-focus: #0466C8;
   --gold: #0353A4;
   --gold-light: #E4EEFB;
+
+  /* Dynamic Header & Footer */
+  --header-bg: #001845;
+  --header-border: #0466C8;
+  --header-text: #FFFFFF;
+  --header-nav-link: #979DAC;
+  --header-nav-link-hover: #FFFFFF;
+  --footer-bg: #001845;
+  --footer-border: #0466C8;
+  --footer-text: #F6F8FB;
+  --footer-muted: #979DAC;
 }
 :root[data-palette="indigo-steel"][data-theme="dark"] {
   --primary: #4A97EB;
@@ -204,6 +295,11 @@
   --text-main: #F6F8FB;
   --text-secondary: #979DAC;
   --border: #143566;
+
+  --header-bg: #000B1A;
+  --header-border: #0466C8;
+  --footer-bg: #000B1A;
+  --footer-border: #143566;
 }
 
 /* 7. Dusk & Lavender (f1dac4 - a69cac - 474973 - 161b33 - 0d0c1d) */
@@ -226,6 +322,17 @@
   --border-focus: #474973;
   --gold: #A69CAC;
   --gold-light: #F1DAC4;
+
+  /* Dynamic Header & Footer */
+  --header-bg: #161B33;
+  --header-border: #A69CAC;
+  --header-text: #F1DAC4;
+  --header-nav-link: #A69CAC;
+  --header-nav-link-hover: #FFFFFF;
+  --footer-bg: #161B33;
+  --footer-border: #474973;
+  --footer-text: #F1DAC4;
+  --footer-muted: #A69CAC;
 }
 :root[data-palette="dusk-lavender"][data-theme="dark"] {
   --primary: #A69CAC;
@@ -238,6 +345,11 @@
   --text-main: #F5EAE1;
   --text-secondary: #A69CAC;
   --border: #2D274D;
+
+  --header-bg: #080712;
+  --header-border: #474973;
+  --footer-bg: #080712;
+  --footer-border: #2D274D;
 }
 
 /* 8. Classic Oxford Blues (1d3461 - 1f487e - 376996 - 6290c8 - 829cbc) */
@@ -260,6 +372,17 @@
   --border-focus: #1F487E;
   --gold: #6290C8;
   --gold-light: #EBF2F9;
+
+  /* Dynamic Header & Footer */
+  --header-bg: #1D3461;
+  --header-border: #6290C8;
+  --header-text: #FFFFFF;
+  --header-nav-link: #829CBC;
+  --header-nav-link-hover: #FFFFFF;
+  --footer-bg: #1D3461;
+  --footer-border: #6290C8;
+  --footer-text: #F5F8FC;
+  --footer-muted: #829CBC;
 }
 :root[data-palette="oxford-blues"][data-theme="dark"] {
   --primary: #6290C8;
@@ -272,6 +395,11 @@
   --text-main: #F5F8FC;
   --text-secondary: #829CBC;
   --border: #243E66;
+
+  --header-bg: #0A1324;
+  --header-border: #6290C8;
+  --footer-bg: #0A1324;
+  --footer-border: #243E66;
 }
 
 /* Default ClubHub Royal Blue */
@@ -294,6 +422,17 @@
   --border-focus: #2563EB;
   --gold: #3B82F6;
   --gold-light: #EFF6FF;
+
+  /* Dynamic Header & Footer */
+  --header-bg: #1E3A8A;
+  --header-border: #3B82F6;
+  --header-text: #FFFFFF;
+  --header-nav-link: #DBEAFE;
+  --header-nav-link-hover: #FFFFFF;
+  --footer-bg: #0F172A;
+  --footer-border: #2563EB;
+  --footer-text: #F8FAFC;
+  --footer-muted: #94A3B8;
 }
 :root[data-palette="default"][data-theme="dark"], :root:not([data-palette])[data-theme="dark"] {
   --primary: #3B82F6;
@@ -306,6 +445,11 @@
   --text-main: #F8FAFC;
   --text-secondary: #94A3B8;
   --border: #223152;
+
+  --header-bg: #0F172A;
+  --header-border: #3B82F6;
+  --footer-bg: #0B0F19;
+  --footer-border: #223152;
 }
 
 /* ============================================================
@@ -471,4 +615,3 @@
   left: 24px;
   z-index: 999;
 }
-

@@ -281,7 +281,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ============================================================
-   NAVBAR — Prestigious Deep Burgundy & Antique Gold
+   NAVBAR — Dynamic Theme-Adaptive Header
    ============================================================ */
 .navbar {
   position: fixed;
@@ -289,12 +289,12 @@ h1, h2, h3, h4, h5, h6 {
   left: 0;
   right: 0;
   height: var(--navbar-height);
-  background: #3B1422; /* Deep Burgundy */
-  border-bottom: 1.5px solid var(--gold);
+  background: var(--header-bg, #1E3A8A);
+  border-bottom: 2px solid var(--header-border, var(--primary));
   z-index: 100;
   display: flex;
   align-items: center;
-  box-shadow: 0 2px 12px rgba(59, 20, 34, 0.25);
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.2);
   transition: all var(--transition-fast);
 }
 
@@ -304,28 +304,29 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: space-between;
 }
 
-.brand-logo {
+.brand-logo, .nav-brand {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   font-family: var(--font-heading);
   font-size: 1.35rem;
   font-weight: 800;
-  color: #FAF7F0; /* Warm Ivory */
+  color: var(--header-text, #FFFFFF);
   letter-spacing: -0.01em;
+  text-decoration: none;
 }
 
 .brand-icon {
   width: 38px;
   height: 38px;
-  background: linear-gradient(135deg, #641E32 0%, #3B1422 100%);
-  border: 1.5px solid var(--gold);
-  color: var(--gold);
+  background: var(--primary);
+  border: 1.5px solid var(--header-border, var(--primary));
+  color: #FFFFFF;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   flex-shrink: 0;
 }
 
@@ -334,12 +335,15 @@ h1, h2, h3, h4, h5, h6 {
   height: 20px;
 }
 
-.brand-text {
+.brand-text, .brand-name {
   line-height: 1.15;
+  color: var(--header-text, #FFFFFF);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
 }
 
-.brand-text span {
-  color: var(--gold);
+.brand-text span, .brand-name span {
+  color: var(--header-border, var(--primary-light));
 }
 
 .brand-sub {
@@ -349,7 +353,7 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--champagne);
+  color: var(--header-nav-link, rgba(255, 255, 255, 0.8));
   margin-top: -1px;
 }
 
@@ -363,21 +367,22 @@ h1, h2, h3, h4, h5, h6 {
 .nav-link {
   font-size: 0.925rem;
   font-weight: 500;
-  color: #E8D9B9; /* Champagne text on burgundy */
+  color: var(--header-nav-link, rgba(255, 255, 255, 0.82));
   padding: 0.5rem 0.25rem;
   position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
   transition: color var(--transition-fast);
+  text-decoration: none;
 }
 
 .nav-link:hover {
-  color: #FAF7F0;
+  color: var(--header-nav-link-hover, #FFFFFF);
 }
 
 .nav-link.active {
-  color: #FAF7F0;
+  color: var(--header-nav-link-hover, #FFFFFF);
   font-weight: 600;
 }
 
@@ -388,13 +393,13 @@ h1, h2, h3, h4, h5, h6 {
   left: 0;
   right: 0;
   height: 2.5px;
-  background-color: var(--gold);
+  background-color: var(--header-border, var(--primary));
   border-radius: var(--radius-full);
 }
 
 .nav-counter {
-  background-color: var(--gold);
-  color: #3B1422;
+  background-color: var(--header-border, var(--primary));
+  color: #FFFFFF;
   font-size: 0.725rem;
   font-weight: 700;
   padding: 0.1rem 0.45rem;
@@ -413,9 +418,9 @@ h1, h2, h3, h4, h5, h6 {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(250, 247, 240, 0.12);
-  border: 1px solid rgba(232, 217, 185, 0.3);
-  padding: 0.2rem 0.35rem 0.2rem 0.25rem;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  padding: 0.2rem 0.45rem 0.2rem 0.25rem;
   border-radius: var(--radius-full);
 }
 
@@ -424,19 +429,39 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   gap: 0.45rem;
   padding-right: 0.35rem;
+  text-decoration: none;
+}
+
+.nav-user-name {
+  color: var(--header-text, #FFFFFF) !important;
+}
+
+.nav-logout-btn {
+  background: transparent;
+  border: none;
+  color: var(--header-nav-link, rgba(255, 255, 255, 0.8));
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+}
+
+.nav-logout-btn:hover {
+  color: #FFFFFF;
 }
 
 .nav-user-avatar {
   width: 28px;
   height: 28px;
   border-radius: var(--radius-full);
-  background: linear-gradient(135deg, var(--gold), var(--maroon));
+  background: var(--primary);
   color: #FFFFFF;
   font-size: 0.75rem;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .nav-user-name {
@@ -520,14 +545,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ============================================================
-   FOOTER — Burgundy Heritage
+   FOOTER — Dynamic Theme-Adaptive Footer
    ============================================================ */
 .footer {
-  background-color: #3B1422; /* Deep Burgundy */
-  border-top: 2px solid var(--gold);
-  color: #FAF7F0;
+  background-color: var(--footer-bg, #0F172A);
+  border-top: 2px solid var(--footer-border, var(--primary));
+  color: var(--footer-text, #F8FAFC);
   padding: 4.5rem 0 2rem;
   margin-top: auto;
+  transition: all var(--transition-fast);
 }
 
 .footer-grid {
@@ -538,11 +564,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .footer-brand .brand-logo {
-  color: #FAF7F0;
+  color: var(--footer-text, #F8FAFC);
 }
 
 .footer-brand p {
-  color: #D6C5B5;
+  color: var(--footer-muted, #94A3B8);
   font-size: 0.925rem;
   margin-top: 0.95rem;
   line-height: 1.65;
@@ -553,7 +579,7 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   font-size: 1rem;
   font-weight: 700;
-  color: var(--gold);
+  color: var(--footer-border, var(--primary));
   letter-spacing: 0.05em;
   margin-bottom: 1.25rem;
 }
@@ -566,12 +592,14 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .footer-links a {
-  color: #D6C5B5;
+  color: var(--footer-muted, #94A3B8);
   font-size: 0.925rem;
+  text-decoration: none;
+  transition: color var(--transition-fast);
 }
 
 .footer-links a:hover {
-  color: var(--gold);
+  color: var(--footer-text, #FFFFFF);
   text-decoration: underline;
 }
 
@@ -580,22 +608,32 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   gap: 0.4rem;
   padding: 0.35rem 0.85rem;
-  background: rgba(250, 247, 240, 0.08);
-  border: 1px solid rgba(197, 161, 91, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--footer-border, rgba(255, 255, 255, 0.2));
   border-radius: var(--radius-sm);
   font-size: 0.825rem;
-  color: var(--champagne);
+  color: var(--footer-text, #F8FAFC);
   margin-top: 0.85rem;
 }
 
 .footer-bottom {
   padding-top: 1.85rem;
-  border-top: 1px solid rgba(232, 217, 185, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-size: 0.875rem;
-  color: #B8ADA8;
+  color: var(--footer-muted, #94A3B8);
+}
+
+.footer-bottom a {
+  color: var(--footer-muted, #94A3B8);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.footer-bottom a:hover {
+  color: var(--footer-text, #FFFFFF);
 }
 
 /* Responsive adjustments */
@@ -609,8 +647,8 @@ h1, h2, h3, h4, h5, h6 {
     top: var(--navbar-height);
     left: 0;
     right: 0;
-    background: #3B1422;
-    border-bottom: 2px solid var(--gold);
+    background: var(--header-bg, #1E3A8A);
+    border-bottom: 2px solid var(--header-border, var(--primary));
     flex-direction: column;
     align-items: stretch;
     padding: 1.25rem 1.5rem;
@@ -626,7 +664,7 @@ h1, h2, h3, h4, h5, h6 {
   .nav-link {
     padding: 0.65rem 0;
     font-size: 1rem;
-    border-bottom: 1px solid rgba(232, 217, 185, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .nav-link.active::after {
