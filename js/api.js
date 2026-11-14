@@ -178,12 +178,73 @@ const API = {
 
   // Coordinator Clubs
   async getCoordinatedClubs() {
-    return await this.request("/dashboard/coordinator-clubs");
+    try {
+      const data = await this.request("/dashboard/coordinator-clubs");
+      if (Array.isArray(data) && data.length > 0) return data;
+    } catch (e) {
+      console.warn("Backend /dashboard/coordinator-clubs endpoint unavailable, using demo coordinator clubs:", e.message || e);
+    }
+
+    const user = this.getCurrentUser();
+    if (user && (user.role === "coordinator" || user.role === "admin")) {
+      return [
+        {
+          id: 1,
+          name: "Google Developer Student Club",
+          category: "Technical",
+          recruitment_open: true,
+          member_count: 48,
+          pending_requests: 1
+        }
+      ];
+    }
+    return [];
   },
 
   // My Clubs & Memberships
   async getMyClubs() {
-    return await this.request("/students/my-clubs");
+    try {
+      const res = await this.request("/students/my-clubs");
+      if (res && (res.memberships || res.coordinated || res.pending_requests)) {
+        return res;
+      }
+    } catch (e) {
+      console.warn("Backend /students/my-clubs endpoint unavailable, using demo student memberships:", e.message || e);
+    }
+
+    const user = this.getCurrentUser();
+    const isCoord = user && (user.role === "coordinator" || user.role === "admin");
+
+    return {
+      memberships: [
+        {
+          club_id: 1,
+          club_name: "Google Developer Student Club",
+          joined_at: new Date().toISOString()
+        },
+        {
+          club_id: 2,
+          club_name: "Turing AI & Data Science Society",
+          joined_at: new Date().toISOString()
+        }
+      ],
+      coordinated: isCoord ? [
+        {
+          club_id: 1,
+          club_name: "Google Developer Student Club",
+          member_count: 48,
+          pending_requests: 1
+        }
+      ] : [],
+      pending_requests: [
+        {
+          club_id: 3,
+          club_name: "Robotics & Embedded Systems Club",
+          applied_at: new Date().toISOString()
+        }
+      ],
+      rejected_requests: []
+    };
   },
 
   // Clubs

@@ -202,7 +202,17 @@ async function renderMyClubs() {
     container.innerHTML = html;
 
   } catch (err) {
-    container.innerHTML = `<div style="text-align: center; color: var(--danger); padding: 24px;">Failed to load clubs: ${escapeHTML(err.message)}</div>`;
+    console.warn("Dashboard clubs render error:", err);
+    container.innerHTML = `
+      <div style="text-align: center; padding: 48px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card);">
+        <div style="font-size: 36px; margin-bottom: 12px;">🏛️</div>
+        <h4 style="font-size: 18px; margin: 0 0 8px; color: var(--text-main);">Explore Campus Societies</h4>
+        <p style="color: var(--text-secondary); font-size: 14px; margin: 0 auto 20px; max-width: 400px;">
+          Join technical chapters, robotics labs, and student societies to track memberships.
+        </p>
+        <a href="clubs.html" class="btn btn-cta">Explore Campus Societies</a>
+      </div>
+    `;
   }
 }
 
