@@ -19,7 +19,7 @@
   <!-- Google Fonts: Plus Jakarta Sans & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Space+Grotesk:wght@600;700;800&family=Outfit:wght@700;800;900&display=swap" rel="stylesheet">
 
   <!-- CSS Stylesheets -->
   <link rel="stylesheet" href="css/style.css">
@@ -102,8 +102,12 @@
     <div class="modal-content" style="max-width: 500px;">
       <div class="modal-header">
         <div>
-          <h3 id="modal-event-title" style="margin: 0 0 4px 0; font-size: 18px; font-family: 'Plus Jakarta Sans', sans-serif;">Event Access Pass</h3>
-          <p id="modal-event-sub" style="margin: 0; font-size: 12px; color: var(--text-muted);"></p>
+          <div class="modal-eyebrow">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Instant Pass RSVP
+          </div>
+          <h3 id="modal-event-title" class="modal-title">Event Access Pass</h3>
+          <p id="modal-event-sub" class="modal-subtitle">Official Student Entry Registration</p>
         </div>
         <button id="event-reg-close" class="modal-close" aria-label="Close modal">&times;</button>
       </div>
@@ -113,7 +117,7 @@
         <!-- Injected by events.js -->
       </div>
     </div>
-  </dialog>
+  </div>
 
   <!-- CREATE EVENT MODAL (ADMIN / LEAD) -->
   <div id="create-event-modal" class="modal-overlay" style="display: none;">
