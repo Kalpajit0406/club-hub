@@ -1,7 +1,17 @@
 // js/api.js - Unified Client for ClubHub REST API Backend
 
 const API = {
-  baseUrl: "", // Same origin (localhost:8000)
+  baseUrl: (function() {
+    if (typeof window !== "undefined") {
+      const port = window.location.port;
+      const host = window.location.hostname;
+      // If browsing locally from static server (port 8000 or 5500), target FastAPI backend on port 8001
+      if ((host === "localhost" || host === "127.0.0.1") && (port === "8000" || port === "5500")) {
+        return "http://127.0.0.1:8001";
+      }
+    }
+    return "";
+  })(),
 
   getToken() {
     return localStorage.getItem("clubhub_token") || null;

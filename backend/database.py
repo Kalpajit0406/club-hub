@@ -17,7 +17,10 @@ load_dotenv(dotenv_path=env_path)
 DEFAULT_DB_FILE = project_root / "clubclash.db"
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
-    DATABASE_URL = f"sqlite:///{DEFAULT_DB_FILE.as_posix()}"
+    if os.getenv("VERCEL"):
+        DATABASE_URL = "sqlite:////tmp/clubclash.db"
+    else:
+        DATABASE_URL = f"sqlite:///{DEFAULT_DB_FILE.as_posix()}"
 
 # For SQLite, check_same_thread=False allows multiple threads in FastAPI requests
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}

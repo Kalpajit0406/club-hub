@@ -36,7 +36,7 @@ from backend.routers import (
 # Parse CORS Origins from environment
 raw_cors = os.getenv(
     "CORS_ORIGINS",
-    "http://localhost:8000,http://127.0.0.1:8000,http://localhost:5500,http://127.0.0.1:5500"
+    "http://localhost:8000,http://127.0.0.1:8000,http://localhost:5500,http://127.0.0.1:5500,http://localhost:8001,http://127.0.0.1:8001,https://club-hub-inky.vercel.app,https://club-hub-9c2de.web.app"
 )
 origins = [origin.strip() for origin in raw_cors.split(",") if origin.strip()]
 
@@ -46,7 +46,8 @@ async def lifespan(app: FastAPI):
     # Startup: Ensure database schema is created
     print("[STARTUP] Initializing ClubHub Database...")
     init_db()
-    seed_data()
+    if not os.getenv("TESTING"):
+        seed_data()
     print("[STARTUP] ClubHub Backend Ready.")
     yield
     print("[SHUTDOWN] ClubHub Backend Shutting Down.")

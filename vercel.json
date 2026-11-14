@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/(auth|clubs|events|students|applications|badges|dashboard|network|admin|health|docs|openapi.json)(.*)",
+      "destination": "/api/index.py"
+    }
+  ]
+}

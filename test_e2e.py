@@ -24,17 +24,21 @@ Tests:
 import os
 import sys
 from pathlib import Path
-from fastapi.testclient import TestClient
 
-# Ensure clubclash.db is removed before test for a clean slate
-db_file = Path("clubclash.db")
+# Configure isolated testing environment
+os.environ["TESTING"] = "1"
+os.environ["DATABASE_URL"] = "sqlite:///./test_e2e.db"
+
+# Ensure isolated test_e2e.db is removed before test for a clean slate
+db_file = Path("test_e2e.db")
 if db_file.exists():
     try:
         os.remove(db_file)
-        print("[TEST SETUP] Removed previous clubclash.db")
+        print("[TEST SETUP] Removed previous test_e2e.db")
     except Exception as e:
         print(f"[TEST SETUP] Notice: {e}")
 
+from fastapi.testclient import TestClient
 from backend.main import app
 from backend.database import init_db
 
