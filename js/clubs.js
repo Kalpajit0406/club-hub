@@ -1,4 +1,4 @@
-// js/clubs.js - Catalog, Search, Multi-Filter & Sorting Logic
+// js/clubs.js - Catalog, Search, Multi-Filter, Sorting & Micro-UI State Logic
 
 // Application state for the catalog page
 const catalogState = {
@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
   parseURLParameters();
   renderCategoryChips();
   initFilterControls();
+  updateLiveDirectoryStats();
   applyFiltersAndRender();
 });
 
@@ -21,7 +22,7 @@ function parseURLParameters() {
   
   if (params.has("search")) {
     catalogState.searchQuery = params.get("search").trim();
-    const searchInput = document.getElementById("catalog-search-input");
+    const searchInput = document.getElementById("club-search-input") || document.getElementById("catalog-search-input");
     if (searchInput) {
       searchInput.value = catalogState.searchQuery;
       toggleSearchClearBtn(true);
@@ -34,14 +35,30 @@ function parseURLParameters() {
 
   if (params.has("filter") && params.get("filter") === "open") {
     catalogState.status = "OPEN";
-    const statusSelect = document.getElementById("status-filter-select");
+    const statusSelect = document.getElementById("status-filter") || document.getElementById("status-filter-select");
     if (statusSelect) statusSelect.value = "OPEN";
   }
 }
 
+// Compute and display real-time catalog statistics
+function updateLiveDirectoryStats() {
+  const statsEl = document.getElementById("catalog-live-stats");
+  if (!statsEl || typeof CLUBS_DATA === "undefined") return;
+
+  const totalClubs = CLUBS_DATA.length;
+  const openRecruitment = CLUBS_DATA.filter(c => c.status === "OPEN").length;
+  const totalMembers = CLUBS_DATA.reduce((sum, c) => sum + (c.memberCount || 0), 0);
+
+  const shieldIcon = typeof Icons !== "undefined" ? Icons.render("shield-check", { width: 15, height: 15 }) : "";
+  statsEl.innerHTML = `
+    ${shieldIcon}
+    <span><strong>${totalClubs}</strong> Recognized Societies &bull; <strong>${openRecruitment}</strong> Recruiting &bull; <strong>${totalMembers.toLocaleString()}+</strong> Members</span>
+  `;
+}
+
 // Render Category Filter Chips
 function renderCategoryChips() {
-  const container = document.getElementById("category-chips-container");
+  const container = document.getElementById("category-chips-list") || document.getElementById("category-chips-container");
   if (!container || typeof CATEGORIES === "undefined") return;
 
   container.innerHTML = CATEGORIES.map(cat => {
@@ -70,11 +87,11 @@ function renderCategoryChips() {
 
 // Setup input listeners for search, status, and sorting
 function initFilterControls() {
-  const searchInput = document.getElementById("catalog-search-input");
+  const searchInput = document.getElementById("club-search-input") || document.getElementById("catalog-search-input");
   const clearBtn = document.getElementById("search-clear-btn") || document.getElementById("catalog-search-clear");
-  const statusSelect = document.getElementById("status-filter-select");
-  const sortSelect = document.getElementById("sort-select");
-  const resetBtn = document.getElementById("reset-filters-btn");
+  const statusSelect = document.getElementById("status-filter") || document.getElementById("status-filter-select");
+  const sortSelect = document.getElementById("sort-filter") || document.getElementById("sort-select");
+  const resetBtn = document.getElementById("reset-all-filters-btn") || document.getElementById("reset-filters-btn");
 
   if (searchInput) {
     let debounceTimer;
@@ -121,33 +138,38 @@ function initFilterControls() {
 function toggleSearchClearBtn(show) {
   const clearBtn = document.getElementById("search-clear-btn") || document.getElementById("catalog-search-clear");
   if (clearBtn) {
-    if (show) clearBtn.classList.add("visible");
-    else clearBtn.classList.remove("visible");
+    clearBtn.style.display = show ? "inline-flex" : "none";
   }
 }
 
 // Filter, Sort, and Render Clubs
 function applyFiltersAndRender() {
   const gridContainer = document.getElementById("clubs-grid") || document.getElementById("clubs-catalog-grid");
-  const countEl = document.getElementById("results-count-number") || document.querySelector("#results-count-text span");
+  const countEl = document.getElementById("results-count-number");
+  const activeBar = document.getElementById("active-filter-bar");
+  const activeLabel = document.getElementById("active-filter-label");
+
   if (!gridContainer || typeof CLUBS_DATA === "undefined") return;
 
   let results = [...CLUBS_DATA];
 
   // 1. Category Filter
-  if (catalogState.category && catalogState.category.toLowerCase() !== "all") {
+  const isCategoryFiltered = catalogState.category && catalogState.category.toLowerCase() !== "all";
+  if (isCategoryFiltered) {
     results = results.filter(club => 
       club.category.toLowerCase() === catalogState.category.toLowerCase()
     );
   }
 
   // 2. Recruitment Status Filter
-  if (catalogState.status !== "ALL") {
+  const isStatusFiltered = catalogState.status !== "ALL";
+  if (isStatusFiltered) {
     results = results.filter(club => club.status === catalogState.status);
   }
 
   // 3. Search Query Filter (Fuzzy matching on name, acronym, description, tags, domains)
-  if (catalogState.searchQuery) {
+  const isSearchActive = Boolean(catalogState.searchQuery);
+  if (isSearchActive) {
     const q = catalogState.searchQuery.toLowerCase();
     results = results.filter(club => {
       const matchName = club.name.toLowerCase().includes(q);
@@ -175,6 +197,21 @@ function applyFiltersAndRender() {
     });
   }
 
+  // Update active filter banner
+  if (activeBar && activeLabel) {
+    const hasActiveFilters = isCategoryFiltered || isStatusFiltered || isSearchActive;
+    if (hasActiveFilters) {
+      activeBar.style.display = "flex";
+      let filterDescriptions = [];
+      if (isCategoryFiltered) filterDescriptions.push(catalogState.category);
+      if (isStatusFiltered) filterDescriptions.push(catalogState.status === "OPEN" ? "Recruiting" : "Closed");
+      if (isSearchActive) filterDescriptions.push(`"${catalogState.searchQuery}"`);
+      activeLabel.textContent = filterDescriptions.join(" • ");
+    } else {
+      activeBar.style.display = "none";
+    }
+  }
+
   // Update counter
   if (countEl) {
     countEl.textContent = results.length;
@@ -182,23 +219,26 @@ function applyFiltersAndRender() {
 
   // Render cards or empty state
   if (results.length === 0) {
-    gridContainer.innerHTML = `
-      <div class="empty-state" style="grid-column: 1 / -1;">
-        <div class="empty-state-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
+    if (typeof UIStates !== "undefined") {
+      UIStates.renderNoResultsState(gridContainer, {
+        query: catalogState.searchQuery || catalogState.category,
+        onClear: "resetAllFilters()"
+      });
+    } else {
+      gridContainer.innerHTML = `
+        <div class="empty-state" style="grid-column: 1 / -1;">
+          <h3 class="empty-state-title">No clubs found</h3>
+          <p class="empty-state-desc">We couldn't find any clubs matching your current search and filters.</p>
+          <button type="button" class="btn btn-primary btn-sm" onclick="resetAllFilters()">Reset All Filters</button>
         </div>
-        <h3 class="empty-state-title">No clubs found</h3>
-        <p class="empty-state-desc">
-          We couldn't find any clubs matching your current search and filters. Try adjusting your search term or reset all filters.
-        </p>
-        <button type="button" class="btn btn-primary btn-sm" onclick="resetAllFilters()">Reset All Filters</button>
-      </div>
-    `;
+      `;
+    }
     return;
   }
+
+  const usersIcon = typeof Icons !== "undefined" ? Icons.render("users", { width: 14, height: 14 }) : "";
+  const bookmarkIcon = typeof Icons !== "undefined" ? Icons.render("bookmark", { width: 16, height: 16 }) : "";
+  const verifiedSvg = typeof getVerifiedBadgeSvg === "function" ? getVerifiedBadgeSvg() : "";
 
   gridContainer.innerHTML = results.map(club => {
     const isSaved = typeof Storage !== "undefined" && Storage.isBookmarked(club.id);
@@ -209,7 +249,7 @@ function applyFiltersAndRender() {
         <div class="club-card-banner">
           <img src="${club.banner}" alt="${escapeHTML(club.name)} banner" loading="lazy">
           <div class="club-card-status-badge">
-            ${getStatusBadge(club.status)}
+            ${typeof getStatusBadge === "function" ? getStatusBadge(club.status) : `<span class="badge">${club.status}</span>`}
           </div>
           <button 
             class="club-card-bookmark-btn ${isSaved ? 'saved' : ''}" 
@@ -217,9 +257,7 @@ function applyFiltersAndRender() {
             title="${isSaved ? 'Remove from saved' : 'Save club'}"
             aria-label="Bookmark club"
           >
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-            </svg>
+            ${bookmarkIcon}
           </button>
         </div>
         
@@ -230,12 +268,12 @@ function applyFiltersAndRender() {
               <h3 class="club-card-title">
                 <a href="club-details.html?id=${club.id}">${escapeHTML(club.name)}</a>
               </h3>
-              ${getVerifiedBadgeSvg()}
+              ${verifiedSvg}
             </div>
             <div class="club-card-meta">
-              ${getCategoryBadge(club.category)}
+              ${typeof getCategoryBadge === "function" ? getCategoryBadge(club.category) : `<span class="badge">${club.category}</span>`}
               <span class="club-card-stats">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                ${usersIcon}
                 ${club.memberCount} members
               </span>
             </div>
@@ -268,7 +306,9 @@ function applyFiltersAndRender() {
         const isNowSaved = Storage.toggleBookmark(clubId);
         btn.classList.toggle("saved", isNowSaved);
         btn.title = isNowSaved ? "Remove from saved" : "Save club";
-        showToast(isNowSaved ? "Club bookmarked successfully!" : "Club removed from bookmarks", "info");
+        if (typeof UIStates !== "undefined") {
+          UIStates.showToast(isNowSaved ? "Club bookmarked successfully!" : "Club removed from bookmarks", "info");
+        }
       }
     });
   });
@@ -281,17 +321,17 @@ function resetAllFilters() {
   catalogState.status = "ALL";
   catalogState.sortBy = "recommended";
 
-  const searchInput = document.getElementById("catalog-search-input");
+  const searchInput = document.getElementById("club-search-input") || document.getElementById("catalog-search-input");
   if (searchInput) searchInput.value = "";
   toggleSearchClearBtn(false);
 
-  const statusSelect = document.getElementById("status-filter-select");
+  const statusSelect = document.getElementById("status-filter") || document.getElementById("status-filter-select");
   if (statusSelect) statusSelect.value = "ALL";
 
-  const sortSelect = document.getElementById("sort-select");
+  const sortSelect = document.getElementById("sort-filter") || document.getElementById("sort-select");
   if (sortSelect) sortSelect.value = "recommended";
 
-  const container = document.getElementById("category-chips-container");
+  const container = document.getElementById("category-chips-list") || document.getElementById("category-chips-container");
   if (container) {
     container.querySelectorAll(".category-chip").forEach(chip => {
       if (chip.getAttribute("data-category") === "all") chip.classList.add("active");

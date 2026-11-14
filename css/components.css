@@ -25,7 +25,7 @@
 
 .btn:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(197, 161, 91, 0.45);
+  box-shadow: 0 0 0 3px rgba(47, 91, 231, 0.45);
 }
 
 .btn:disabled,
@@ -35,25 +35,24 @@
   pointer-events: none;
 }
 
-/* PRIMARY ACTION – MAROON: Login, Register, Explore Clubs, Apply Now, Join Club, Submit */
+/* PRIMARY ACTION – ELECTRIC COBALT: Explore, Apply, Register, Submit */
 .btn-primary,
-.btn-maroon {
-  background-color: #641E32;
+.btn-cobalt {
+  background-color: var(--primary);
   color: #FFFFFF !important;
-  border-color: #641E32;
-  box-shadow: 0 2px 4px rgba(100, 30, 50, 0.25);
+  border-color: var(--primary);
+  box-shadow: 0 2px 6px rgba(47, 91, 231, 0.28);
 }
 
 .btn-primary:hover,
-.btn-maroon:hover {
-  background-color: #3B1422;
-  border-color: #3B1422;
-  box-shadow: 0 4px 10px rgba(59, 20, 34, 0.35);
+.btn-cobalt:hover {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+  box-shadow: 0 4px 12px rgba(47, 91, 231, 0.35);
   transform: translateY(-1px);
 }
 
-.btn-primary:active,
-.btn-maroon:active {
+.btn-primary:active {
   transform: translateY(0);
 }
 
@@ -102,39 +101,51 @@
   transform: translateY(-1px);
 }
 
-/* CREATION ACTION – GOLD: Create Event, Add New Club, Publish Announcement, Featured */
-.btn-gold,
-.btn-creation {
-  background-color: #C5A15B;
-  color: #3B1422 !important;
-  border-color: #C5A15B;
-  font-weight: 700;
-  box-shadow: 0 2px 5px rgba(197, 161, 91, 0.3);
+/* TEAL ACTION */
+.btn-teal {
+  background-color: var(--teal);
+  color: #FFFFFF !important;
+  border-color: var(--teal);
+  box-shadow: 0 2px 5px rgba(15, 118, 110, 0.25);
 }
 
-.btn-gold:hover,
-.btn-creation:hover {
-  background-color: #AF8845;
-  border-color: #AF8845;
-  color: #3B1422 !important;
-  box-shadow: 0 4px 12px rgba(175, 136, 69, 0.4);
+.btn-teal:hover {
+  background-color: #0d625b;
+  border-color: #0d625b;
   transform: translateY(-1px);
 }
 
-/* SECONDARY ACTION: View Details, Edit Profile, Cancel, Back */
+/* WARM AMBER ACCENT */
+.btn-gold,
+.btn-amber {
+  background-color: var(--amber);
+  color: #0B1220 !important;
+  border-color: var(--amber);
+  font-weight: 700;
+  box-shadow: 0 2px 5px rgba(244, 181, 68, 0.3);
+}
+
+.btn-gold:hover,
+.btn-amber:hover {
+  background-color: #e2a433;
+  border-color: #e2a433;
+  transform: translateY(-1px);
+}
+
+/* SECONDARY / OUTLINE ACTION: View Details, Edit Profile, Cancel, Back */
 .btn-outline,
 .btn-secondary {
-  background-color: #FFFFFF;
-  color: #641E32 !important;
-  border: 1px solid #D6C5B5;
+  background-color: var(--bg-card);
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-strong);
   box-shadow: var(--shadow-xs);
 }
 
 .btn-outline:hover,
 .btn-secondary:hover {
-  border-color: #641E32;
+  border-color: var(--primary);
   background-color: var(--bg-surface);
-  color: #3B1422 !important;
+  color: var(--primary) !important;
   transform: translateY(-1px);
 }
 
@@ -839,4 +850,274 @@ dialog.modal::backdrop {
   background: var(--bg-card);
   border-color: var(--border);
   color: var(--text-main);
+}
+
+/* ============================================================
+   GLOBAL MICRO-UI STATES (Skeletons, Empty, No-Results, Errors, Toasts)
+   ============================================================ */
+
+/* 1. Loading Shimmer Skeletons */
+.skeleton-shimmer {
+  background: linear-gradient(90deg, var(--bg-surface) 25%, rgba(255, 255, 255, 0.4) 50%, var(--bg-surface) 75%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s infinite ease-in-out;
+}
+
+[data-theme="dark"] .skeleton-shimmer {
+  background: linear-gradient(90deg, #17223B 25%, rgba(255, 255, 255, 0.08) 50%, #17223B 75%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s infinite ease-in-out;
+}
+
+@keyframes skeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.skeleton-banner {
+  height: 160px;
+  width: 100%;
+}
+
+.skeleton-content {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.skeleton-line {
+  border-radius: var(--radius-xs);
+  height: 14px;
+}
+
+.skeleton-title {
+  height: 22px;
+  width: 75%;
+}
+
+.skeleton-text {
+  width: 100%;
+}
+
+.skeleton-text-short {
+  width: 55%;
+}
+
+.skeleton-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 0.75rem;
+}
+
+.skeleton-tag {
+  width: 70px;
+  height: 24px;
+  border-radius: var(--radius-full);
+}
+
+.skeleton-btn {
+  width: 90px;
+  height: 32px;
+  border-radius: var(--radius-btn);
+}
+
+/* 2. Genuine Empty State */
+.ch-empty-state {
+  text-align: center;
+  padding: 3.5rem 1.5rem;
+  background: var(--bg-card);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-card);
+  max-width: 560px;
+  margin: 2rem auto;
+}
+
+.empty-state-icon-wrap {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid var(--primary-border);
+}
+
+.empty-state-title {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
+}
+
+.empty-state-desc {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+/* 3. No Results State */
+.ch-no-results-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  max-width: 520px;
+  margin: 2rem auto;
+}
+
+.no-results-icon-wrap {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+}
+
+.ch-no-results-state h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.35rem;
+}
+
+.ch-no-results-state p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* 4. Error & Retry State */
+.ch-error-state {
+  text-align: center;
+  padding: 2.75rem 1.5rem;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  border-radius: var(--radius-card);
+  max-width: 520px;
+  margin: 2rem auto;
+}
+
+.error-state-icon-wrap {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background: rgba(185, 28, 28, 0.12);
+  color: var(--danger);
+}
+
+.ch-error-state h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--danger);
+  margin-bottom: 0.35rem;
+}
+
+.ch-error-state p {
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+/* 5. Modern Sliding Toast Notifications */
+.ch-toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+  max-width: 380px;
+  width: calc(100vw - 48px);
+}
+
+.ch-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #0B1220;
+  color: #FFFFFF;
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 0.9rem;
+  animation: toastEnter 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 180ms ease, opacity 180ms ease;
+}
+
+.ch-toast-leaving {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+@keyframes toastEnter {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.toast-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.ch-toast-success .toast-icon { color: #4ADE80; }
+.ch-toast-error .toast-icon { color: #F87171; }
+.ch-toast-warning .toast-icon { color: #FBBF24; }
+.ch-toast-info .toast-icon { color: #60A5FA; }
+
+.toast-body {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.25rem;
+  line-height: 1;
+  padding: 0 4px;
+  cursor: pointer;
+  transition: color 150ms ease;
+}
+
+.toast-close:hover {
+  color: #FFFFFF;
 }

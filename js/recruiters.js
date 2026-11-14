@@ -9,20 +9,33 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function initRecruitersPage() {
-  currentJobs = Storage.getJobs();
-  renderJobs();
+  currentJobs = typeof Storage !== "undefined" ? Storage.getJobs() : [];
   setupSearchInput();
   setupApplyModal();
+  renderJobs();
 }
 
 function setupSearchInput() {
   const input = document.getElementById("job-search-input");
+  const clearBtn = document.getElementById("job-search-clear");
   if (!input) return;
 
-  input.addEventListener("input", debounce((e) => {
-    searchQuery = e.target.value.toLowerCase().trim();
+  input.addEventListener("input", (e) => {
+    const val = e.target.value.trim();
+    if (clearBtn) clearBtn.style.display = val ? "inline-flex" : "none";
+    searchQuery = val.toLowerCase();
     renderJobs();
-  }, 200));
+  });
+
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      input.value = "";
+      searchQuery = "";
+      clearBtn.style.display = "none";
+      renderJobs();
+      input.focus();
+    });
+  }
 }
 
 function renderJobs() {
@@ -32,9 +45,9 @@ function renderJobs() {
 
   let filtered = currentJobs.filter(job => {
     if (!searchQuery) return true;
-    return job.company.toLowerCase().includes(searchQuery) ||
-      job.role.toLowerCase().includes(searchQuery) ||
-      job.location.toLowerCase().includes(searchQuery) ||
+    return (job.company || "").toLowerCase().includes(searchQuery) ||
+      (job.role || "").toLowerCase().includes(searchQuery) ||
+      (job.location || "").toLowerCase().includes(searchQuery) ||
       (job.skills && job.skills.some(s => s.toLowerCase().includes(searchQuery)));
   });
 
@@ -43,75 +56,78 @@ function renderJobs() {
   }
 
   if (filtered.length === 0) {
-    grid.innerHTML = `
-      <div style="grid-column: 1 / -1; text-align: center; padding: 64px 20px; background: var(--bg-card); border-radius: var(--radius-card); border: 1px dashed var(--border);">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--text-muted); margin-bottom: 12px;"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-        <h3 style="font-size: 18px; margin-bottom: 6px;">No internship openings match your search</h3>
-        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">Try searching by company name (Microsoft, Google, TCS) or role keywords.</p>
-        <button class="btn btn-outline btn-sm" onclick="resetJobSearch()">View All Openings</button>
-      </div>
-    `;
+    if (typeof UIStates !== "undefined") {
+      UIStates.renderNoResultsState(grid, {
+        query: searchQuery,
+        onClear: "resetJobSearch()"
+      });
+    } else {
+      grid.innerHTML = `
+        <div class="empty-state" style="grid-column: 1 / -1;">
+          <h3 class="empty-state-title">No internship openings match your search</h3>
+          <p class="empty-state-desc">Try searching by company name (Microsoft, Google, TCS) or role keywords.</p>
+          <button class="btn btn-outline btn-sm" onclick="resetJobSearch()">View All Openings</button>
+        </div>
+      `;
+    }
     return;
   }
 
-  const applications = Storage.getJobApplications();
-  const user = Storage.getCurrentUser();
+  const applications = typeof Storage !== "undefined" ? Storage.getJobApplications() : [];
+  const user = typeof Storage !== "undefined" ? Storage.getCurrentUser() : null;
   const userEmail = user ? user.email : "";
+
+  const mapPinIcon = typeof Icons !== "undefined" ? Icons.render("map-pin", { width: 14, height: 14 }) : "";
+  const clockIcon = typeof Icons !== "undefined" ? Icons.render("clock", { width: 14, height: 14 }) : "";
 
   grid.innerHTML = filtered.map(job => {
     const hasApplied = userEmail && applications.some(a => a.jobId === job.id && a.studentEmail === userEmail);
-    const skillsHtml = (job.skills || []).map(s => `<span class="job-skill-chip">${escapeHTML(s)}</span>`).join("");
+    const skillsHtml = (job.skills || []).map(s => `<span class="rec-skill-tag">${escapeHTML(s)}</span>`).join("");
 
     return `
-      <div class="job-card" data-job-id="${job.id}">
-        <div class="job-top-row">
-          <img src="${job.logo || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=120'}" alt="${escapeHTML(job.company)}" class="job-company-logo">
-          <div class="job-title-info">
-            <h3>${escapeHTML(job.role)}</h3>
-            <span class="job-company-name">${escapeHTML(job.company)}</span>
+      <article class="rec-card" data-job-id="${job.id}">
+        <div class="rec-card-top">
+          <div class="rec-company-wrap">
+            <img src="${job.logo || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=120'}" alt="${escapeHTML(job.company)}" class="rec-company-logo" loading="lazy">
+            <div>
+              <div class="rec-company-name">${escapeHTML(job.company)}</div>
+              <h3 class="rec-role-title">${escapeHTML(job.role)}</h3>
+            </div>
           </div>
+          <span class="rec-stipend-pill">${escapeHTML(job.stipend || 'Competitive')}</span>
         </div>
 
-        <div class="job-stipend-badge">
-          <span>💰</span>
-          <span>${escapeHTML(job.stipend || 'Competitive Stipend')}</span>
+        <div class="rec-meta-tags">
+          <span class="rec-meta-item">
+            ${mapPinIcon}
+            <span>${escapeHTML(job.location || 'Bengaluru')} &bull; ${escapeHTML(job.duration || '2 Months')}</span>
+          </span>
+          <span class="rec-meta-item">
+            ${clockIcon}
+            <span>Criteria: <strong>${escapeHTML(job.eligibility || 'All Batches')}</strong></span>
+          </span>
         </div>
 
-        <div class="job-details-meta">
-          <div class="job-meta-row">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <span>${escapeHTML(job.location)} &bull; ${escapeHTML(job.duration || '2-3 Months')}</span>
-          </div>
-          <div class="job-meta-row">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span>Criteria: <strong>${escapeHTML(job.eligibility || 'All Engineering Branches')}</strong></span>
-          </div>
-        </div>
-
-        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-          ${escapeHTML(job.description || '')}
+        <p class="rec-desc">
+          ${escapeHTML(job.description || 'Full-time summer internship opportunity with mentorship, industry stipend, and potential pre-placement interview consideration.')}
         </p>
 
-        <div class="job-skills-wrap">
+        <div class="rec-skills-wrap">
           ${skillsHtml}
         </div>
 
-        <div class="job-card-footer">
-          <div class="job-deadline">
-            Deadline: <strong>${formatDate(job.deadline)}</strong>
-          </div>
+        <div class="rec-card-footer">
+          <span class="rec-deadline">Deadline: ${job.deadline ? new Date(job.deadline).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }) : 'Rolling'}</span>
 
           ${hasApplied ? `
-            <button class="btn btn-outline btn-sm" disabled style="color: var(--success); border-color: var(--success);">
-              ✓ Applied
-            </button>
+            <span class="badge badge-teal">✓ Application Submitted</span>
           ` : `
             <button class="btn btn-primary btn-sm" onclick="openApplyModal('${job.id}')">
-              Apply Now
+              Apply via ClubHub
             </button>
           `}
         </div>
-      </div>
+      </article>
     `;
   }).join("");
 }
@@ -120,105 +136,128 @@ function resetJobSearch() {
   searchQuery = "";
   const input = document.getElementById("job-search-input");
   if (input) input.value = "";
+  const clearBtn = document.getElementById("job-search-clear");
+  if (clearBtn) clearBtn.style.display = "none";
   renderJobs();
 }
 
-// ---------------- APPLY MODAL ----------------
-function setupApplyModal() {
-  const modal = document.getElementById("job-apply-modal");
-  const form = document.getElementById("job-apply-form");
-  const closeBtn = document.getElementById("job-apply-close");
-
-  if (!modal || !form) return;
-
-  if (closeBtn) {
-    closeBtn.addEventListener("click", () => {
-      modal.style.display = "none";
-    });
-  }
-
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) modal.style.display = "none";
-  });
-
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    if (!activeJobId) return;
-
-    const studentName = document.getElementById("apply-name").value.trim();
-    const studentRoll = document.getElementById("apply-roll").value.trim().toUpperCase();
-    const studentEmail = document.getElementById("apply-email").value.trim();
-    const studentCgpa = document.getElementById("apply-cgpa").value.trim();
-    const githubUrl = document.getElementById("apply-github").value.trim();
-    const resumeUrl = document.getElementById("apply-resume").value.trim();
-
-    // Collect checked badges
-    const badgesIncluded = [];
-    document.querySelectorAll(".apply-badge-chk:checked").forEach(chk => {
-      badgesIncluded.push(chk.value);
-    });
-
-    const result = Storage.applyForJob(activeJobId, {
-      studentName,
-      studentRoll,
-      studentEmail,
-      studentCgpa,
-      githubUrl,
-      resumeUrl,
-      badgesIncluded
-    });
-
-    if (result.success) {
-      currentJobs = Storage.getJobs();
-      renderJobs();
-      modal.style.display = "none";
-      form.reset();
-      showToast("Application submitted successfully to company talent pool!", "success");
-    } else {
-      showToast(result.message, "error");
-    }
-  });
-}
-
 function openApplyModal(jobId) {
-  activeJobId = jobId;
-  const job = Storage.getJobById(jobId);
+  const job = currentJobs.find(j => j.id === jobId);
   if (!job) return;
 
+  activeJobId = jobId;
   const modal = document.getElementById("job-apply-modal");
-  const user = Storage.getCurrentUser();
-
-  document.getElementById("modal-job-title").textContent = job.role;
-  document.getElementById("modal-job-sub").textContent = `${job.company} • Stipend: ${job.stipend}`;
-
-  if (user) {
-    document.getElementById("apply-name").value = user.name || "";
-    document.getElementById("apply-roll").value = user.roll || "";
-    document.getElementById("apply-email").value = user.email || "";
-    document.getElementById("apply-cgpa").value = "8.74";
-  }
-
-  // Render user's verified badges
+  const title = document.getElementById("modal-job-title");
+  const sub = document.getElementById("modal-job-sub");
   const badgesBox = document.getElementById("apply-badges-container");
-  if (badgesBox && user) {
-    const badges = Storage.getVerifiedBadges(user.email);
-    if (badges.length > 0) {
-      badgesBox.innerHTML = `
-        <label class="form-label" style="margin-bottom: 6px;">Attach Verified Campus Credentials:</label>
-        <div style="display: flex; flex-direction: column; gap: 6px; background: var(--bg-surface); padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
-          ${badges.map(b => `
-            <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer;">
-              <input type="checkbox" class="apply-badge-chk" value="${escapeHTML(b.title)}" checked>
-              <span>🛡️ <strong>${escapeHTML(b.title)}</strong> (ID: <code>${escapeHTML(b.verificationHash)}</code>)</span>
-            </label>
-          `).join("")}
-        </div>
-      `;
-    } else {
-      badgesBox.innerHTML = "";
+
+  if (title) title.textContent = `Apply: ${job.role}`;
+  if (sub) sub.textContent = `${job.company} • ${job.location} • Stipend: ${job.stipend}`;
+
+  // Pre-fill user data
+  if (typeof Storage !== "undefined") {
+    const user = Storage.getCurrentUser();
+    if (user) {
+      const nameIn = document.getElementById("apply-name");
+      const rollIn = document.getElementById("apply-roll");
+      const emailIn = document.getElementById("apply-email");
+      const cgpaIn = document.getElementById("apply-cgpa");
+      if (nameIn && user.name) nameIn.value = user.name;
+      if (rollIn && user.rollNumber) rollIn.value = user.rollNumber;
+      if (emailIn && user.email) emailIn.value = user.email;
+      if (cgpaIn && user.cgpa) cgpaIn.value = user.cgpa;
+
+      // Render verified credentials if available
+      const badges = Storage.getVerifiedBadges(user.email);
+      if (badgesBox) {
+        if (badges && badges.length > 0) {
+          badgesBox.innerHTML = `
+            <div style="background: rgba(21, 128, 61, 0.06); border: 1px solid rgba(21, 128, 61, 0.25); border-radius: var(--radius-md); padding: 10px 12px; margin-bottom: 14px;">
+              <div style="font-size: 0.75rem; font-weight: 700; color: var(--color-success); margin-bottom: 4px;">
+                ✓ Verified Campus Credentials Attached
+              </div>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                ${badges.map(b => `<span class="badge badge-teal" style="font-size: 11px;">${escapeHTML(b.title)}</span>`).join("")}
+              </div>
+            </div>
+          `;
+        } else {
+          badgesBox.innerHTML = "";
+        }
+      }
     }
   }
 
-  modal.style.display = "flex";
+  if (modal) {
+    if (typeof modal.showModal === "function") modal.showModal();
+    else modal.style.display = "block";
+  }
 }
 
+function closeApplyModal() {
+  const modal = document.getElementById("job-apply-modal");
+  if (!modal) return;
+  if (typeof modal.close === "function") modal.close();
+  else modal.style.display = "none";
+}
+
+function setupApplyModal() {
+  const closeBtn = document.getElementById("job-apply-close");
+  const cancelBtn = document.getElementById("cancel-apply-btn");
+  const form = document.getElementById("job-apply-form");
+
+  if (closeBtn) closeBtn.onclick = closeApplyModal;
+  if (cancelBtn) cancelBtn.onclick = closeApplyModal;
+
+  if (form) {
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      if (!activeJobId) return;
+
+      const job = currentJobs.find(j => j.id === activeJobId);
+      if (!job) return;
+
+      const name = document.getElementById("apply-name").value.trim();
+      const roll = document.getElementById("apply-roll").value.trim();
+      const email = document.getElementById("apply-email").value.trim();
+      const cgpa = document.getElementById("apply-cgpa").value.trim();
+      const github = document.getElementById("apply-github").value.trim();
+      const resume = document.getElementById("apply-resume").value.trim();
+
+      if (!name || !roll || !email || !cgpa || !github || !resume) {
+        if (typeof UIStates !== "undefined") {
+          UIStates.showToast("Please fill in all candidate application fields.", "warning");
+        }
+        return;
+      }
+
+      const applications = typeof Storage !== "undefined" ? Storage.getJobApplications() : [];
+      const newApp = {
+        id: "app-" + Date.now(),
+        jobId: job.id,
+        jobRole: job.role,
+        company: job.company,
+        studentName: name,
+        studentRoll: roll,
+        studentEmail: email,
+        cgpa: cgpa,
+        github: github,
+        resume: resume,
+        status: "Under Review",
+        appliedDate: new Date().toISOString()
+      };
+
+      applications.unshift(newApp);
+      if (typeof Storage !== "undefined") {
+        Storage.saveJobApplications(applications);
+      }
+
+      closeApplyModal();
+      renderJobs();
+
+      if (typeof UIStates !== "undefined") {
+        UIStates.showToast("Application submitted successfully to " + job.company + "! Track under your Student Command Center.", "success");
+      }
+    };
+  }
+}

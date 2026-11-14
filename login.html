@@ -26,45 +26,6 @@
   <link rel="stylesheet" href="css/palette.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/auth.css">
-  <style>
-    .demo-roles-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-top: 14px;
-    }
-    .demo-role-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 10px 8px;
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: all var(--transition-fast);
-      text-align: center;
-    }
-    .demo-role-btn:hover {
-      background: var(--primary-light);
-      border-color: var(--primary);
-      transform: translateY(-2px);
-    }
-    .demo-role-icon {
-      font-size: 18px;
-      margin-bottom: 4px;
-    }
-    .demo-role-title {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-    .demo-role-sub {
-      font-size: 10px;
-      color: var(--text-muted);
-      margin-top: 2px;
-    }
-  </style>
 </head>
 <body class="auth-page">
 
@@ -72,17 +33,11 @@
     
     <!-- BRAND & HEADER -->
     <div class="auth-header">
-      <a href="index.html" class="auth-brand" aria-label="Return to ClubHub Home">
-        <div class="brand-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/>
-            <polyline points="9 12 11 14 15 10"/>
-          </svg>
-        </div>
-        <div>Club<span>Hub</span></div>
+      <a href="index.html" class="nav-brand auth-brand" aria-label="Return to ClubHub Home">
+        <span class="brand-name">Club<span>Hub</span></span>
       </a>
       <h1 class="auth-title">Welcome to ClubHub</h1>
-      <p class="auth-subtitle">The all-in-one smart campus platform for university clubs, events, student marketplace, and internships.</p>
+      <p class="auth-subtitle">The all-in-one university campus operating system for societies, hackathons, marketplace, and placements.</p>
     </div>
 
     <!-- AUTH CARD -->
@@ -90,32 +45,37 @@
       <div id="auth-alert" class="auth-alert" role="alert"></div>
 
       <!-- 1-CLICK INSTANT DEMO LOGINS -->
-      <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
-        <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary); display: block; margin-bottom: 4px;">
-          ⚡ 1-Click Instant Demo Login:
+      <div class="demo-login-box">
+        <label class="demo-login-label">
+          ⚡ 1-Click Instant Demo Access:
         </label>
         <div class="demo-roles-grid">
           <button type="button" class="demo-role-btn" data-demo-role="student">
             <span class="demo-role-icon">🎓</span>
             <span class="demo-role-title">Student</span>
-            <span class="demo-role-sub">Aditya Verma</span>
+            <span class="demo-role-sub">Aditya</span>
           </button>
           <button type="button" class="demo-role-btn" data-demo-role="admin">
             <span class="demo-role-icon">⚡</span>
-            <span class="demo-role-title">Club Lead</span>
-            <span class="demo-role-sub">GDSC Tech</span>
+            <span class="demo-role-title">Lead</span>
+            <span class="demo-role-sub">GDSC</span>
           </button>
           <button type="button" class="demo-role-btn" data-demo-role="recruiter">
             <span class="demo-role-icon">💼</span>
             <span class="demo-role-title">Recruiter</span>
-            <span class="demo-role-sub">Microsoft Talent</span>
+            <span class="demo-role-sub">Microsoft</span>
+          </button>
+          <button type="button" class="demo-role-btn" data-demo-role="secretariat">
+            <span class="demo-role-icon">🏛️</span>
+            <span class="demo-role-title">Admin</span>
+            <span class="demo-role-sub">Office</span>
           </button>
         </div>
       </div>
 
       <form id="login-form">
-        <div class="form-group">
-          <label for="login-email" class="form-label">Email Address <span class="required">*</span></label>
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="login-email" class="form-label">College Email Address <span class="required">*</span></label>
           <input 
             type="email" 
             id="login-email" 
@@ -126,7 +86,7 @@
           >
         </div>
 
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom: 16px;">
           <label for="login-password" class="form-label">Account Password <span class="required">*</span></label>
           <div class="password-input-wrapper">
             <input 
@@ -148,10 +108,10 @@
             <input type="checkbox" id="remember-me" checked>
             <span>Remember session</span>
           </label>
-          <a href="#" class="auth-link" onclick="if(typeof showToast==='function') showToast('Password reset dispatched to your email.', 'info')">Forgot password?</a>
+          <a href="#" class="auth-link" onclick="if(typeof UIStates!=='undefined') UIStates.showToast('Password reset link sent to registered email.', 'info')">Forgot password?</a>
         </div>
 
-        <button type="submit" class="btn btn-primary auth-submit-btn" style="width: 100%;">
+        <button type="submit" class="btn btn-primary btn-block btn-lg">
           Sign In to ClubHub
         </button>
       </form>
@@ -159,12 +119,15 @@
 
     <!-- FOOTER LINK -->
     <div class="auth-footer">
-      New to campus? <a href="register.html" class="auth-link">Create your ClubHub Account</a> &bull; <a href="index.html" class="auth-link">Back to Home</a>
+      New to campus? <a href="register.html" class="auth-link">Create Student Account</a> &bull; <a href="index.html" class="auth-link">Return to Home</a>
     </div>
 
   </div>
 
   <!-- Scripts -->
+  <script src="js/icons.js"></script>
+  <script src="js/states.js"></script>
+  <script src="js/brand.js"></script>
   <script src="js/data.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/palette.js"></script>

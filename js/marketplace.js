@@ -10,13 +10,13 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function initMarketplacePage() {
-  currentMarketplace = Storage.getMarketplaceItems();
-  renderMarketplace();
+  currentMarketplace = typeof Storage !== "undefined" ? Storage.getMarketplaceItems() : [];
   setupFilterChips();
   setupSearchInput();
   setupSortSelect();
   setupListItemModal();
   setupContactModal();
+  renderMarketplace();
 }
 
 function setupFilterChips() {
@@ -33,12 +33,25 @@ function setupFilterChips() {
 
 function setupSearchInput() {
   const input = document.getElementById("mkt-search-input");
+  const clearBtn = document.getElementById("mkt-search-clear");
   if (!input) return;
 
-  input.addEventListener("input", debounce((e) => {
-    searchQuery = e.target.value.toLowerCase().trim();
+  input.addEventListener("input", (e) => {
+    const val = e.target.value.trim();
+    if (clearBtn) clearBtn.style.display = val ? "inline-flex" : "none";
+    searchQuery = val.toLowerCase();
     renderMarketplace();
-  }, 200));
+  });
+
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      input.value = "";
+      searchQuery = "";
+      clearBtn.style.display = "none";
+      renderMarketplace();
+      input.focus();
+    });
+  }
 }
 
 function setupSortSelect() {
@@ -57,11 +70,12 @@ function renderMarketplace() {
   if (!grid) return;
 
   let filtered = currentMarketplace.filter(item => {
-    const matchesCat = selectedCategory === "all" || item.category.toLowerCase() === selectedCategory.toLowerCase();
+    const matchesCat = selectedCategory === "all" || (item.category || "").toLowerCase() === selectedCategory.toLowerCase();
     const matchesSearch = !searchQuery ||
-      item.title.toLowerCase().includes(searchQuery) ||
+      (item.title || "").toLowerCase().includes(searchQuery) ||
       (item.description && item.description.toLowerCase().includes(searchQuery)) ||
-      (item.sellerName && item.sellerName.toLowerCase().includes(searchQuery));
+      (item.sellerName && item.sellerName.toLowerCase().includes(searchQuery)) ||
+      (item.location && item.location.toLowerCase().includes(searchQuery));
     return matchesCat && matchesSearch;
   });
 
@@ -80,16 +94,26 @@ function renderMarketplace() {
   }
 
   if (filtered.length === 0) {
-    grid.innerHTML = `
-      <div style="grid-column: 1 / -1; text-align: center; padding: 64px 20px; background: var(--bg-card); border-radius: var(--radius-card); border: 1px dashed var(--border);">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--text-muted); margin-bottom: 12px;"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-        <h3 style="font-size: 18px; margin-bottom: 6px;">No campus items match your criteria</h3>
-        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">Try adjusting your search terms or selecting another category.</p>
-        <button class="btn btn-outline btn-sm" onclick="resetFilters()">Reset Filters</button>
-      </div>
-    `;
+    if (typeof UIStates !== "undefined") {
+      UIStates.renderNoResultsState(grid, {
+        query: searchQuery || selectedCategory,
+        onClear: "resetFilters()"
+      });
+    } else {
+      grid.innerHTML = `
+        <div class="empty-state" style="grid-column: 1 / -1;">
+          <h3 class="empty-state-title">No items match your criteria</h3>
+          <p class="empty-state-desc">Try adjusting your search terms or selecting another category.</p>
+          <button class="btn btn-outline btn-sm" onclick="resetFilters()">Reset Filters</button>
+        </div>
+      `;
+    }
     return;
   }
+
+  const mapPinIcon = typeof Icons !== "undefined" ? Icons.render("map-pin", { width: 12, height: 12 }) : "";
+  const userIcon = typeof Icons !== "undefined" ? Icons.render("user", { width: 13, height: 13 }) : "";
+  const verifiedSvg = typeof getVerifiedBadgeSvg === "function" ? getVerifiedBadgeSvg() : "";
 
   grid.innerHTML = filtered.map(item => {
     let discountPercent = 0;
@@ -97,36 +121,45 @@ function renderMarketplace() {
       discountPercent = Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100);
     }
 
+    const itemImage = item.image || "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500";
+
     return `
-      <div class="mkt-card" data-item-id="${item.id}">
+      <article class="mkt-card" data-item-id="${item.id}">
         <div class="mkt-img-wrap">
-          <img src="${item.image || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500'}" alt="${escapeHTML(item.title)}" class="mkt-img" loading="lazy">
-          <span class="mkt-condition-badge">${escapeHTML(item.condition || 'Good')}</span>
-          <span class="mkt-cat-badge">${escapeHTML(item.category)}</span>
+          <img src="${itemImage}" alt="${escapeHTML(item.title)}" class="mkt-img" loading="lazy">
+          <span class="mkt-condition-badge">${escapeHTML(item.condition || 'Pre-owned')}</span>
+          ${discountPercent > 0 ? `<span class="mkt-discount-badge">${discountPercent}% OFF</span>` : ''}
         </div>
 
         <div class="mkt-card-body">
           <div class="mkt-price-row">
-            <span class="mkt-price">₹${item.price}</span>
-            ${item.originalPrice ? `<span class="mkt-original-price">₹${item.originalPrice}</span>` : ''}
-            ${discountPercent > 0 ? `<span class="mkt-discount-badge">${discountPercent}% OFF</span>` : ''}
+            <span class="mkt-current-price">₹${item.price.toLocaleString('en-IN')}</span>
+            ${item.originalPrice ? `<span class="mkt-orig-price">₹${item.originalPrice.toLocaleString('en-IN')}</span>` : ''}
           </div>
 
-          <h3 class="mkt-title">${escapeHTML(item.title)}</h3>
-          <p class="mkt-desc">${escapeHTML(item.description || '')}</p>
+          <h3 class="mkt-item-title">${escapeHTML(item.title)}</h3>
+          <p class="mkt-item-desc">${escapeHTML(item.description || 'No description provided.')}</p>
 
-          <div class="mkt-seller-meta">
-            <div class="mkt-seller-info">
-              <span class="mkt-seller-name">${escapeHTML(item.sellerName || 'Verified Student')}</span>
-              <span class="mkt-seller-loc">${escapeHTML(item.location || 'Campus Canteen')}</span>
+          <div class="mkt-seller-info">
+            <div class="mkt-seller-user">
+              ${userIcon}
+              <span>${escapeHTML(item.sellerName || 'Verified Student')}</span>
+              ${verifiedSvg}
             </div>
+            <div class="mkt-pickup-loc">
+              ${mapPinIcon}
+              <span>${escapeHTML(item.location || 'Campus')}</span>
+            </div>
+          </div>
 
-            <button class="btn btn-outline btn-sm" onclick="openContactModal('${item.id}')">
-              Contact
+          <div class="mkt-card-footer">
+            <span class="badge badge-outline">${escapeHTML(item.category || 'General')}</span>
+            <button class="btn btn-primary btn-sm" onclick="openContactModal('${item.id}')">
+              Contact Seller
             </button>
           </div>
         </div>
-      </div>
+      </article>
     `;
   }).join("");
 }
@@ -134,30 +167,23 @@ function renderMarketplace() {
 function resetFilters() {
   selectedCategory = "all";
   searchQuery = "";
+  currentSort = "newest";
+
   const input = document.getElementById("mkt-search-input");
   if (input) input.value = "";
-  document.querySelectorAll(".mkt-chip").forEach(c => {
-    if (c.getAttribute("data-category") === "all") c.classList.add("active");
+  const clearBtn = document.getElementById("mkt-search-clear");
+  if (clearBtn) clearBtn.style.display = "none";
+
+  const select = document.getElementById("mkt-sort-select");
+  if (select) select.value = "newest";
+
+  const chips = document.querySelectorAll(".mkt-chip");
+  chips.forEach(c => {
+    if ((c.getAttribute("data-category") || "all") === "all") c.classList.add("active");
     else c.classList.remove("active");
   });
+
   renderMarketplace();
-}
-
-// ---------------- CONTACT SELLER MODAL ----------------
-function setupContactModal() {
-  const modal = document.getElementById("contact-seller-modal");
-  const closeBtn = document.getElementById("contact-seller-close");
-  if (!modal) return;
-
-  if (closeBtn) {
-    closeBtn.addEventListener("click", () => {
-      modal.style.display = "none";
-    });
-  }
-
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) modal.style.display = "none";
-  });
 }
 
 function openContactModal(itemId) {
@@ -166,128 +192,167 @@ function openContactModal(itemId) {
 
   const modal = document.getElementById("contact-seller-modal");
   const body = document.getElementById("contact-seller-body");
+  if (!modal || !body) return;
 
-  const cleanPhone = (item.sellerPhone || "").replace(/[^0-9]/g, "");
-  const waLink = cleanPhone ? `https://wa.me/${cleanPhone}?text=Hi%20${encodeURIComponent(item.sellerName)},%20I%20am%20interested%20in%20buying%20your%20'${encodeURIComponent(item.title)}'%20listed%20on%20ClubHub.` : "#";
+  const cleanPhone = (item.sellerPhone || "").replace(/\D/g, "");
+  const waUrl = cleanPhone 
+    ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Hi ${item.sellerName}, I am contacting you regarding your ClubHub listing: "${item.title}" for ₹${item.price}. Is this item still available?`)}`
+    : "#";
 
   body.innerHTML = `
-    <div style="display: flex; gap: 16px; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--border); margin-bottom: 16px;">
-      <img src="${item.image || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=100'}" alt="${escapeHTML(item.title)}" style="width: 64px; height: 64px; border-radius: var(--radius-sm); object-fit: cover;">
-      <div>
-        <h4 style="margin: 0 0 4px 0; font-size: 15px; color: var(--text-main); font-family: 'Plus Jakarta Sans', sans-serif;">${escapeHTML(item.title)}</h4>
-        <div style="font-size: 16px; font-weight: 800; color: var(--primary);">₹${item.price}</div>
+    <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 12px;">
+      Inquiring about: <strong style="color: var(--text-primary);">${escapeHTML(item.title)}</strong> (₹${item.price})
+    </div>
+
+    <div class="seller-dialog-card">
+      <div class="seller-detail-row">
+        <strong>Seller Name:</strong>
+        <span>${escapeHTML(item.sellerName)} (Verified Student)</span>
+      </div>
+      <div class="seller-detail-row">
+        <strong>Department:</strong>
+        <span>${escapeHTML(item.sellerBranch || 'B.Tech Student')}</span>
+      </div>
+      <div class="seller-detail-row">
+        <strong>Campus Meetup:</strong>
+        <span>${escapeHTML(item.location || 'Campus Central Library')}</span>
+      </div>
+      <div class="seller-detail-row">
+        <strong>College Email:</strong>
+        <a href="mailto:${escapeHTML(item.sellerEmail)}" style="color: var(--primary-color);">${escapeHTML(item.sellerEmail)}</a>
+      </div>
+      <div class="seller-detail-row">
+        <strong>Phone / WhatsApp:</strong>
+        <span>${escapeHTML(item.sellerPhone || 'Contact via email')}</span>
       </div>
     </div>
 
-    <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span style="color: var(--text-muted);">Seller:</span>
-        <span style="font-weight: 600; color: var(--text-main);">${escapeHTML(item.sellerName)} (${escapeHTML(item.sellerBranch || 'TINT Student')})</span>
-      </div>
-
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span style="color: var(--text-muted);">Campus Pickup:</span>
-        <span style="font-weight: 600; color: var(--text-main);">${escapeHTML(item.location || 'College Library / Canteen')}</span>
-      </div>
-
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span style="color: var(--text-muted);">Phone / WhatsApp:</span>
-        <span style="font-weight: 600; font-family: monospace;">${escapeHTML(item.sellerPhone || '+91 98765 00000')}</span>
-      </div>
-
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span style="color: var(--text-muted);">College Email:</span>
-        <span style="font-weight: 600;">${escapeHTML(item.sellerEmail || 'student@tint.edu.in')}</span>
-      </div>
+    <div class="callout callout-info" style="margin-bottom: 16px;">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <div><strong>Safety Tip:</strong> Meet in public campus spots like the cafeteria, central library, or departmental lobbies. Inspect the item thoroughly before making payment.</div>
     </div>
 
-    <div style="display: flex; gap: 10px; margin-top: 24px;">
+    <div class="seller-action-btn-group">
       ${cleanPhone ? `
-        <a href="${waLink}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" style="flex: 1; text-align: center; background: #25D366; border-color: #25D366; color: #FFFFFF;">
-          💬 Chat on WhatsApp
+        <a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp" style="flex: 1; text-align: center; text-decoration: none;">
+          Chat on WhatsApp &rarr;
         </a>
       ` : ''}
-      <a href="mailto:${item.sellerEmail}?subject=ClubHub Inquiry: ${encodeURIComponent(item.title)}" class="btn btn-outline btn-sm" style="flex: 1; text-align: center;">
-        ✉️ Email Seller
+      <a href="mailto:${escapeHTML(item.sellerEmail)}" class="btn btn-outline" style="flex: 1; text-align: center; text-decoration: none;">
+        Send Email
       </a>
     </div>
   `;
 
-  modal.style.display = "flex";
+  if (typeof modal.showModal === "function") modal.showModal();
+  else modal.style.display = "block";
 }
 
-// ---------------- LIST ITEM MODAL ----------------
+function setupContactModal() {
+  const modal = document.getElementById("contact-seller-modal");
+  const closeBtn = document.getElementById("contact-seller-close");
+  if (closeBtn && modal) {
+    closeBtn.onclick = () => {
+      if (typeof modal.close === "function") modal.close();
+      else modal.style.display = "none";
+    };
+  }
+}
+
 function setupListItemModal() {
-  const openBtn = document.getElementById("list-item-trigger");
+  const triggerBtn = document.getElementById("list-item-trigger");
   const modal = document.getElementById("list-item-modal");
-  const form = document.getElementById("list-item-form");
   const closeBtn = document.getElementById("list-item-close");
+  const cancelBtn = document.getElementById("cancel-list-btn");
+  const form = document.getElementById("list-item-form");
 
-  if (!openBtn || !modal || !form) return;
+  if (triggerBtn && modal) {
+    triggerBtn.onclick = () => {
+      // Pre-fill seller profile if logged in
+      if (typeof Storage !== "undefined") {
+        const user = Storage.getCurrentUser();
+        if (user) {
+          const nameInput = document.getElementById("seller-name");
+          const branchInput = document.getElementById("seller-branch");
+          const emailInput = document.getElementById("seller-email");
+          if (nameInput && user.name) nameInput.value = user.name;
+          if (branchInput && user.department) branchInput.value = `${user.department} ${user.year || 2}nd Year`;
+          if (emailInput && user.email) emailInput.value = user.email;
+        }
+      }
 
-  openBtn.addEventListener("click", () => {
-    const user = Storage.getCurrentUser();
-    if (user) {
-      document.getElementById("seller-name").value = user.name || "";
-      document.getElementById("seller-email").value = user.email || "";
-      document.getElementById("seller-branch").value = `${user.branch || 'Engineering'} (${user.year || '2nd Year'})`;
-    }
-    modal.style.display = "flex";
-  });
-
-  if (closeBtn) {
-    closeBtn.addEventListener("click", () => {
-      modal.style.display = "none";
-    });
+      if (typeof modal.showModal === "function") modal.showModal();
+      else modal.style.display = "block";
+    };
   }
 
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) modal.style.display = "none";
-  });
+  const closeList = () => {
+    if (!modal) return;
+    if (typeof modal.close === "function") modal.close();
+    else modal.style.display = "none";
+  };
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  if (closeBtn) closeBtn.onclick = closeList;
+  if (cancelBtn) cancelBtn.onclick = closeList;
 
-    const title = document.getElementById("item-title").value.trim();
-    const category = document.getElementById("item-category").value;
-    const condition = document.getElementById("item-condition").value;
-    const price = parseInt(document.getElementById("item-price").value) || 0;
-    const originalPrice = parseInt(document.getElementById("item-orig-price").value) || null;
-    const description = document.getElementById("item-desc").value.trim();
-    const location = document.getElementById("item-loc").value.trim();
-    const sellerName = document.getElementById("seller-name").value.trim();
-    const sellerPhone = document.getElementById("seller-phone").value.trim();
-    const sellerEmail = document.getElementById("seller-email").value.trim();
-    const sellerBranch = document.getElementById("seller-branch").value.trim();
+  if (form) {
+    form.onsubmit = (e) => {
+      e.preventDefault();
 
-    // Default image based on category
-    let image = "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500";
-    if (category === "Electronics") {
-      image = "https://images.unsplash.com/photo-1594980596870-8aa52a78d8cd?w=500";
-    } else if (category === "Equipment") {
-      image = "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=500";
-    }
+      const title = document.getElementById("item-title").value.trim();
+      const category = document.getElementById("item-category").value;
+      const condition = document.getElementById("item-condition").value;
+      const price = parseFloat(document.getElementById("item-price").value) || 0;
+      const origPrice = parseFloat(document.getElementById("item-orig-price").value) || null;
+      const location = document.getElementById("item-loc").value.trim();
+      const description = document.getElementById("item-desc").value.trim();
+      const sellerName = document.getElementById("seller-name").value.trim();
+      const sellerBranch = document.getElementById("seller-branch").value.trim();
+      const sellerPhone = document.getElementById("seller-phone").value.trim();
+      const sellerEmail = document.getElementById("seller-email").value.trim();
 
-    Storage.addMarketplaceItem({
-      title,
-      category,
-      condition,
-      price,
-      originalPrice,
-      description,
-      location,
-      sellerName,
-      sellerPhone,
-      sellerEmail,
-      sellerBranch,
-      image
-    });
+      if (!title || !price || !location || !sellerName || !sellerPhone || !sellerEmail) {
+        if (typeof UIStates !== "undefined") {
+          UIStates.showToast("Please fill in all required listing fields.", "warning");
+        }
+        return;
+      }
 
-    currentMarketplace = Storage.getMarketplaceItems();
-    renderMarketplace();
-    modal.style.display = "none";
-    form.reset();
-    showToast("Your item has been listed on the Campus Marketplace!", "success");
-  });
+      const defaultImages = {
+        Books: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500",
+        Equipment: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=500",
+        Electronics: "https://images.unsplash.com/photo-1588508065123-287b28e013da?w=500"
+      };
+
+      const newItem = {
+        id: "item-" + Date.now(),
+        title,
+        category,
+        condition,
+        price,
+        originalPrice: origPrice,
+        location,
+        description,
+        sellerName,
+        sellerBranch,
+        sellerPhone,
+        sellerEmail,
+        image: defaultImages[category] || defaultImages.Books,
+        postedDate: new Date().toISOString()
+      };
+
+      currentMarketplace.unshift(newItem);
+      if (typeof Storage !== "undefined") {
+        Storage.saveMarketplaceItems(currentMarketplace);
+      }
+
+      closeList();
+      form.reset();
+      renderMarketplace();
+
+      if (typeof UIStates !== "undefined") {
+        UIStates.showToast("Item listed successfully on Campus Marketplace!", "success");
+      }
+    };
+  }
 }
-

@@ -15,6 +15,12 @@ document.addEventListener("DOMContentLoaded", () => {
 function initAdminData() {
   if (typeof CAMPUS_MEMBERS !== "undefined") {
     adminMembers = [...CAMPUS_MEMBERS];
+  } else {
+    adminMembers = [
+      { name: "Aditya Verma", email: "aditya.v@tint.edu.in", roll: "23/CS/104", clubName: "Google Developer Student Club", domain: "Core Technical", role: "President", joined: "2024-08-15" },
+      { name: "Pooja Hegde", email: "pooja.h@tint.edu.in", roll: "23/IT/042", clubName: "Autonomous Robotics Society", domain: "Embedded Hardware", role: "Vice President", joined: "2024-08-20" },
+      { name: "Rohit Sen", email: "rohit.s@tint.edu.in", roll: "22/ECE/018", clubName: "E-Cell TINT", domain: "Startup Incubation", role: "Convenor", joined: "2023-09-01" }
+    ];
   }
 }
 
@@ -41,10 +47,10 @@ function initAdminFilters() {
   const statusFilter = document.getElementById("admin-app-status-filter");
 
   if (searchInput) {
-    searchInput.addEventListener("input", debounce(renderAdminApplications, 200));
+    searchInput.addEventListener("input", () => renderAdminApplications());
   }
   if (statusFilter) {
-    statusFilter.addEventListener("change", renderAdminApplications);
+    statusFilter.addEventListener("change", () => renderAdminApplications());
   }
 }
 
@@ -56,20 +62,25 @@ function refreshAdminDashboard() {
 }
 
 function updateAdminMetrics() {
-  const applications = Storage.getApplications();
-  const events = Storage.getEvents();
+  const applications = typeof Storage !== "undefined" ? Storage.getApplications() : [];
+  const events = typeof Storage !== "undefined" ? Storage.getEvents() : [];
 
   const totalAppsEl = document.getElementById("admin-metric-apps");
   const totalMembersEl = document.getElementById("admin-metric-members");
   const totalEventsEl = document.getElementById("admin-metric-events");
   const acceptanceRateEl = document.getElementById("admin-metric-rate");
 
-  if (totalAppsEl) totalAppsEl.textContent = applications.length;
+  const pendingCount = applications.filter(a => (a.status || "").toUpperCase() === "PENDING").length;
+
+  if (totalAppsEl) totalAppsEl.textContent = pendingCount;
   if (totalMembersEl) totalMembersEl.textContent = adminMembers.length;
   if (totalEventsEl) totalEventsEl.textContent = events.length;
 
   if (acceptanceRateEl) {
-    const accepted = applications.filter(a => a.status === "ACCEPTED" || a.status === "APPROVED").length;
+    const accepted = applications.filter(a => {
+      const s = (a.status || "").toUpperCase();
+      return s === "ACCEPTED" || s === "APPROVED";
+    }).length;
     const rate = applications.length > 0 ? Math.round((accepted / applications.length) * 100) : 0;
     acceptanceRateEl.textContent = `${rate}%`;
   }
@@ -87,7 +98,7 @@ function renderAdminApplications() {
   const tbody = document.getElementById("admin-apps-tbody");
   if (!tbody) return;
 
-  const applications = Storage.getApplications();
+  const applications = typeof Storage !== "undefined" ? Storage.getApplications() : [];
   const searchInput = document.getElementById("admin-app-search");
   const statusFilter = document.getElementById("admin-app-status-filter");
 
@@ -95,60 +106,70 @@ function renderAdminApplications() {
   const filterStatus = statusFilter ? statusFilter.value : "ALL";
 
   let filtered = applications.filter(app => {
-    const matchQuery = !query || 
-      (app.studentName && app.studentName.toLowerCase().includes(query)) ||
-      (app.studentRoll && app.studentRoll.toLowerCase().includes(query)) ||
-      (app.clubName && app.clubName.toLowerCase().includes(query)) ||
-      (app.domain && app.domain.toLowerCase().includes(query));
+    const sName = app.studentName || "";
+    const sRoll = app.rollNumber || app.studentRoll || "";
+    const cName = app.clubName || "";
+    const domain = app.domain || "";
 
-    const matchStatus = filterStatus === "ALL" || app.status === filterStatus;
+    const matchQuery = !query || 
+      sName.toLowerCase().includes(query) ||
+      sRoll.toLowerCase().includes(query) ||
+      cName.toLowerCase().includes(query) ||
+      domain.toLowerCase().includes(query);
+
+    const appStatus = (app.status || "PENDING").toUpperCase();
+    const matchStatus = filterStatus === "ALL" || appStatus === filterStatus;
     return matchQuery && matchStatus;
   });
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 32px;">No matching applications found.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 32px;">No matching applications found in candidate registry.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = filtered.map(app => {
     let statusBadge = "badge-warning";
     let statusText = "Pending Review";
+    const statusUpper = (app.status || "PENDING").toUpperCase();
 
-    if (app.status === "APPROVED" || app.status === "ACCEPTED") {
+    if (statusUpper === "APPROVED" || statusUpper === "ACCEPTED") {
       statusBadge = "badge-success";
       statusText = "Approved";
-    } else if (app.status === "SHORTLISTED") {
+    } else if (statusUpper === "SHORTLISTED") {
       statusBadge = "badge-primary";
       statusText = "Shortlisted";
-    } else if (app.status === "REJECTED") {
+    } else if (statusUpper === "REJECTED") {
       statusBadge = "badge-danger";
       statusText = "Rejected";
     }
 
+    const appliedDate = app.appliedAt || app.appliedDate || new Date().toISOString();
+    const dateFormatted = new Date(appliedDate).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" });
+
     return `
       <tr>
         <td>
-          <div style="font-weight: 700; color: var(--text-main);">${escapeHTML(app.studentName)}</div>
-          <div style="font-size: 11px; color: var(--text-muted);">${escapeHTML(app.studentRoll)} &bull; ${escapeHTML(app.email)}</div>
+          <div style="font-weight: 700; color: var(--text-primary);">${escapeHTML(app.studentName)}</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHTML(app.rollNumber || app.studentRoll || '23/CS/104')} &bull; ${escapeHTML(app.email || 'student@tint.edu.in')}</div>
         </td>
         <td>
           <div style="font-weight: 600;">${escapeHTML(app.clubName)}</div>
-          <div style="font-size: 11px; color: var(--primary); font-weight: 600;">Wing: ${escapeHTML(app.domain)}</div>
+          <div style="font-size: 0.75rem; color: var(--primary-color); font-weight: 600;">Wing: ${escapeHTML(app.domain || 'General')}</div>
         </td>
         <td>
-          <div style="font-size: 12px;">${escapeHTML(app.branch)}</div>
-          <div style="font-size: 11px; color: var(--text-muted);">${escapeHTML(app.year)}</div>
+          <div style="font-size: 0.8125rem;">${escapeHTML(app.department || app.branch || 'CSE')}</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">Year ${escapeHTML(app.year || '2')}</div>
         </td>
         <td>
           <span class="badge ${statusBadge}">${statusText}</span>
         </td>
-        <td>${formatDate(app.appliedDate)}</td>
+        <td>${dateFormatted}</td>
         <td>
-          <div style="display: flex; gap: 6px;">
-            <button class="btn btn-outline btn-sm" style="padding: 2px 8px; font-size: 11px;" onclick="viewAppDetail('${app.id}')">
+          <div class="action-btn-group">
+            <button class="btn btn-outline btn-sm" onclick="viewAppDetail('${app.id}')">
               Review
             </button>
-            <button class="btn btn-primary btn-sm" style="padding: 2px 8px; font-size: 11px; background: var(--success); border-color: var(--success);" onclick="quickUpdateStatus('${app.id}', 'APPROVED')">
+            <button class="btn btn-primary btn-sm" onclick="quickUpdateStatus('${app.id}', 'APPROVED')">
               Approve
             </button>
           </div>
@@ -159,9 +180,13 @@ function renderAdminApplications() {
 }
 
 function quickUpdateStatus(appId, newStatus) {
-  Storage.updateApplicationStatus(appId, newStatus, `Approved by Club Coordinator on ${new Date().toLocaleDateString()}`);
+  if (typeof Storage !== "undefined") {
+    Storage.updateApplicationStatus(appId, newStatus, `Approved by Club Secretariat on ${new Date().toLocaleDateString()}`);
+  }
   refreshAdminDashboard();
-  showToast(`Application #${appId} marked as ${newStatus}`, "success");
+  if (typeof UIStates !== "undefined") {
+    UIStates.showToast(`Application marked as ${newStatus}`, "success");
+  }
 }
 
 // ---------------- EVENTS MANAGER ----------------
@@ -169,35 +194,40 @@ function renderAdminEvents() {
   const tbody = document.getElementById("admin-events-tbody");
   if (!tbody) return;
 
-  const events = Storage.getEvents();
+  const events = typeof Storage !== "undefined" ? Storage.getEvents() : [];
   if (events.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 32px;">No scheduled events.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 32px;">No scheduled events in the campus calendar.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = events.map(e => `
-    <tr>
-      <td>
-        <div style="font-weight: 700; color: var(--text-main);">${escapeHTML(e.title)}</div>
-        <div style="font-size: 11px; color: var(--primary);">${escapeHTML(e.clubName)}</div>
-      </td>
-      <td><span class="badge badge-primary">${escapeHTML(e.category)}</span></td>
-      <td>
-        <div>${formatDateTime(e.date)}</div>
-        <div style="font-size: 11px; color: var(--text-muted);">${escapeHTML(e.venue)}</div>
-      </td>
-      <td>
-        <strong>${e.registeredCount || 0}</strong> / ${e.capacity || 200}
-      </td>
-      <td>
-        <div style="font-size: 12px;">Fee: ${escapeHTML(e.fee || 'Free')}</div>
-        ${e.prizes ? `<div style="font-size: 11px; color: var(--text-muted);">${escapeHTML(e.prizes)}</div>` : ''}
-      </td>
-      <td>
-        <span class="badge badge-success">ACTIVE &bull; PUBLISHED</span>
-      </td>
-    </tr>
-  `).join("");
+  tbody.innerHTML = events.map(e => {
+    const d = new Date(e.date || Date.now());
+    const dateFormatted = d.toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
+
+    return `
+      <tr>
+        <td>
+          <div style="font-weight: 700; color: var(--text-primary);">${escapeHTML(e.title)}</div>
+          <div style="font-size: 0.75rem; color: var(--primary-color);">${escapeHTML(e.clubName)}</div>
+        </td>
+        <td><span class="badge badge-teal">${escapeHTML(e.category)}</span></td>
+        <td>
+          <div>${dateFormatted}</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHTML(e.venue || 'Campus Auditorium')}</div>
+        </td>
+        <td>
+          <strong>${e.registeredCount || 0}</strong> / ${e.capacity || 200}
+        </td>
+        <td>
+          <div style="font-size: 0.8125rem;">Fee: ${escapeHTML(e.fee || 'Free')}</div>
+          ${e.prizes ? `<div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHTML(e.prizes)}</div>` : ''}
+        </td>
+        <td>
+          <span class="badge badge-status-open">Active &bull; Published</span>
+        </td>
+      </tr>
+    `;
+  }).join("");
 }
 
 // ---------------- MEMBERS ROSTER ----------------
@@ -208,17 +238,17 @@ function renderAdminMembers() {
   tbody.innerHTML = adminMembers.map(m => `
     <tr>
       <td>
-        <div style="font-weight: 700; color: var(--text-main);">${escapeHTML(m.name)}</div>
-        <div style="font-size: 11px; color: var(--text-muted);">${escapeHTML(m.email)}</div>
+        <div style="font-weight: 700; color: var(--text-primary);">${escapeHTML(m.name)}</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHTML(m.email)}</div>
       </td>
       <td>${escapeHTML(m.roll)}</td>
       <td>
         <div style="font-weight: 600;">${escapeHTML(m.clubName)}</div>
-        <div style="font-size: 11px; color: var(--text-secondary);">${escapeHTML(m.domain)}</div>
+        <div style="font-size: 0.75rem; color: var(--text-secondary);">${escapeHTML(m.domain)}</div>
       </td>
-      <td><span class="badge badge-primary">${escapeHTML(m.role)}</span></td>
+      <td><span class="badge badge-outline">${escapeHTML(m.role)}</span></td>
       <td>${escapeHTML(m.joined)}</td>
-      <td><span class="badge badge-success">ACTIVE</span></td>
+      <td><span class="badge badge-teal">Inducted</span></td>
     </tr>
   `).join("");
 }
@@ -229,24 +259,24 @@ function initCreateEventModal() {
   const modal = document.getElementById("create-event-modal");
   const form = document.getElementById("create-event-form");
   const closeBtn = document.getElementById("close-create-event-modal");
+  const cancelBtn = document.getElementById("cancel-create-event-btn");
 
   if (!openBtn || !modal || !form) return;
 
-  openBtn.addEventListener("click", () => {
-    modal.style.display = "flex";
-  });
+  openBtn.onclick = () => {
+    if (typeof modal.showModal === "function") modal.showModal();
+    else modal.style.display = "block";
+  };
 
-  if (closeBtn) {
-    closeBtn.addEventListener("click", () => {
-      modal.style.display = "none";
-    });
-  }
+  const closeModal = () => {
+    if (typeof modal.close === "function") modal.close();
+    else modal.style.display = "none";
+  };
 
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) modal.style.display = "none";
-  });
+  if (closeBtn) closeBtn.onclick = closeModal;
+  if (cancelBtn) cancelBtn.onclick = closeModal;
 
-  form.addEventListener("submit", (e) => {
+  form.onsubmit = (e) => {
     e.preventDefault();
 
     const title = document.getElementById("event-title-input").value.trim();
@@ -258,24 +288,33 @@ function initCreateEventModal() {
     const prizes = document.getElementById("event-prizes-input").value.trim();
     const description = document.getElementById("event-desc-input").value.trim();
 
-    Storage.addEvent({
-      title,
-      clubName,
-      category,
-      date,
-      venue,
-      fee,
-      prizes,
-      description,
-      banner: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800",
-      tags: [category, "Campus Event"]
-    });
+    if (typeof Storage !== "undefined") {
+      const events = Storage.getEvents();
+      events.unshift({
+        id: "evt-" + Date.now(),
+        title,
+        clubName,
+        category,
+        date: new Date(date).toISOString(),
+        venue,
+        fee,
+        prizes,
+        capacity: 200,
+        registeredCount: 0,
+        description,
+        banner: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800"
+      });
+      Storage.saveEvents(events);
+    }
 
     refreshAdminDashboard();
-    modal.style.display = "none";
+    closeModal();
     form.reset();
-    showToast("Event published! Now live on the Campus Events page.", "success");
-  });
+
+    if (typeof UIStates !== "undefined") {
+      UIStates.showToast("Event published! Now live on Campus Events.", "success");
+    }
+  };
 }
 
 // ---------------- ADD NEW CLUB MODAL ----------------
@@ -284,24 +323,24 @@ function initAddClubModal() {
   const modal = document.getElementById("add-club-modal");
   const form = document.getElementById("add-club-form");
   const closeBtn = document.getElementById("close-add-club-modal");
+  const cancelBtn = document.getElementById("cancel-add-club-btn");
 
   if (!openBtn || !modal || !form) return;
 
-  openBtn.addEventListener("click", () => {
-    modal.style.display = "flex";
-  });
+  openBtn.onclick = () => {
+    if (typeof modal.showModal === "function") modal.showModal();
+    else modal.style.display = "block";
+  };
 
-  if (closeBtn) {
-    closeBtn.addEventListener("click", () => {
-      modal.style.display = "none";
-    });
-  }
+  const closeModal = () => {
+    if (typeof modal.close === "function") modal.close();
+    else modal.style.display = "none";
+  };
 
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) modal.style.display = "none";
-  });
+  if (closeBtn) closeBtn.onclick = closeModal;
+  if (cancelBtn) cancelBtn.onclick = closeModal;
 
-  form.addEventListener("submit", (e) => {
+  form.onsubmit = (e) => {
     e.preventDefault();
 
     const name = document.getElementById("new-club-name").value.trim();
@@ -327,17 +366,23 @@ function initAddClubModal() {
       logo: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=160",
       banner: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1200",
       achievements: ["Newly chartered campus student society"],
-      coordinators: [{ name: "Core Coordinator", role: "Club Lead", email: "coordinator@tint.edu.in" }],
+      coordinators: [{ name: "Core Lead", role: "President", email: "lead@tint.edu.in" }],
       socials: { linkedin: "https://linkedin.com" },
       tags: [category, "New Club"],
       featured: true
     };
 
-    Storage.addClub(newClub);
-    modal.style.display = "none";
+    if (typeof Storage !== "undefined") {
+      Storage.addClub(newClub);
+    }
+
+    closeModal();
     form.reset();
-    showToast(`Society '${name}' officially chartered and added to the Clubs catalog!`, "success");
-  });
+
+    if (typeof UIStates !== "undefined") {
+      UIStates.showToast(`Society '${name}' chartered and added to Clubs directory!`, "success");
+    }
+  };
 }
 
 // ---------------- APP DETAIL MODAL ----------------
@@ -347,63 +392,75 @@ function initAppDetailModal() {
 
   if (!modal) return;
   if (closeBtn) {
-    closeBtn.addEventListener("click", () => {
-      modal.style.display = "none";
-    });
+    closeBtn.onclick = () => {
+      if (typeof modal.close === "function") modal.close();
+      else modal.style.display = "none";
+    };
   }
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) modal.style.display = "none";
-  });
 }
 
 function viewAppDetail(appId) {
-  const app = Storage.getApplicationById(appId);
+  const applications = typeof Storage !== "undefined" ? Storage.getApplications() : [];
+  const app = applications.find(a => a.id === appId);
   if (!app) return;
 
   const modal = document.getElementById("admin-app-detail-modal");
   const nameEl = document.getElementById("admin-modal-applicant-name");
   const body = document.getElementById("admin-modal-applicant-body");
 
-  nameEl.textContent = `${app.studentName} — Application Review`;
-  body.innerHTML = `
-    <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
-      <div>
-        <div style="color: var(--text-muted); font-size: 11px;">Target Society &amp; Wing:</div>
-        <div style="font-weight: 700; color: var(--primary);">${escapeHTML(app.clubName)} &bull; ${escapeHTML(app.domain)}</div>
-      </div>
-      <div>
-        <div style="color: var(--text-muted); font-size: 11px;">Candidate Statement of Purpose:</div>
-        <div style="background: var(--bg-surface); padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); line-height: 1.5;">
-          ${escapeHTML(app.statement || 'No statement provided.')}
-        </div>
-      </div>
-      ${app.portfolioUrl ? `
+  if (nameEl) nameEl.textContent = `${app.studentName} — Application Review`;
+  if (body) {
+    body.innerHTML = `
+      <div style="display: flex; flex-direction: column; gap: 14px; font-size: 0.875rem;">
         <div>
-          <div style="color: var(--text-muted); font-size: 11px;">Portfolio / GitHub:</div>
-          <a href="${escapeHTML(app.portfolioUrl)}" target="_blank" style="color: var(--primary); font-weight: 600;">${escapeHTML(app.portfolioUrl)}</a>
+          <div style="color: var(--text-muted); font-size: 0.75rem;">Target Society &amp; Wing:</div>
+          <div style="font-weight: 700; color: var(--primary-color);">${escapeHTML(app.clubName)} &bull; ${escapeHTML(app.domain || 'Core Team')}</div>
         </div>
-      ` : ''}
+        <div>
+          <div style="color: var(--text-muted); font-size: 0.75rem;">Candidate Statement of Purpose:</div>
+          <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-color); line-height: 1.55; margin-top: 4px;">
+            ${escapeHTML(app.statement || 'No statement provided.')}
+          </div>
+        </div>
+        ${app.portfolio ? `
+          <div>
+            <div style="color: var(--text-muted); font-size: 0.75rem;">Portfolio / Profile URL:</div>
+            <a href="${escapeHTML(app.portfolio)}" target="_blank" rel="noopener noreferrer" style="color: var(--primary-color); font-weight: 600;">${escapeHTML(app.portfolio)}</a>
+          </div>
+        ` : ''}
 
-      <div style="margin-top: 10px;">
-        <label class="form-label">Coordinator Feedback / Interview Notes:</label>
-        <textarea id="modal-app-notes" class="form-textarea" rows="2">${escapeHTML(app.interviewNotes || '')}</textarea>
+        <div style="margin-top: 6px;">
+          <label class="form-label" for="modal-app-notes">Coordinator Feedback / Decision Note:</label>
+          <textarea id="modal-app-notes" class="form-textarea" rows="2" placeholder="Interview remarks or onboarding notes...">${escapeHTML(app.interviewNotes || '')}</textarea>
+        </div>
+
+        <div class="modal-footer" style="margin-top: 8px;">
+          <button class="btn btn-outline btn-sm" onclick="saveAppReview('${app.id}', 'REJECTED')">Reject</button>
+          <button class="btn btn-outline btn-sm" onclick="saveAppReview('${app.id}', 'SHORTLISTED')">Shortlist</button>
+          <button class="btn btn-primary btn-sm" onclick="saveAppReview('${app.id}', 'APPROVED')">Approve Candidate</button>
+        </div>
       </div>
+    `;
+  }
 
-      <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px;">
-        <button class="btn btn-outline btn-sm" onclick="saveAppReview('${app.id}', 'REJECTED')">Reject</button>
-        <button class="btn btn-outline btn-sm" onclick="saveAppReview('${app.id}', 'SHORTLISTED')">Shortlist</button>
-        <button class="btn btn-primary btn-sm" style="background: var(--success); border-color: var(--success);" onclick="saveAppReview('${app.id}', 'APPROVED')">Approve Candidate</button>
-      </div>
-    </div>
-  `;
-
-  modal.style.display = "flex";
+  if (typeof modal.showModal === "function") modal.showModal();
+  else modal.style.display = "block";
 }
 
 function saveAppReview(appId, status) {
   const notes = document.getElementById("modal-app-notes") ? document.getElementById("modal-app-notes").value.trim() : "";
-  Storage.updateApplicationStatus(appId, status, notes);
-  document.getElementById("admin-app-detail-modal").style.display = "none";
+  if (typeof Storage !== "undefined") {
+    Storage.updateApplicationStatus(appId, status, notes);
+  }
+
+  const modal = document.getElementById("admin-app-detail-modal");
+  if (modal) {
+    if (typeof modal.close === "function") modal.close();
+    else modal.style.display = "none";
+  }
+
   refreshAdminDashboard();
-  showToast(`Candidate application updated to ${status}`, "success");
+  if (typeof UIStates !== "undefined") {
+    UIStates.showToast(`Candidate application updated to: ${status}`, "success");
+  }
 }

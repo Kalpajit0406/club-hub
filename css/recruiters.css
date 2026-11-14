@@ -1,201 +1,209 @@
-/* css/recruiters.css - Placement & Recruiter Portal */
+/* css/recruiters.css - ClubHub Placements & Recruiter Portal Styles */
 
-.rec-header {
-  padding: 48px 0 32px;
-  background: linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-page) 100%);
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 32px;
+.rec-main-section {
+  padding: 24px 0 64px;
 }
 
-.rec-header-inner {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-
-.rec-title-wrap h1 {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 32px;
-  font-weight: 800;
-  color: var(--text-main);
-  margin: 0 0 8px 0;
-  letter-spacing: -0.02em;
-}
-
-.rec-title-wrap p {
-  color: var(--text-secondary);
-  font-size: 15px;
-  margin: 0;
-  max-width: 600px;
-}
-
-/* Controls */
-.rec-controls {
-  display: flex;
-  gap: 12px;
+.rec-controls-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-card);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
   margin-bottom: 28px;
+}
+
+.rec-search-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
   flex-wrap: wrap;
 }
 
 .rec-search-box {
   position: relative;
   flex: 1;
-  min-width: 260px;
+  min-width: 280px;
+  display: flex;
+  align-items: center;
 }
 
-.rec-search-box input {
-  width: 100%;
-  height: 44px;
-  padding: 0 16px 0 42px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-btn);
-  color: var(--text-main);
-  font-size: 14px;
-  font-family: 'Inter', sans-serif;
-  transition: all var(--transition-fast);
-}
-
-.rec-search-box input:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-light);
-}
-
-.rec-search-icon {
+.rec-search-box .search-icon {
   position: absolute;
   left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
   color: var(--text-muted);
   pointer-events: none;
 }
 
-/* Job Cards Grid */
+.rec-search-box .search-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 40px 0 42px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+  transition: all var(--transition-fast);
+}
+
+.rec-search-box .search-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  background: var(--bg-card);
+  box-shadow: 0 0 0 3px rgba(47, 91, 231, 0.15);
+}
+
+.rec-stat-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  font-size: 0.84375rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* Recruiters Grid */
 .rec-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: 24px;
-  margin-bottom: 48px;
 }
 
-.job-card {
+.rec-card {
   background: var(--bg-card);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-card);
   padding: 24px;
+  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
-  transition: all var(--transition-normal);
-  box-shadow: var(--shadow-sm);
-  position: relative;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal), border-color var(--transition-normal);
 }
 
-.job-card:hover {
+.rec-card:hover {
   transform: translateY(-4px);
-  border-color: var(--primary-border);
-  box-shadow: var(--shadow-card-hover);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(47, 91, 231, 0.3);
 }
 
-.job-top-row {
+.rec-card-top {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: 14px;
 }
 
-.job-company-logo {
-  width: 52px;
-  height: 52px;
+.rec-company-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rec-company-logo {
+  width: 48px;
+  height: 48px;
   border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
   object-fit: cover;
-  border: 1px solid var(--border);
-  background: var(--bg-surface);
+  background: #FFFFFF;
 }
 
-.job-title-info h3 {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 16px;
+.rec-company-name {
+  font-size: 0.875rem;
   font-weight: 700;
-  color: var(--text-main);
-  margin: 0 0 2px 0;
+  color: var(--text-secondary);
+}
+
+.rec-role-title {
+  font-size: 1.1875rem;
+  font-weight: 800;
+  color: var(--text-primary);
   line-height: 1.3;
+  margin: 0;
 }
 
-.job-company-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--primary);
-}
-
-.job-stipend-badge {
+.rec-stipend-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   padding: 6px 12px;
-  background: var(--primary-light);
-  border: 1px solid var(--primary-border);
-  border-radius: var(--radius-sm);
-  color: var(--primary);
+  background: rgba(21, 128, 61, 0.08);
+  border: 1px solid rgba(21, 128, 61, 0.2);
+  border-radius: var(--radius-full);
+  font-size: 0.8125rem;
   font-weight: 700;
-  font-size: 13px;
-  margin-bottom: 14px;
+  color: var(--color-success);
 }
 
-.job-details-meta {
+.rec-meta-tags {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-bottom: 14px;
-}
-
-.job-meta-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.job-meta-row svg {
-  color: var(--text-muted);
-  flex-shrink: 0;
-}
-
-.job-skills-wrap {
-  display: flex;
-  gap: 6px;
   flex-wrap: wrap;
-  margin-bottom: 16px;
-}
-
-.job-skill-chip {
-  padding: 3px 8px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xs);
-  font-size: 11px;
+  gap: 8px;
+  margin: 14px 0;
+  font-size: 0.8125rem;
   color: var(--text-secondary);
-  font-weight: 500;
 }
 
-.job-card-footer {
-  margin-top: auto;
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
-  display: flex;
+.rec-meta-item {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 5px;
 }
 
-.job-deadline {
-  font-size: 11px;
+.rec-meta-item svg {
   color: var(--text-muted);
 }
 
-/* Recruiter Dashboard Tables */
+.rec-desc {
+  font-size: 0.84375rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.rec-skills-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.rec-skill-tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.rec-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-color);
+  margin-top: auto;
+}
+
+.rec-deadline {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* ============================================================
+   RECRUITER DASHBOARD SPECIFIC STYLES
+   ============================================================ */
 .rec-stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -203,77 +211,110 @@
   margin-bottom: 28px;
 }
 
-@media (max-width: 768px) {
-  .rec-stats-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 .rec-stat-card {
   background: var(--bg-card);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-card);
   padding: 20px;
   box-shadow: var(--shadow-sm);
+  text-align: center;
 }
 
 .rec-stat-num {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 32px;
+  font-size: 2.25rem;
   font-weight: 800;
-  color: var(--primary);
+  color: var(--primary-color);
+  line-height: 1.1;
   margin-bottom: 4px;
 }
 
 .rec-stat-label {
-  font-size: 13px;
+  font-size: 0.84375rem;
+  font-weight: 600;
   color: var(--text-secondary);
+}
+
+.rec-tabs-nav {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 24px;
+}
+
+.rec-tab-btn {
+  padding: 10px 20px;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-bottom: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.rec-tab-btn.active {
+  background: var(--bg-card);
+  color: var(--primary-color);
+  border-color: var(--border-color);
+  border-top: 2px solid var(--primary-color);
 }
 
 .rec-table-wrap {
   background: var(--bg-card);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-card);
   overflow-x: auto;
   box-shadow: var(--shadow-sm);
-  margin-bottom: 32px;
 }
 
 .rec-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
   text-align: left;
+  font-size: 0.875rem;
 }
 
 .rec-table th {
   background: var(--bg-surface);
-  padding: 12px 16px;
+  padding: 14px 18px;
+  font-size: 0.75rem;
   font-weight: 700;
-  color: var(--text-main);
-  border-bottom: 1px solid var(--border);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .rec-table td {
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text-main);
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
   vertical-align: middle;
 }
 
+.rec-table tr:last-child td {
+  border-bottom: none;
+}
+
 .rec-table tr:hover td {
+  background: rgba(47, 91, 231, 0.02);
+}
+
+.rec-status-select {
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: 1px solid var(--border-color);
   background: var(--bg-surface);
+  color: var(--text-primary);
+  cursor: pointer;
 }
 
-.badge-verified-tag {
-  display: inline-block;
-  background: #EBF5FF;
-  border: 1px solid #BFDBFE;
-  color: #1E40AF;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: var(--radius-xs);
-  margin: 2px 2px 2px 0;
+@media (max-width: 768px) {
+  .rec-stats-grid {
+    grid-template-columns: 1fr;
+  }
 }
-

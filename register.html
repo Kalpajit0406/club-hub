@@ -33,17 +33,11 @@
     
     <!-- BRAND & HEADER -->
     <div class="auth-header">
-      <a href="index.html" class="auth-brand" aria-label="Return to ClubHub Home">
-        <div class="brand-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/>
-            <polyline points="9 12 11 14 15 10"/>
-          </svg>
-        </div>
-        <div>Club<span>Hub</span></div>
+      <a href="index.html" class="nav-brand auth-brand" aria-label="Return to ClubHub Home">
+        <span class="brand-name">Club<span>Hub</span></span>
       </a>
-      <h1 class="auth-title">Create Your Campus Account</h1>
-      <p class="auth-subtitle">Join thousands of students discovering clubs, attending tech fests, exchanging textbooks, and launching careers.</p>
+      <h1 class="auth-title">Create Campus Account</h1>
+      <p class="auth-subtitle">Join thousands of students discovering societies, attending hackathons, exchanging textbooks, and launching careers.</p>
     </div>
 
     <!-- AUTH CARD -->
@@ -51,9 +45,8 @@
       <div id="auth-alert" class="auth-alert" role="alert"></div>
 
       <form id="register-form">
-        <div class="form-grid-2">
-          
-          <div class="form-group">
+        <div class="form-row">
+          <div class="form-group" style="margin-bottom: 14px;">
             <label for="reg-name" class="form-label">Full Name <span class="required">*</span></label>
             <input 
               type="text" 
@@ -65,7 +58,7 @@
             >
           </div>
 
-          <div class="form-group">
+          <div class="form-group" style="margin-bottom: 14px;">
             <label for="reg-email" class="form-label">College Email Address <span class="required">*</span></label>
             <input 
               type="email" 
@@ -76,19 +69,21 @@
               autocomplete="email"
             >
           </div>
+        </div>
 
-          <div class="form-group">
+        <div class="form-row">
+          <div class="form-group" style="margin-bottom: 14px;">
             <label for="reg-roll" class="form-label">University Roll Number <span class="required">*</span></label>
             <input 
               type="text" 
               id="reg-roll" 
               class="form-input" 
-              placeholder="e.g. 2023CSB1042" 
+              placeholder="e.g. 23/CS/104" 
               required
             >
           </div>
 
-          <div class="form-group">
+          <div class="form-group" style="margin-bottom: 14px;">
             <label for="reg-branch" class="form-label">Engineering Department <span class="required">*</span></label>
             <select id="reg-branch" class="form-select" required>
               <option value="" disabled selected>Select Department</option>
@@ -98,12 +93,13 @@
               <option value="Electrical Engineering">Electrical Engineering</option>
               <option value="Mechanical Engineering">Mechanical Engineering</option>
               <option value="Civil Engineering">Civil Engineering</option>
-              <option value="Applied Sciences">Applied Sciences</option>
             </select>
           </div>
+        </div>
 
-          <div class="form-group">
-            <label for="reg-year" class="form-label">Academic Year <span class="required">*</span></label>
+        <div class="form-row">
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label for="reg-year" class="form-label">Year of Study <span class="required">*</span></label>
             <select id="reg-year" class="form-select" required>
               <option value="1st Year">1st Year (Freshman)</option>
               <option value="2nd Year" selected>2nd Year (Sophomore)</option>
@@ -112,19 +108,7 @@
             </select>
           </div>
 
-          <div class="form-group">
-            <label for="reg-role" class="form-label">Primary Account Role <span class="required">*</span></label>
-            <select id="reg-role" class="form-select" required>
-              <option value="student" selected>Student</option>
-              <option value="admin">Club Lead / Coordinator</option>
-              <option value="recruiter">Recruiter / Industry Partner</option>
-            </select>
-          </div>
-
-        </div>
-
-        <div class="form-grid-2" style="margin-top: 1rem;">
-          <div class="form-group">
+          <div class="form-group" style="margin-bottom: 14px;">
             <label for="reg-password" class="form-label">Password <span class="required">*</span></label>
             <div class="password-input-wrapper">
               <input 
@@ -134,52 +118,39 @@
                 placeholder="At least 6 characters" 
                 required 
                 autocomplete="new-password"
+                minlength="6"
               >
               <button type="button" class="toggle-password-btn" data-target="reg-password" aria-label="Toggle password visibility">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               </button>
             </div>
           </div>
-
-          <div class="form-group">
-            <label for="reg-confirm-password" class="form-label">Confirm Password <span class="required">*</span></label>
-            <div class="password-input-wrapper">
-              <input 
-                type="password" 
-                id="reg-confirm-password" 
-                class="form-input" 
-                placeholder="Re-enter password" 
-                required 
-                autocomplete="new-password"
-              >
-              <button type="button" class="toggle-password-btn" data-target="reg-confirm-password" aria-label="Toggle password visibility">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              </button>
-            </div>
-          </div>
         </div>
 
-        <div class="auth-options-row" style="margin-top: 1.25rem;">
+        <div class="auth-options-row" style="margin-top: 6px;">
           <label class="auth-checkbox-label">
-            <input type="checkbox" id="reg-terms" required checked>
-            <span>I agree to the <a href="#" class="auth-link">Campus Honor Code</a> &amp; Terms of Service</span>
+            <input type="checkbox" id="terms-agree" required checked>
+            <span>I agree to the Campus Honor Code &amp; ClubHub Terms</span>
           </label>
         </div>
 
-        <button type="submit" class="btn btn-primary auth-submit-btn" style="width: 100%;">
-          Complete Registration
+        <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 8px;">
+          Create My Verified Student Account
         </button>
       </form>
     </div>
 
     <!-- FOOTER LINK -->
     <div class="auth-footer">
-      Already have a verified account? <a href="login.html" class="auth-link">Sign In</a> &bull; <a href="index.html" class="auth-link">Back to Home</a>
+      Already registered? <a href="login.html" class="auth-link">Sign In to Account</a> &bull; <a href="index.html" class="auth-link">Return to Home</a>
     </div>
 
   </div>
 
   <!-- Scripts -->
+  <script src="js/icons.js"></script>
+  <script src="js/states.js"></script>
+  <script src="js/brand.js"></script>
   <script src="js/data.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/palette.js"></script>

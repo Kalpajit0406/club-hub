@@ -32,14 +32,8 @@
   <!-- GLOBAL NAVBAR -->
   <header class="navbar">
     <div class="nav-container">
-      <a href="index.html" class="nav-brand">
-        <div class="brand-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/>
-            <polyline points="9 12 11 14 15 10"/>
-          </svg>
-        </div>
-        <div class="brand-name">Club<span>Hub</span></div>
+      <a href="index.html" class="nav-brand" aria-label="ClubHub Home">
+        <span class="brand-name">Club<span>Hub</span></span>
       </a>
 
       <nav class="nav-links">
@@ -144,7 +138,7 @@
             </span>
             Active Recruitment Wings &amp; Domains
           </h2>
-          <p class="section-subtext">Click on any wing to target your application during this recruitment drive.</p>
+          <p class="section-subtext">Select a specialized domain to target your skills during this recruitment window.</p>
           <div id="club-domains-list" class="domains-chips-grid">
             <!-- Injected by js/club-details.js -->
           </div>
@@ -198,7 +192,7 @@
           <div class="widget-header">
             <div class="widget-tag">Official Recruitment</div>
             <h3 class="widget-title">Join this Society</h3>
-            <p class="widget-desc">Submit your candidacy to join the collegiate core team for the 2026–2027 academic year.</p>
+            <p class="widget-desc">Submit your candidacy to join the collegiate core team for the current academic year.</p>
           </div>
 
           <div class="recruitment-meta-box">
@@ -208,11 +202,11 @@
             </div>
             <div class="meta-row">
               <span class="meta-label">Eligibility:</span>
-              <span class="meta-value">All B.Tech Batches</span>
+              <span class="meta-value">All Registered Batches</span>
             </div>
             <div class="meta-row">
               <span class="meta-label">Selection Format:</span>
-              <span class="meta-value">Application &rarr; Interview</span>
+              <span class="meta-value">Application &rarr; Screening</span>
             </div>
           </div>
 
@@ -229,7 +223,8 @@
           </button>
 
           <div class="widget-footer-note">
-            🛡️ Verified collegiate recruitment process. Decisions recorded directly to your Student Dashboard.
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Verified university recruitment. Decisions are recorded to your Student Command Center.
           </div>
         </div>
 
@@ -245,61 +240,62 @@
       <div class="modal-header">
         <div>
           <h3 class="modal-title" id="modal-club-name">Apply to Society</h3>
-          <p class="modal-subtitle">Candidate screening form &bull; Collegiate Academic Year 2026–27</p>
+          <p class="modal-subtitle">Candidate screening form &bull; Academic Year 2026–27</p>
         </div>
         <button type="button" id="close-apply-modal-btn" class="modal-close" aria-label="Close recruitment modal">&times;</button>
       </div>
 
-      <form id="recruitment-apply-form" class="modal-form">
-        <div id="modal-alert-box" class="form-alert" style="display: none;"></div>
-
-        <div class="form-grid-2">
+      <form id="apply-form" class="modal-body-form">
+        <div class="form-row">
           <div class="form-group">
             <label for="app-student-name" class="form-label">Full Name <span class="required">*</span></label>
-            <input type="text" id="app-student-name" class="form-input" required placeholder="Aditya Verma">
+            <input type="text" id="app-student-name" class="form-input" required placeholder="e.g. Aditya Verma">
           </div>
           <div class="form-group">
-            <label for="app-student-roll" class="form-label">Roll Number <span class="required">*</span></label>
-            <input type="text" id="app-student-roll" class="form-input" required placeholder="2023CSB1042">
+            <label for="app-roll-number" class="form-label">College Roll Number <span class="required">*</span></label>
+            <input type="text" id="app-roll-number" class="form-input" required placeholder="e.g. 23/CS/104">
           </div>
         </div>
 
-        <div class="form-grid-2">
+        <div class="form-row">
           <div class="form-group">
-            <label for="app-branch" class="form-label">Department / Branch <span class="required">*</span></label>
-            <input type="text" id="app-branch" class="form-input" required placeholder="Computer Science & Engineering">
+            <label for="app-department-select" class="form-label">Department / Branch <span class="required">*</span></label>
+            <select id="app-department-select" class="form-select" required>
+              <option value="">Select your department...</option>
+              <option value="CSE">Computer Science &amp; Engineering</option>
+              <option value="IT">Information Technology</option>
+              <option value="ECE">Electronics &amp; Communication</option>
+              <option value="EE">Electrical Engineering</option>
+              <option value="ME">Mechanical Engineering</option>
+              <option value="AIML">Artificial Intelligence &amp; Data Science</option>
+            </select>
           </div>
           <div class="form-group">
-            <label for="app-year" class="form-label">Academic Year <span class="required">*</span></label>
-            <select id="app-year" class="form-select" required>
-              <option value="1st Year">1st Year (Freshman)</option>
-              <option value="2nd Year" selected>2nd Year (Sophomore)</option>
-              <option value="3rd Year">3rd Year (Junior)</option>
-              <option value="4th Year">4th Year (Senior)</option>
+            <label for="app-year-select" class="form-label">Year of Study <span class="required">*</span></label>
+            <select id="app-year-select" class="form-select" required>
+              <option value="1">1st Year (Freshman)</option>
+              <option value="2" selected>2nd Year (Sophomore)</option>
+              <option value="3">3rd Year (Junior)</option>
+              <option value="4">4th Year (Senior)</option>
             </select>
           </div>
         </div>
 
         <div class="form-group">
-          <label for="app-email" class="form-label">College Email Address <span class="required">*</span></label>
-          <input type="email" id="app-email" class="form-input" required placeholder="aditya@tint.edu.in">
-        </div>
-
-        <div class="form-group">
-          <label for="app-domain-select" class="form-label">Select Recruitment Wing / Domain <span class="required">*</span></label>
+          <label for="app-domain-select" class="form-label">Preferred Recruitment Domain / Wing <span class="required">*</span></label>
           <select id="app-domain-select" class="form-select" required>
             <!-- Injected by js/club-details.js -->
           </select>
         </div>
 
         <div class="form-group">
-          <label for="app-statement" class="form-label">Statement of Purpose &amp; Motivation <span class="required">*</span></label>
+          <label for="app-statement" class="form-label">Statement of Motivation &amp; Skills <span class="required">*</span></label>
           <textarea id="app-statement" class="form-textarea" rows="3" required placeholder="Explain why you wish to join this wing and what projects or skills you bring..."></textarea>
         </div>
 
         <div class="form-group">
           <label for="app-portfolio" class="form-label">Portfolio, GitHub, or LinkedIn Profile URL</label>
-          <input type="url" id="app-portfolio" class="form-input" placeholder="https://github.com/aditya-tint">
+          <input type="url" id="app-portfolio" class="form-input" placeholder="https://github.com/username">
         </div>
 
         <div class="modal-footer">
@@ -310,21 +306,67 @@
     </div>
   </dialog>
 
-  <!-- FOOTER -->
+  <!-- ENTERPRISE FOOTER -->
   <footer class="footer">
-    <div class="container footer-bottom" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 24px 0;">
-      <div>&copy; 2026 <strong>ClubHub</strong> &bull; The All-in-One Smart Campus Operating System</div>
+    <div class="container footer-content">
+      <div class="footer-col footer-col-brand">
+        <a href="index.html" class="nav-brand" style="margin-bottom: 12px; display: inline-flex;">
+          <span class="brand-name">Club<span>Hub</span></span>
+        </a>
+        <p class="footer-description">
+          The all-in-one university campus operating system. Discover societies, attend hackathons, trade student goods, and find collaborative teams.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <div class="footer-col-title">Campus Hubs</div>
+        <ul class="footer-links">
+          <li><a href="clubs.html">All Societies</a></li>
+          <li><a href="events.html">Campus Events</a></li>
+          <li><a href="marketplace.html">Student Exchange</a></li>
+          <li><a href="network.html">Peer Network</a></li>
+          <li><a href="recruiters.html">Career Drives</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <div class="footer-col-title">Command Center</div>
+        <ul class="footer-links">
+          <li><a href="dashboard.html">Student Profile</a></li>
+          <li><a href="recruiter-dashboard.html">Recruiter Portal</a></li>
+          <li><a href="admin.html">Secretariat Access</a></li>
+          <li><a href="login.html">Account Sign In</a></li>
+          <li><a href="register.html">Student Onboarding</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <div class="footer-col-title">System Status</div>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 8px;">
+          FastAPI Backend &bull; Operational<br>
+          Connected Node Architecture<br>
+          Vercel &amp; Firebase Hosted
+        </p>
+        <span class="badge badge-teal" style="font-size: 12px; padding: 4px 10px;">v2.4 Production</span>
+      </div>
+    </div>
+
+    <div class="container footer-bottom">
+      <div>&copy; 2026 <strong>ClubHub</strong> &bull; The University Campus Operating System. All rights reserved.</div>
       <div style="display: flex; gap: 16px; font-size: 13px;">
-        <a href="clubs.html" style="color: var(--text-secondary);">Clubs</a>
+        <a href="clubs.html" style="color: var(--text-secondary);">Societies</a>
         <a href="events.html" style="color: var(--text-secondary);">Events</a>
-        <a href="marketplace.html" style="color: var(--text-secondary);">Marketplace</a>
+        <a href="marketplace.html" style="color: var(--text-secondary);">Exchange</a>
         <a href="network.html" style="color: var(--text-secondary);">Network</a>
-        <a href="recruiters.html" style="color: var(--text-secondary);">Placements</a>
+        <a href="dashboard.html" style="color: var(--text-secondary);">Command Center</a>
       </div>
     </div>
   </footer>
 
   <!-- Core Scripts -->
+  <script src="js/icons.js"></script>
+  <script src="js/states.js"></script>
+  <script src="js/brand.js"></script>
   <script src="js/data.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/palette.js"></script>

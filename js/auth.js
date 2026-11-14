@@ -30,7 +30,7 @@ function initLoginForm() {
         showAuthAlert(`Signed in as ${result.user.name}. Redirecting...`, "success");
         redirectByRole(result.user);
       } else {
-        showAuthAlert(result.message, "error");
+        showAuthAlert(result.message || "Invalid credentials provided.", "error");
       }
     }
   });
@@ -38,9 +38,10 @@ function initLoginForm() {
 
 function redirectByRole(user) {
   setTimeout(() => {
-    if (user.role === "admin") {
+    const roleUpper = (user.role || "").toUpperCase();
+    if (roleUpper === "ADMIN" || roleUpper === "COORDINATOR") {
       window.location.href = "admin.html";
-    } else if (user.role === "recruiter") {
+    } else if (roleUpper === "RECRUITER") {
       window.location.href = "recruiter-dashboard.html";
     } else {
       window.location.href = "dashboard.html";
@@ -52,7 +53,9 @@ function redirectByRole(user) {
 function initDemoLogins() {
   document.querySelectorAll("[data-demo-role]").forEach(btn => {
     btn.addEventListener("click", () => {
-      const role = btn.getAttribute("data-demo-role");
+      let role = btn.getAttribute("data-demo-role");
+      if (role === "secretariat") role = "admin";
+
       if (typeof Storage !== "undefined") {
         const user = Storage.loginAsDemoRole(role);
         showAuthAlert(`Authenticated as ${user.name} (${user.role.toUpperCase()})! Redirecting...`, "success");
@@ -60,20 +63,6 @@ function initDemoLogins() {
       }
     });
   });
-
-  // Legacy single demo-fill button
-  const oldBtn = document.getElementById("demo-fill-btn");
-  if (oldBtn) {
-    oldBtn.addEventListener("click", () => {
-      const emailInput = document.getElementById("login-email");
-      const passwordInput = document.getElementById("login-password");
-      if (emailInput && passwordInput) {
-        emailInput.value = "aditya@tint.edu.in";
-        passwordInput.value = "password123";
-        showAuthAlert("Demo student credentials loaded. Click 'Sign In' or use 1-Click Demo buttons below.", "info");
-      }
-    });
-  }
 }
 
 // ---------------- REGISTRATION FORM HANDLER ----------------
@@ -87,16 +76,16 @@ function initRegisterForm() {
 
     const name = document.getElementById("reg-name").value.trim();
     const roll = document.getElementById("reg-roll") ? document.getElementById("reg-roll").value.trim().toUpperCase() : "";
-    const branch = document.getElementById("reg-branch") ? document.getElementById("reg-branch").value.trim() : "General";
-    const year = document.getElementById("reg-year") ? document.getElementById("reg-year").value : "1st Year";
+    const branch = document.getElementById("reg-branch") ? document.getElementById("reg-branch").value.trim() : "Computer Science & Engineering";
+    const year = document.getElementById("reg-year") ? document.getElementById("reg-year").value : "2nd Year";
     const email = document.getElementById("reg-email").value.trim().toLowerCase();
     const password = document.getElementById("reg-password").value;
-    const confirmPassword = document.getElementById("reg-confirm-password").value;
-    const role = document.getElementById("reg-role") ? document.getElementById("reg-role").value : "student";
-    const terms = document.getElementById("reg-terms");
+    const confirmEl = document.getElementById("reg-confirm-password");
+    const confirmPassword = confirmEl ? confirmEl.value : password;
 
+    const terms = document.getElementById("terms-agree") || document.getElementById("reg-terms");
     if (terms && !terms.checked) {
-      showAuthAlert("Please accept the ClubHub Terms & Student Code of Conduct.", "error");
+      showAuthAlert("Please accept the Campus Honor Code & ClubHub Terms.", "error");
       return;
     }
 
@@ -113,22 +102,24 @@ function initRegisterForm() {
     const newUser = {
       id: "usr-" + Date.now(),
       name,
-      roll,
-      branch,
-      year,
-      email,
-      role,
-      password,
+      rollNumber: roll,
+      roll: roll,
+      department: branch,
+      branch: branch,
+      year: year,
+      email: email,
+      role: "Student",
+      password: password,
       avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80"
     };
 
     if (typeof Storage !== "undefined") {
       const result = Storage.registerUser(newUser);
       if (result.success) {
-        showAuthAlert("Account created successfully! Redirecting...", "success");
+        showAuthAlert("Account created successfully! Redirecting to command center...", "success");
         redirectByRole(newUser);
       } else {
-        showAuthAlert(result.message, "error");
+        showAuthAlert(result.message || "An account with this email already exists.", "error");
       }
     }
   });
@@ -155,7 +146,7 @@ function initPasswordToggles() {
 function showAuthAlert(message, type = "error") {
   const alertEl = document.getElementById("auth-alert");
   if (!alertEl) return;
-  alertEl.className = `auth-alert auth-alert-${type}`;
+  alertEl.className = `auth-alert ${type}`;
   alertEl.textContent = message;
   alertEl.style.display = "block";
 }

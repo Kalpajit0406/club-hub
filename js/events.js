@@ -3,18 +3,19 @@
 let currentEvents = [];
 let selectedCategory = "all";
 let searchQuery = "";
+let activeEventForRegistration = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   initEventsPage();
 });
 
 function initEventsPage() {
-  currentEvents = Storage.getEvents();
-  renderEvents();
+  currentEvents = typeof Storage !== "undefined" ? Storage.getEvents() : [];
   setupFilterChips();
   setupSearchInput();
   setupRegistrationModal();
   setupCreateEventModal();
+  renderEvents();
 }
 
 function setupFilterChips() {
@@ -31,12 +32,25 @@ function setupFilterChips() {
 
 function setupSearchInput() {
   const input = document.getElementById("events-search-input");
+  const clearBtn = document.getElementById("events-search-clear");
   if (!input) return;
 
-  input.addEventListener("input", debounce((e) => {
-    searchQuery = e.target.value.toLowerCase().trim();
+  input.addEventListener("input", (e) => {
+    const val = e.target.value.trim();
+    if (clearBtn) clearBtn.style.display = val ? "inline-flex" : "none";
+    searchQuery = val.toLowerCase();
     renderEvents();
-  }, 200));
+  });
+
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      input.value = "";
+      searchQuery = "";
+      clearBtn.style.display = "none";
+      renderEvents();
+      input.focus();
+    });
+  }
 }
 
 function renderEvents() {
@@ -45,56 +59,73 @@ function renderEvents() {
   if (!grid) return;
 
   let filtered = currentEvents.filter(ev => {
-    const matchesCat = selectedCategory === "all" || ev.category.toLowerCase() === selectedCategory.toLowerCase();
+    const matchesCat = selectedCategory === "all" || (ev.category || "").toLowerCase() === selectedCategory.toLowerCase();
     const matchesSearch = !searchQuery || 
-      ev.title.toLowerCase().includes(searchQuery) ||
-      ev.clubName.toLowerCase().includes(searchQuery) ||
-      ev.venue.toLowerCase().includes(searchQuery) ||
+      (ev.title || "").toLowerCase().includes(searchQuery) ||
+      (ev.clubName || "").toLowerCase().includes(searchQuery) ||
+      (ev.venue || "").toLowerCase().includes(searchQuery) ||
       (ev.tags && ev.tags.some(t => t.toLowerCase().includes(searchQuery)));
     return matchesCat && matchesSearch;
   });
 
   if (countEl) {
-    countEl.textContent = `${filtered.length} Events Found`;
+    countEl.textContent = `${filtered.length} Events Listed`;
   }
 
   if (filtered.length === 0) {
-    grid.innerHTML = `
-      <div style="grid-column: 1 / -1; text-align: center; padding: 64px 20px; background: var(--bg-card); border-radius: var(--radius-card); border: 1px dashed var(--border);">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--text-muted); margin-bottom: 12px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <h3 style="font-size: 18px; margin-bottom: 6px;">No campus events match your criteria</h3>
-        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">Try adjusting your search terms or selecting another category.</p>
-        <button class="btn btn-outline btn-sm" onclick="resetFilters()">Reset Filters</button>
-      </div>
-    `;
+    if (typeof UIStates !== "undefined") {
+      UIStates.renderNoResultsState(grid, {
+        query: searchQuery || selectedCategory,
+        onClear: "resetFilters()"
+      });
+    } else {
+      grid.innerHTML = `
+        <div class="empty-state" style="grid-column: 1 / -1;">
+          <h3 class="empty-state-title">No events match your criteria</h3>
+          <p class="empty-state-desc">Try adjusting your search terms or selecting another category.</p>
+          <button class="btn btn-outline btn-sm" onclick="resetFilters()">Reset Filters</button>
+        </div>
+      `;
+    }
     return;
   }
 
-  const user = Storage.getCurrentUser();
+  const user = typeof Storage !== "undefined" ? Storage.getCurrentUser() : null;
   const userEmail = user ? user.email : "";
+
+  const calendarIcon = typeof Icons !== "undefined" ? Icons.render("calendar", { width: 14, height: 14 }) : "";
+  const mapPinIcon = typeof Icons !== "undefined" ? Icons.render("map-pin", { width: 14, height: 14 }) : "";
+  const checkIcon = typeof Icons !== "undefined" ? Icons.render("check", { width: 14, height: 14 }) : "";
 
   grid.innerHTML = filtered.map(ev => {
     const d = new Date(ev.date);
     const month = d.toLocaleDateString("en-IN", { month: "short" });
     const day = d.getDate();
     const time = d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
-    const isRegistered = userEmail && Storage.isRegisteredForEvent(ev.id, userEmail);
+    const isRegistered = userEmail && typeof Storage !== "undefined" && Storage.isRegisteredForEvent(ev.id, userEmail);
+
+    const registeredCount = ev.registeredCount || 0;
+    const capacity = ev.capacity || 200;
+    const capacityPct = Math.min(100, Math.round((registeredCount / capacity) * 100));
+    const fillClass = capacityPct > 85 ? "full" : (capacityPct > 60 ? "high" : "");
+
+    const isFree = !ev.fee || ev.fee.toLowerCase().includes("free") || ev.fee === "₹0";
 
     return `
-      <div class="event-card" data-event-id="${ev.id}">
+      <article class="event-card" data-event-id="${ev.id}">
         <div class="event-banner-wrap">
           <img src="${ev.banner || 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800'}" alt="${escapeHTML(ev.title)}" class="event-banner-img" loading="lazy">
           <div class="event-date-badge">
-            <div class="event-date-month">${month}</div>
-            <div class="event-date-day">${day}</div>
+            <span class="event-date-month">${month}</span>
+            <span class="event-date-day">${day}</span>
           </div>
-          <span class="event-cat-badge">${escapeHTML(ev.category)}</span>
+          <span class="event-cat-badge">${escapeHTML(ev.category || 'Campus')}</span>
         </div>
 
         <div class="event-card-body">
           <div class="event-club-meta">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-            <span>${escapeHTML(ev.clubName)}</span>
+            ${calendarIcon}
+            <span>${escapeHTML(ev.clubName || 'University Chapter')}</span>
           </div>
 
           <h3 class="event-title">${escapeHTML(ev.title)}</h3>
@@ -109,28 +140,34 @@ function renderEvents() {
 
           <div class="event-details-list">
             <div class="event-detail-item">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              <span>${month} ${day}, ${d.getFullYear()} at ${time}</span>
+              ${calendarIcon}
+              <span>${month} ${day}, ${d.getFullYear()} &bull; ${time}</span>
             </div>
             <div class="event-detail-item">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              <span>${escapeHTML(ev.venue)}</span>
+              ${mapPinIcon}
+              <span>${escapeHTML(ev.venue || 'Campus Auditorium')}</span>
             </div>
-            <div class="event-detail-item">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15h0M2 10h20"/></svg>
-              <span>Entry: <strong>${escapeHTML(ev.fee || 'Free')}</strong></span>
+          </div>
+
+          <!-- Capacity progress meter -->
+          <div class="capacity-meter-wrap">
+            <div class="capacity-meter-header">
+              <span>Confirmed Seats</span>
+              <span><strong>${registeredCount}</strong> / ${capacity} (${capacityPct}%)</span>
+            </div>
+            <div class="capacity-progress-bar">
+              <div class="capacity-fill ${fillClass}" style="width: ${capacityPct}%;"></div>
             </div>
           </div>
 
           <div class="event-card-footer">
-            <div class="event-seats-info">
-              <span class="event-seats-label">Confirmed Seats</span>
-              <span class="event-seats-count">${ev.registeredCount || 0} / ${ev.capacity || 200}</span>
-            </div>
+            <span class="event-fee-badge ${isFree ? 'free' : ''}">
+              ${isFree ? 'Free Admission' : escapeHTML(ev.fee)}
+            </span>
 
             ${isRegistered ? `
-              <button class="btn btn-outline btn-sm" onclick="viewDigitalPass('${ev.id}')" style="color: var(--success); border-color: var(--success);">
-                ✓ Registered (View Pass)
+              <button class="btn btn-outline btn-sm" onclick="viewDigitalPass('${ev.id}')" style="color: var(--color-success); border-color: var(--color-success);">
+                ${checkIcon} Registered (View Pass)
               </button>
             ` : `
               <button class="btn btn-primary btn-sm" onclick="openRegisterModal('${ev.id}')">
@@ -139,7 +176,7 @@ function renderEvents() {
             `}
           </div>
         </div>
-      </div>
+      </article>
     `;
   }).join("");
 }
@@ -149,235 +186,276 @@ function resetFilters() {
   searchQuery = "";
   const input = document.getElementById("events-search-input");
   if (input) input.value = "";
-  document.querySelectorAll(".events-chip").forEach(c => {
-    if (c.getAttribute("data-category") === "all") c.classList.add("active");
+  const clearBtn = document.getElementById("events-search-clear");
+  if (clearBtn) clearBtn.style.display = "none";
+
+  const chips = document.querySelectorAll(".events-chip");
+  chips.forEach(c => {
+    if ((c.getAttribute("data-category") || "all") === "all") c.classList.add("active");
     else c.classList.remove("active");
   });
+
   renderEvents();
 }
 
-// ---------------- EVENT REGISTRATION MODAL ----------------
-let activeEventId = null;
+function openRegisterModal(eventId) {
+  const event = currentEvents.find(e => e.id === eventId);
+  if (!event) return;
+
+  activeEventForRegistration = event;
+  const modal = document.getElementById("event-reg-modal");
+  const modalTitle = document.getElementById("modal-event-title");
+  const modalSub = document.getElementById("modal-event-sub");
+  const formView = document.getElementById("event-modal-form-view");
+  const passView = document.getElementById("event-modal-pass-view");
+
+  if (modalTitle) modalTitle.textContent = `Register: ${event.title}`;
+  if (modalSub) modalSub.textContent = `Organized by ${event.clubName} • ${event.venue}`;
+
+  if (formView) formView.style.display = "block";
+  if (passView) passView.style.display = "none";
+
+  // Pre-fill user data
+  if (typeof Storage !== "undefined") {
+    const user = Storage.getCurrentUser();
+    if (user) {
+      const nameInput = document.getElementById("reg-student-name");
+      const rollInput = document.getElementById("reg-student-roll");
+      const emailInput = document.getElementById("reg-student-email");
+      if (nameInput && user.name) nameInput.value = user.name;
+      if (rollInput && user.rollNumber) rollInput.value = user.rollNumber;
+      if (emailInput && user.email) emailInput.value = user.email;
+    }
+  }
+
+  if (modal) {
+    if (typeof modal.showModal === "function") {
+      modal.showModal();
+    } else {
+      modal.style.display = "block";
+    }
+  }
+}
+
+function closeRegisterModal() {
+  const modal = document.getElementById("event-reg-modal");
+  if (!modal) return;
+  if (typeof modal.close === "function") {
+    modal.close();
+  } else {
+    modal.style.display = "none";
+  }
+}
 
 function setupRegistrationModal() {
-  const modal = document.getElementById("event-reg-modal");
-  const form = document.getElementById("event-reg-form");
   const closeBtn = document.getElementById("event-reg-close");
+  const cancelBtn = document.getElementById("cancel-reg-btn");
+  const form = document.getElementById("event-reg-form");
 
-  if (!modal || !form) return;
+  if (closeBtn) closeBtn.onclick = closeRegisterModal;
+  if (cancelBtn) cancelBtn.onclick = closeRegisterModal;
 
-  if (closeBtn) {
-    closeBtn.addEventListener("click", () => {
-      modal.style.display = "none";
-    });
-  }
+  if (form) {
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      if (!activeEventForRegistration) return;
 
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) modal.style.display = "none";
-  });
+      const name = document.getElementById("reg-student-name").value.trim();
+      const roll = document.getElementById("reg-student-roll").value.trim();
+      const email = document.getElementById("reg-student-email").value.trim();
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    if (!activeEventId) return;
-
-    const studentName = document.getElementById("reg-student-name").value.trim();
-    const studentRoll = document.getElementById("reg-student-roll").value.trim().toUpperCase();
-    const studentEmail = document.getElementById("reg-student-email").value.trim();
-
-    const result = Storage.registerForEvent(activeEventId, {
-      studentName,
-      studentRoll,
-      studentEmail
-    });
-
-    if (result.success) {
-      currentEvents = Storage.getEvents();
-      renderEvents();
-      showDigitalPassInModal(result.pass);
-      showToast("Event registration confirmed! Digital pass issued.", "success");
-    } else {
-      showToast(result.message, "error");
-      if (result.pass) {
-        showDigitalPassInModal(result.pass);
+      if (!name || !roll || !email) {
+        if (typeof UIStates !== "undefined") {
+          UIStates.showToast("Please fill in all attendee fields.", "warning");
+        }
+        return;
       }
-    }
-  });
+
+      const passCode = "PASS-" + Math.random().toString(36).substring(2, 8).toUpperCase() + "-" + activeEventForRegistration.id.substring(0, 4).toUpperCase();
+
+      const regRecord = {
+        eventId: activeEventForRegistration.id,
+        eventTitle: activeEventForRegistration.title,
+        eventDate: activeEventForRegistration.date,
+        eventVenue: activeEventForRegistration.venue,
+        clubName: activeEventForRegistration.clubName,
+        studentName: name,
+        rollNumber: roll,
+        email: email,
+        passCode: passCode,
+        registeredAt: new Date().toISOString()
+      };
+
+      if (typeof Storage !== "undefined") {
+        Storage.registerForEvent(regRecord);
+      }
+
+      // Increment registered count locally
+      activeEventForRegistration.registeredCount = (activeEventForRegistration.registeredCount || 0) + 1;
+
+      renderDigitalPassView(regRecord);
+      renderEvents();
+
+      if (typeof UIStates !== "undefined") {
+        UIStates.showToast("Registration confirmed! Your Digital Entry Pass is ready.", "success");
+      }
+    };
+  }
 }
 
-function openRegisterModal(eventId) {
-  activeEventId = eventId;
-  const ev = Storage.getEventById(eventId);
-  if (!ev) return;
+function viewDigitalPass(eventId) {
+  const event = currentEvents.find(e => e.id === eventId);
+  const user = typeof Storage !== "undefined" ? Storage.getCurrentUser() : null;
+  const userEmail = user ? user.email : "";
+
+  let regRecord = null;
+  if (typeof Storage !== "undefined") {
+    const userRegs = Storage.getUserEventRegistrations(userEmail);
+    regRecord = userRegs.find(r => r.eventId === eventId);
+  }
+
+  if (!regRecord) {
+    regRecord = {
+      eventId: eventId,
+      eventTitle: event ? event.title : "Campus Event",
+      eventDate: event ? event.date : new Date().toISOString(),
+      eventVenue: event ? event.venue : "Campus Auditorium",
+      clubName: event ? event.clubName : "ClubHub Society",
+      studentName: user ? user.name : "Registered Student",
+      rollNumber: user ? user.rollNumber : "23/CS/101",
+      email: userEmail || "student@tint.edu.in",
+      passCode: "PASS-" + eventId.substring(0, 4).toUpperCase() + "-VERIFIED",
+      registeredAt: new Date().toISOString()
+    };
+  }
 
   const modal = document.getElementById("event-reg-modal");
-  const user = Storage.getCurrentUser();
+  const modalTitle = document.getElementById("modal-event-title");
+  const modalSub = document.getElementById("modal-event-sub");
+  if (modalTitle) modalTitle.textContent = "Digital Entry Pass";
+  if (modalSub) modalSub.textContent = regRecord.eventTitle;
 
-  // Reset to form view
-  document.getElementById("event-modal-form-view").style.display = "block";
-  document.getElementById("event-modal-pass-view").style.display = "none";
-  document.getElementById("modal-event-title").textContent = ev.title;
-  document.getElementById("modal-event-sub").textContent = `${ev.clubName} • ${ev.venue}`;
+  renderDigitalPassView(regRecord);
 
-  if (user) {
-    document.getElementById("reg-student-name").value = user.name || "";
-    document.getElementById("reg-student-roll").value = user.roll || "";
-    document.getElementById("reg-student-email").value = user.email || "";
+  if (modal) {
+    if (typeof modal.showModal === "function") {
+      modal.showModal();
+    } else {
+      modal.style.display = "block";
+    }
   }
-
-  modal.style.display = "flex";
 }
 
-function showDigitalPassInModal(pass) {
-  document.getElementById("event-modal-form-view").style.display = "none";
+function renderDigitalPassView(regRecord) {
+  const formView = document.getElementById("event-modal-form-view");
   const passView = document.getElementById("event-modal-pass-view");
+  if (formView) formView.style.display = "none";
+  if (!passView) return;
+
+  const d = new Date(regRecord.eventDate);
+  const formattedDate = d.toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" });
+
   passView.style.display = "block";
-
-  const d = new Date(pass.eventDate);
-  const formattedDate = d.toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
-
   passView.innerHTML = `
-    <div class="pass-ticket-card">
-      <div class="pass-header">
-        <span class="pass-badge">✓ Official Campus Event Pass</span>
-        <h3 style="font-size: 18px; margin: 6px 0 4px 0; color: var(--text-main); font-family: 'Plus Jakarta Sans', sans-serif;">${escapeHTML(pass.eventTitle)}</h3>
-        <p style="font-size: 12px; color: var(--text-muted); margin: 0;">${escapeHTML(pass.venue)} &bull; ${formattedDate}</p>
+    <div class="digital-pass-card">
+      <span class="digital-pass-badge">✓ OFFICIAL ENTRY PASS</span>
+      <h3 style="margin: 0 0 6px; font-size: 1.125rem; font-weight: 800;">${escapeHTML(regRecord.eventTitle)}</h3>
+      <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 12px;">
+        ${escapeHTML(regRecord.clubName)} &bull; ${escapeHTML(regRecord.eventVenue)}
       </div>
 
-      <div class="pass-code">${escapeHTML(pass.passCode)}</div>
+      <div class="digital-pass-code">${escapeHTML(regRecord.passCode)}</div>
 
-      <div class="pass-qr-sim" title="Scan at event entry gate">
-        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect width="100" height="100" fill="white"/>
-          <!-- Simplified simulated QR code matrix -->
-          <rect x="10" y="10" width="24" height="24" fill="#0F172A"/>
-          <rect x="14" y="14" width="16" height="16" fill="white"/>
-          <rect x="18" y="18" width="8" height="8" fill="#0F172A"/>
-
-          <rect x="66" y="10" width="24" height="24" fill="#0F172A"/>
-          <rect x="70" y="14" width="16" height="16" fill="white"/>
-          <rect x="74" y="18" width="8" height="8" fill="#0F172A"/>
-
-          <rect x="10" y="66" width="24" height="24" fill="#0F172A"/>
-          <rect x="14" y="70" width="16" height="16" fill="white"/>
-          <rect x="18" y="74" width="8" height="8" fill="#0F172A"/>
-
-          <rect x="40" y="10" width="8" height="16" fill="#0F172A"/>
-          <rect x="52" y="18" width="8" height="8" fill="#0F172A"/>
-          <rect x="40" y="32" width="16" height="8" fill="#0F172A"/>
-          <rect x="10" y="40" width="16" height="8" fill="#0F172A"/>
-          <rect x="30" y="48" width="12" height="12" fill="#0F172A"/>
-          <rect x="48" y="48" width="12" height="12" fill="#0F172A"/>
-          <rect x="66" y="40" width="24" height="8" fill="#0F172A"/>
-          <rect x="66" y="54" width="10" height="14" fill="#0F172A"/>
-          <rect x="80" y="54" width="10" height="20" fill="#0F172A"/>
-          <rect x="40" y="66" width="10" height="24" fill="#0F172A"/>
-          <rect x="56" y="74" width="16" height="10" fill="#0F172A"/>
-        </svg>
+      <div class="digital-pass-barcode">
+        ${Array.from({ length: 30 }).map((_, i) => `<div class="barcode-bar" style="height: ${18 + (i % 5) * 5}px;"></div>`).join("")}
       </div>
 
-      <div class="pass-meta-grid">
-        <div>
-          <div class="pass-meta-label">Attendee Name</div>
-          <div class="pass-meta-val">${escapeHTML(pass.studentName)}</div>
-        </div>
-        <div>
-          <div class="pass-meta-label">Roll Number</div>
-          <div class="pass-meta-val">${escapeHTML(pass.studentRoll)}</div>
-        </div>
-        <div>
-          <div class="pass-meta-label">Registered Email</div>
-          <div class="pass-meta-val">${escapeHTML(pass.studentEmail)}</div>
-        </div>
-        <div>
-          <div class="pass-meta-label">Pass Status</div>
-          <div class="pass-meta-val" style="color: var(--success);">ACTIVE &bull; VERIFIED</div>
-        </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; text-align: left; font-size: 0.75rem; background: var(--bg-surface); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-top: 14px;">
+        <div><strong style="color: var(--text-secondary);">Attendee:</strong> ${escapeHTML(regRecord.studentName)}</div>
+        <div><strong style="color: var(--text-secondary);">Roll No:</strong> ${escapeHTML(regRecord.rollNumber)}</div>
+        <div><strong style="color: var(--text-secondary);">Event Date:</strong> ${formattedDate}</div>
+        <div><strong style="color: var(--text-secondary);">Status:</strong> <span style="color: var(--color-success); font-weight: 700;">Confirmed</span></div>
       </div>
     </div>
 
-    <div style="display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end;">
-      <a href="dashboard.html" class="btn btn-outline btn-sm">View in Dashboard</a>
-      <button class="btn btn-primary btn-sm" onclick="window.print()">Print / Save PDF</button>
-      <button class="btn btn-outline btn-sm" onclick="document.getElementById('event-reg-modal').style.display='none'">Close</button>
+    <div class="modal-footer" style="margin-top: 16px;">
+      <button type="button" class="btn btn-outline" onclick="closeRegisterModal()">Done</button>
+      <button type="button" class="btn btn-primary" onclick="window.print()">Print / Save Pass</button>
     </div>
   `;
 }
 
-function viewDigitalPass(eventId) {
-  const user = Storage.getCurrentUser();
-  if (!user) return;
-  const registrations = Storage.getEventRegistrations();
-  const pass = registrations.find(r => r.eventId === eventId && r.studentEmail === user.email);
-  if (pass) {
-    const modal = document.getElementById("event-reg-modal");
-    document.getElementById("event-modal-form-view").style.display = "none";
-    showDigitalPassInModal(pass);
-    modal.style.display = "flex";
-  }
-}
-
-// ---------------- CREATE EVENT (ADMIN / LEAD) ----------------
 function setupCreateEventModal() {
-  const openBtn = document.getElementById("create-event-trigger");
+  const triggerBtn = document.getElementById("create-event-trigger");
   const modal = document.getElementById("create-event-modal");
-  const form = document.getElementById("create-event-form");
   const closeBtn = document.getElementById("create-event-close");
+  const cancelBtn = document.getElementById("cancel-create-btn");
+  const form = document.getElementById("create-event-form");
 
-  if (!openBtn || !modal || !form) return;
-
-  const user = Storage.getCurrentUser();
-  // Show button for admin or club leads
-  if (user && (user.role === "admin" || user.role === "lead")) {
-    openBtn.style.display = "inline-flex";
+  // Check if current user is admin or coordinator
+  if (typeof Storage !== "undefined") {
+    const user = Storage.getCurrentUser();
+    if (user && (user.role === "Admin" || user.role === "Coordinator")) {
+      if (triggerBtn) triggerBtn.style.display = "inline-flex";
+    }
   }
 
-  openBtn.addEventListener("click", () => {
-    modal.style.display = "flex";
-  });
-
-  if (closeBtn) {
-    closeBtn.addEventListener("click", () => {
-      modal.style.display = "none";
-    });
+  if (triggerBtn && modal) {
+    triggerBtn.onclick = () => {
+      if (typeof modal.showModal === "function") modal.showModal();
+      else modal.style.display = "block";
+    };
   }
 
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) modal.style.display = "none";
-  });
+  const closeCreate = () => {
+    if (!modal) return;
+    if (typeof modal.close === "function") modal.close();
+    else modal.style.display = "none";
+  };
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  if (closeBtn) closeBtn.onclick = closeCreate;
+  if (cancelBtn) cancelBtn.onclick = closeCreate;
 
-    const title = document.getElementById("new-event-title").value.trim();
-    const clubName = document.getElementById("new-event-club").value.trim();
-    const category = document.getElementById("new-event-category").value;
-    const date = document.getElementById("new-event-date").value;
-    const venue = document.getElementById("new-event-venue").value.trim();
-    const fee = document.getElementById("new-event-fee").value.trim() || "Free";
-    const prizes = document.getElementById("new-event-prizes").value.trim();
-    const capacity = parseInt(document.getElementById("new-event-capacity").value) || 200;
-    const description = document.getElementById("new-event-desc").value.trim();
+  if (form) {
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      const title = document.getElementById("new-event-title").value.trim();
+      const clubName = document.getElementById("new-event-club").value.trim();
+      const category = document.getElementById("new-event-category").value;
+      const date = document.getElementById("new-event-date").value;
+      const venue = document.getElementById("new-event-venue").value.trim();
+      const fee = document.getElementById("new-event-fee").value.trim() || "Free";
+      const prizes = document.getElementById("new-event-prizes").value.trim();
+      const capacity = parseInt(document.getElementById("new-event-capacity").value, 10) || 200;
+      const desc = document.getElementById("new-event-desc").value.trim();
 
-    Storage.addEvent({
-      title,
-      clubName,
-      clubId: "custom-" + Date.now(),
-      category,
-      date,
-      venue,
-      fee,
-      prizes,
-      capacity,
-      description,
-      banner: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800",
-      tags: [category, "Campus Event"]
-    });
+      const newEvent = {
+        id: "evt-" + Date.now(),
+        title,
+        clubName,
+        category,
+        date: new Date(date).toISOString(),
+        venue,
+        fee,
+        prizes,
+        capacity,
+        registeredCount: 0,
+        description: desc,
+        banner: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800"
+      };
 
-    currentEvents = Storage.getEvents();
-    renderEvents();
-    modal.style.display = "none";
-    form.reset();
-    showToast("New campus event published successfully!", "success");
-  });
+      currentEvents.unshift(newEvent);
+      if (typeof Storage !== "undefined") {
+        Storage.saveEvents(currentEvents);
+      }
+
+      closeCreate();
+      form.reset();
+      renderEvents();
+
+      if (typeof UIStates !== "undefined") {
+        UIStates.showToast("Event published successfully to campus calendar!", "success");
+      }
+    };
+  }
 }
-
