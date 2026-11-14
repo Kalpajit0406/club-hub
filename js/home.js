@@ -3,7 +3,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   renderCategories();
   renderFeaturedClubs();
-  renderUpcomingEvents();
   initHeroSearch();
 });
 
@@ -12,6 +11,7 @@ function renderCategories() {
   const container = document.getElementById("categories-grid");
   if (!container || typeof CATEGORIES === "undefined" || typeof CLUBS_DATA === "undefined") return;
 
+  // Filter out the 'all' category for the home category cards
   const displayCats = CATEGORIES.filter(c => c.id !== "all");
 
   const iconsMap = {
@@ -38,7 +38,7 @@ function renderCategories() {
   }).join("");
 }
 
-// Render featured clubs with semantic action buttons
+// Render 3 featured clubs
 function renderFeaturedClubs() {
   const container = document.getElementById("featured-clubs-grid");
   if (!container || typeof CLUBS_DATA === "undefined") return;
@@ -57,7 +57,6 @@ function renderFeaturedClubs() {
             ${getStatusBadge(club.status)}
           </div>
           <button 
-            type="button"
             class="club-card-bookmark-btn ${isSaved ? 'saved' : ''}" 
             data-club-id="${club.id}" 
             title="${isSaved ? 'Remove from saved' : 'Save club'}"
@@ -105,87 +104,35 @@ function renderFeaturedClubs() {
     `;
   }).join("");
 
-  attachBookmarkListeners(container);
-}
-
-// Render Upcoming Campus Events
-function renderUpcomingEvents() {
-  const container = document.getElementById("events-grid");
-  if (!container || typeof CAMPUS_EVENTS === "undefined") return;
-
-  container.innerHTML = CAMPUS_EVENTS.slice(0, 3).map(evt => {
-    const d = new Date(evt.date);
-    const month = d.toLocaleDateString("en-US", { month: "short" });
-    const day = d.getDate();
-
-    return `
-      <article class="event-card">
-        <div class="event-card-banner">
-          <img src="${evt.banner}" alt="${escapeHTML(evt.title)}" loading="lazy">
-          <span class="event-type-badge">${escapeHTML(evt.type)}</span>
-        </div>
-        <div class="event-card-body">
-          <div class="event-date-row">
-            <div class="event-date-badge">
-              <span class="month">${month}</span>
-              <span class="day">${day}</span>
-            </div>
-            <div>
-              <div class="event-host-name">${escapeHTML(evt.clubName)}</div>
-              <div style="font-size: 0.775rem; color: var(--text-secondary);">${escapeHTML(evt.attendees)}+ Attending</div>
-            </div>
-          </div>
-          <h3 class="event-title">${escapeHTML(evt.title)}</h3>
-          <div class="event-venue-row">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <span>${escapeHTML(evt.venue)}</span>
-          </div>
-        </div>
-      </article>
-    `;
-  }).join("");
+  // Attach bookmark toggle listeners
+  container.querySelectorAll(".club-card-bookmark-btn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const clubId = btn.getAttribute("data-club-id");
+      if (typeof Storage !== "undefined") {
+        const isNowSaved = Storage.toggleBookmark(clubId);
+        btn.classList.toggle("saved", isNowSaved);
+        btn.title = isNowSaved ? "Remove from saved" : "Save club";
+        showToast(isNowSaved ? "Club saved to your bookmarks!" : "Club removed from bookmarks", "info");
+      }
+    });
+  });
 }
 
 // Hero Search form submission
 function initHeroSearch() {
-  const searchForm = document.getElementById("hero-search-form");
-  const searchInput = document.getElementById("hero-search-input");
+  const form = document.getElementById("hero-search-form");
+  const input = document.getElementById("hero-search-input");
 
-  if (!searchForm || !searchInput) return;
+  if (!form || !input) return;
 
-  searchForm.addEventListener("submit", (e) => {
+  form.addEventListener("submit", (e) => {
     e.preventDefault();
-    const query = searchInput.value.trim();
+    const query = input.value.trim();
     if (query) {
-      window.location.href = `clubs.html?q=${encodeURIComponent(query)}`;
+      window.location.href = `clubs.html?search=${encodeURIComponent(query)}`;
     } else {
-      window.location.href = "clubs.html";
+      window.location.href = `clubs.html`;
     }
-  });
-}
-
-// Bookmark click delegation
-function attachBookmarkListeners(container) {
-  container.addEventListener("click", (e) => {
-    const btn = e.target.closest(".club-card-bookmark-btn");
-    if (!btn) return;
-
-    e.preventDefault();
-    e.stopPropagation();
-
-    const clubId = btn.getAttribute("data-club-id");
-    if (!clubId || typeof Storage === "undefined") return;
-
-    const isNowSaved = Storage.toggleBookmark(clubId);
-    btn.classList.toggle("saved", isNowSaved);
-    btn.setAttribute("title", isNowSaved ? "Remove from saved" : "Save club");
-
-    const club = CLUBS_DATA.find(c => c.id === clubId);
-    const clubName = club ? club.name : "Club";
-    
-    showToast(
-      isNowSaved ? `Added ${clubName} to your saved list.` : `Removed ${clubName} from saved.`,
-      "info"
-    );
   });
 }

@@ -2,73 +2,12 @@
 
 // Initialize UI behaviors on DOM ready
 document.addEventListener("DOMContentLoaded", () => {
-  initTheme();
   initMobileNav();
   highlightActiveNavLink();
   initToastContainer();
   updateNavBadges();
   renderNavAuth();
-  renderThemeToggleBtn();
 });
-
-// ---------------- DARK / LIGHT THEME TOGGLE ----------------
-const THEME_STORAGE_KEY = "campus_connect_theme_v1";
-
-function initTheme() {
-  const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || "light";
-  document.documentElement.setAttribute("data-theme", savedTheme);
-}
-
-function toggleTheme() {
-  const currentTheme = document.documentElement.getAttribute("data-theme") || "light";
-  const nextTheme = currentTheme === "dark" ? "light" : "dark";
-  document.documentElement.setAttribute("data-theme", nextTheme);
-  localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
-
-  const btn = document.querySelector(".theme-toggle-btn");
-  if (btn) {
-    btn.setAttribute("title", nextTheme === "dark" ? "Switch to light mode" : "Switch to dark mode");
-    btn.setAttribute("aria-label", nextTheme === "dark" ? "Switch to light mode" : "Switch to dark mode");
-  }
-}
-
-function renderThemeToggleBtn() {
-  // Prevent duplicate insertion
-  if (document.querySelector(".theme-toggle-btn")) return;
-
-  const currentTheme = document.documentElement.getAttribute("data-theme") || "light";
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.className = "theme-toggle-btn";
-  btn.setAttribute("aria-label", currentTheme === "dark" ? "Switch to light mode" : "Switch to dark mode");
-  btn.setAttribute("title", currentTheme === "dark" ? "Switch to light mode" : "Switch to dark mode");
-  btn.innerHTML = `
-    <svg class="moon-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-    </svg>
-    <svg class="sun-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2">
-      <circle cx="12" cy="12" r="5"/>
-      <line x1="12" y1="1" x2="12" y2="3"/>
-      <line x1="12" y1="21" x2="12" y2="23"/>
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-      <line x1="1" y1="12" x2="3" y2="12"/>
-      <line x1="21" y1="12" x2="23" y2="12"/>
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-    </svg>
-  `;
-  btn.addEventListener("click", toggleTheme);
-
-  const navActions = document.querySelector(".nav-actions");
-  if (navActions) {
-    navActions.insertBefore(btn, navActions.firstChild);
-  } else {
-    // Standalone pages (login, register)
-    btn.classList.add("theme-toggle-floating");
-    document.body.appendChild(btn);
-  }
-}
 
 // ---------------- MOBILE NAVIGATION DRAWER ----------------
 function initMobileNav() {

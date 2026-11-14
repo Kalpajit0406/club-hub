@@ -1,45 +1,41 @@
-/* css/clubs.css - CampusClubs Burgundy Heritage Explore & Catalog Page Styles */
+/* css/clubs.css - CampusConnect Explore & Catalog Page Styles */
 
 .clubs-page-header {
-  padding: 2.75rem 0 3rem;
-  background: var(--bg-page);
-  border-bottom: 1px solid var(--border-champagne);
+  padding: 2.25rem 0 2.5rem;
+  background: #ffffff;
+  border-bottom: 1px solid var(--border);
   margin-top: calc(-1.25rem);
-  margin-bottom: 2.75rem;
-  background-image: 
-    radial-gradient(circle at 10% 20%, rgba(100, 30, 50, 0.04) 0%, transparent 40%),
-    radial-gradient(rgba(197, 161, 91, 0.12) 1.2px, transparent 1.2px);
-  background-size: 100% 100%, 28px 28px;
+  margin-bottom: 2.5rem;
+  background-image: radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.04) 0%, transparent 40%);
 }
 
 .clubs-page-title {
   font-family: var(--font-heading);
-  font-size: clamp(2.2rem, 3.8vw, 2.75rem);
+  font-size: clamp(2rem, 3.5vw, 2.5rem);
+  letter-spacing: -0.03em;
   font-weight: 800;
-  color: var(--maroon-dark);
+  color: var(--navy-dark);
   margin-bottom: 0.5rem;
 }
 
 .clubs-page-desc {
   color: var(--text-secondary);
   font-size: 1.05rem;
-  max-width: 720px;
-  line-height: 1.65;
+  max-width: 680px;
+  line-height: 1.6;
 }
 
-/* ============================================================
-   FILTER CONTROLS
-   ============================================================ */
+/* ---------------- FILTER CONTROLS ---------------- */
 .catalog-controls {
-  background: #FFFFFF;
-  border: 1px solid var(--border-champagne);
+  background: #ffffff;
+  border: 1px solid var(--border);
   border-radius: var(--radius-card);
-  padding: 1.75rem;
+  padding: 1.5rem;
   box-shadow: var(--shadow-sm);
-  margin-bottom: 2.25rem;
+  margin-bottom: 2rem;
   display: flex;
   flex-direction: column;
-  gap: 1.35rem;
+  gap: 1.25rem;
 }
 
 /* Search Row */
@@ -59,36 +55,36 @@
 .search-input-icon {
   position: absolute;
   left: 14px;
-  width: 19px;
-  height: 19px;
-  color: var(--gold);
+  width: 18px;
+  height: 18px;
+  color: var(--text-light);
   pointer-events: none;
 }
 
 .search-input-box input {
   width: 100%;
-  height: 44px;
-  padding: 0 2.5rem 0 2.85rem;
-  border-radius: var(--radius-btn);
-  border: 1px solid var(--border-champagne);
+  height: 42px;
+  padding: 0 2.5rem 0 2.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
   font-size: 0.925rem;
-  background: #FAF7F0;
+  background: var(--bg-page);
   color: var(--text-main);
   transition: all var(--transition-fast);
 }
 
 .search-input-box input:focus {
   outline: none;
-  border-color: var(--gold);
-  background: #FFFFFF;
-  box-shadow: 0 0 0 3px rgba(197, 161, 91, 0.25);
+  border-color: var(--primary);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 .search-clear-btn {
   position: absolute;
   right: 12px;
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: var(--bg-surface);
   color: var(--text-secondary);
@@ -107,40 +103,39 @@
 .category-chips-wrapper {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   overflow-x: auto;
   padding-bottom: 0.35rem;
   scrollbar-width: thin;
 }
 
 .category-chip {
-  height: 36px;
-  padding: 0 1.05rem;
+  height: 34px;
+  padding: 0 0.95rem;
   border-radius: var(--radius-full);
-  font-size: 0.8125rem;
+  font-size: 0.8125rem; /* 13px */
   font-weight: 600;
   color: var(--text-secondary);
-  background: #FAF7F0;
-  border: 1px solid var(--border-champagne);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
   cursor: pointer;
   white-space: nowrap;
   transition: all var(--transition-fast);
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
 }
 
 .category-chip:hover {
-  background: var(--bg-surface-hover);
-  color: var(--maroon);
-  border-color: var(--gold);
+  background: #e2e8f0;
+  color: var(--text-main);
 }
 
 .category-chip.active {
-  background: #641E32;
-  color: #FFFFFF;
-  border-color: #641E32;
-  box-shadow: 0 2px 6px rgba(100, 30, 50, 0.3);
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
 }
 
 /* Secondary Filters (Status & Sorting) */
@@ -150,50 +145,50 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 1rem;
-  padding-top: 1.15rem;
+  padding-top: 1rem;
   border-top: 1px solid var(--border);
 }
 
 .filters-group {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.75rem;
   flex-wrap: wrap;
 }
 
 .filter-select-label {
-  font-size: 0.8125rem;
+  font-size: 0.8125rem; /* 13px */
   font-weight: 600;
   color: var(--text-secondary);
 }
 
 .filter-select {
   height: 38px;
-  padding: 0 2.25rem 0 0.95rem;
-  font-size: 0.875rem;
+  padding: 0 2rem 0 0.85rem;
+  font-size: 0.875rem; /* 14px */
   font-weight: 500;
-  border: 1px solid var(--border-champagne);
-  border-radius: var(--radius-btn);
-  background-color: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: #ffffff;
   color: var(--text-main);
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23C5A15B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
-  background-position: right 0.75rem center;
+  background-position: right 0.65rem center;
   background-size: 14px;
   transition: border-color var(--transition-fast);
 }
 
 .filter-select:focus {
   outline: none;
-  border-color: var(--gold);
-  box-shadow: 0 0 0 3px rgba(197, 161, 91, 0.25);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 .reset-filters-link {
   font-size: 0.8125rem;
-  color: var(--maroon);
+  color: var(--primary);
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
@@ -203,7 +198,6 @@
 
 .reset-filters-link:hover {
   text-decoration: underline;
-  color: var(--gold);
 }
 
 /* Results Count Bar */
@@ -211,7 +205,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.75rem;
+  margin-bottom: 1.5rem;
 }
 
 .results-count {
@@ -221,29 +215,11 @@
 }
 
 .results-count span {
-  color: var(--maroon);
+  color: var(--text-main);
   font-weight: 700;
 }
 
-/* Responsive 3-Column Desktop Grid */
-@media (min-width: 992px) {
-  .clubs-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 991px) and (min-width: 640px) {
-  .clubs-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 639px) {
-  .clubs-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
+/* Responsive adjustments */
 @media (max-width: 768px) {
   .secondary-filters-row {
     flex-direction: column;
@@ -252,58 +228,4 @@
   .filters-group {
     justify-content: space-between;
   }
-}
-
-/* ============================================================
-   DARK MODE OVERRIDES
-   ============================================================ */
-[data-theme="dark"] .clubs-page-header {
-  background: var(--bg-page);
-  border-bottom-color: var(--border);
-  background-image: 
-    radial-gradient(circle at 10% 20%, rgba(209, 79, 110, 0.08) 0%, transparent 40%),
-    radial-gradient(rgba(214, 178, 107, 0.06) 1.2px, transparent 1.2px);
-}
-
-[data-theme="dark"] .clubs-page-title {
-  color: var(--gold);
-}
-
-[data-theme="dark"] .catalog-controls {
-  background: var(--bg-card);
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .search-input-box input {
-  background: var(--bg-surface);
-  border-color: var(--border);
-  color: var(--text-main);
-}
-
-[data-theme="dark"] .search-input-box input:focus {
-  background: var(--bg-card);
-  border-color: var(--gold);
-}
-
-[data-theme="dark"] .category-chip {
-  background: var(--bg-surface);
-  border-color: var(--border);
-  color: var(--text-secondary);
-}
-
-[data-theme="dark"] .category-chip:hover {
-  background: var(--bg-surface-hover);
-  color: var(--gold);
-}
-
-[data-theme="dark"] .category-chip.active {
-  background: var(--gold);
-  color: #3B1422;
-  border-color: var(--gold);
-}
-
-[data-theme="dark"] .filter-select {
-  background-color: var(--bg-surface);
-  color: var(--text-main);
-  border-color: var(--border);
 }

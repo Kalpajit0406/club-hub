@@ -1,149 +1,191 @@
-// js/admin.js - Logic for Club Admin Dashboard (Section 9)
+// js/admin.js - CampusConnect Admin & Club Leadership Portal Controller
 
-let adminEvents = [];
-let adminMembers = [];
+const adminState = {
+  clubFilter: "ALL",
+  statusFilter: "ALL",
+  searchQuery: ""
+};
 
 document.addEventListener("DOMContentLoaded", () => {
-  initAdminData();
   initAdminTabs();
-  initAdminFilters();
-  initCreateEventModal();
-  refreshAdminDashboard();
+  populateClubDropdownFilter();
+  initToolbarFilters();
+  refreshAdminView();
+  initViewModal();
 });
-
-function initAdminData() {
-  if (typeof CAMPUS_EVENTS !== "undefined") {
-    adminEvents = [...CAMPUS_EVENTS];
-  }
-  if (typeof CAMPUS_MEMBERS !== "undefined") {
-    adminMembers = [...CAMPUS_MEMBERS];
-  }
-}
 
 function initAdminTabs() {
   const tabs = document.querySelectorAll(".admin-tab-btn");
-  const tabPanes = document.querySelectorAll(".admin-tab-pane");
+  const panes = document.querySelectorAll(".admin-tab-pane");
 
   tabs.forEach(tab => {
     tab.addEventListener("click", () => {
-      const targetTab = tab.getAttribute("data-tab");
-
+      const target = tab.getAttribute("data-tab");
       tabs.forEach(t => t.classList.remove("active"));
-      tabPanes.forEach(p => p.style.display = "none");
+      panes.forEach(p => p.style.display = "none");
 
       tab.classList.add("active");
-      const activePane = document.getElementById(`admin-pane-${targetTab}`);
-      if (activePane) activePane.style.display = "block";
+      const targetPane = document.getElementById(`pane-${target}`);
+      if (targetPane) targetPane.style.display = "block";
     });
   });
 }
 
-function refreshAdminDashboard() {
-  updateAdminMetrics();
-  renderAdminApplications();
-  renderAdminMembers();
-  renderAdminEvents();
+function populateClubDropdownFilter() {
+  const select = document.getElementById("admin-club-filter");
+  if (!select || typeof CLUBS_DATA === "undefined") return;
+
+  select.innerHTML = `<option value="ALL">All Clubs & Chapters</option>` +
+    CLUBS_DATA.map(c => `<option value="${c.id}">${escapeHTML(c.name)} (${c.acronym || c.category})</option>`).join("");
 }
 
+function initToolbarFilters() {
+  const clubSelect = document.getElementById("admin-club-filter");
+  const statusSelect = document.getElementById("admin-status-filter");
+  const searchInput = document.getElementById("admin-search-input");
+
+  if (clubSelect) {
+    clubSelect.addEventListener("change", (e) => {
+      adminState.clubFilter = e.target.value;
+      renderApplicationsTable();
+    });
+  }
+
+  if (statusSelect) {
+    statusSelect.addEventListener("change", (e) => {
+      adminState.statusFilter = e.target.value;
+      renderApplicationsTable();
+    });
+  }
+
+  if (searchInput) {
+    let debounce;
+    searchInput.addEventListener("input", (e) => {
+      clearTimeout(debounce);
+      debounce = setTimeout(() => {
+        adminState.searchQuery = e.target.value.trim().toLowerCase();
+        renderApplicationsTable();
+      }, 150);
+    });
+  }
+}
+
+function refreshAdminView() {
+  updateAdminMetrics();
+  renderApplicationsTable();
+  renderMembersTable();
+  renderEventsTable();
+}
+
+// ---------------- UPDATE METRICS ----------------
 function updateAdminMetrics() {
   if (typeof Storage === "undefined") return;
 
-  const applications = Storage.getApplications();
-  const totalAppsEl = document.getElementById("admin-metric-apps");
-  const totalMembersEl = document.getElementById("admin-metric-members");
-  const totalEventsEl = document.getElementById("admin-metric-events");
-  const acceptanceRateEl = document.getElementById("admin-metric-rate");
+  const apps = Storage.getApplications();
+  const total = apps.length;
+  const pending = apps.filter(a => a.status === "PENDING").length;
+  const shortlisted = apps.filter(a => a.status === "SHORTLISTED").length;
+  const approved = apps.filter(a => a.status === "ACCEPTED" || a.status === "APPROVED").length;
 
-  if (totalAppsEl) totalAppsEl.textContent = applications.length;
-  if (totalMembersEl) totalMembersEl.textContent = adminMembers.length;
-  if (totalEventsEl) totalEventsEl.textContent = adminEvents.length;
+  document.getElementById("admin-metric-total").textContent = total;
+  document.getElementById("admin-metric-pending").textContent = pending;
+  document.getElementById("admin-metric-shortlisted").textContent = shortlisted;
+  document.getElementById("admin-metric-approved").textContent = approved;
 
-  if (acceptanceRateEl) {
-    const accepted = applications.filter(a => a.status === "ACCEPTED" || a.status === "APPROVED").length;
-    const rate = applications.length > 0 ? Math.round((accepted / applications.length) * 100) : 0;
-    acceptanceRateEl.textContent = `${rate}%`;
-  }
-
-  const badgeApps = document.getElementById("admin-tab-badge-apps");
-  if (badgeApps) badgeApps.textContent = applications.length;
-  const badgeMembers = document.getElementById("admin-tab-badge-members");
-  if (badgeMembers) badgeMembers.textContent = adminMembers.length;
-  const badgeEvents = document.getElementById("admin-tab-badge-events");
-  if (badgeEvents) badgeEvents.textContent = adminEvents.length;
+  document.getElementById("tab-count-admin-apps").textContent = total;
 }
 
-// ============================================================
-// APPLICATION MANAGEMENT TABLE & ACTIONS
-// ============================================================
-function renderAdminApplications() {
-  const tbody = document.getElementById("admin-apps-tbody");
+// ---------------- RENDER APPLICATIONS TABLE ----------------
+function renderApplicationsTable() {
+  const tbody = document.getElementById("admin-applications-tbody");
   if (!tbody || typeof Storage === "undefined") return;
 
-  const applications = Storage.getApplications();
-  const searchInput = document.getElementById("admin-app-search");
-  const statusFilter = document.getElementById("admin-app-status-filter");
+  let apps = Storage.getApplications();
 
-  const query = searchInput ? searchInput.value.trim().toLowerCase() : "";
-  const filterStatus = statusFilter ? statusFilter.value : "ALL";
+  // Filter by Club
+  if (adminState.clubFilter !== "ALL") {
+    apps = apps.filter(a => a.clubId === adminState.clubFilter);
+  }
 
-  let filtered = applications.filter(app => {
-    const matchQuery = !query || 
-      (app.studentName && app.studentName.toLowerCase().includes(query)) ||
-      (app.studentRoll && app.studentRoll.toLowerCase().includes(query)) ||
-      (app.clubName && app.clubName.toLowerCase().includes(query)) ||
-      (app.domain && app.domain.toLowerCase().includes(query));
+  // Filter by Status
+  if (adminState.statusFilter !== "ALL") {
+    apps = apps.filter(a => a.status === adminState.statusFilter);
+  }
 
-    const matchStatus = filterStatus === "ALL" || app.status === filterStatus;
-    return matchQuery && matchStatus;
-  });
+  // Search filter
+  if (adminState.searchQuery) {
+    const q = adminState.searchQuery;
+    apps = apps.filter(a => {
+      const matchName = (a.studentName || "").toLowerCase().includes(q);
+      const matchRoll = (a.studentRoll || "").toLowerCase().includes(q);
+      const matchDomain = (a.domain || "").toLowerCase().includes(q);
+      const matchClub = (a.clubName || "").toLowerCase().includes(q);
+      return matchName || matchRoll || matchDomain || matchClub;
+    });
+  }
 
-  if (filtered.length === 0) {
+  if (apps.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="6" style="text-align: center; padding: 3rem; color: var(--text-secondary);">
-          No candidate applications found matching your criteria.
+        <td colspan="6" style="text-align: center; padding: 3rem 1rem; color: var(--text-secondary);">
+          <div style="font-size: 1rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.25rem;">No matching applications found</div>
+          <p style="font-size: 0.85rem;">Try resetting your filters or search keywords.</p>
         </td>
       </tr>
     `;
     return;
   }
 
-  tbody.innerHTML = filtered.map(app => {
+  tbody.innerHTML = apps.map(app => {
     return `
       <tr>
         <td>
-          <div class="candidate-detail-item">
-            <span class="candidate-name">${escapeHTML(app.studentName)}</span>
-            <span class="candidate-roll">${escapeHTML(app.studentRoll || 'N/A')} • ${escapeHTML(app.branch || '')}</span>
-          </div>
+          <div style="font-weight: 700; color: var(--text-main);">${escapeHTML(app.studentName)}</div>
+          <div style="font-size: 0.8rem; color: var(--text-secondary);">${escapeHTML(app.studentRoll || '')} • ${escapeHTML(app.year || '')}</div>
+          <div style="font-size: 0.8rem; color: var(--primary);">${escapeHTML(app.email || '')}</div>
         </td>
-        <td><strong>${escapeHTML(app.clubName)}</strong></td>
-        <td><span class="badge badge-cat">${escapeHTML(app.domain || 'General')}</span></td>
-        <td>${formatDate(app.appliedDate)}</td>
-        <td>${getApplicationStatusBadge(app.status)}</td>
         <td>
-          <div class="table-action-group">
+          <div style="font-weight: 600; color: var(--navy);">${escapeHTML(app.clubName)}</div>
+          <div style="font-size: 0.8125rem; color: var(--text-secondary);">${escapeHTML(app.domain || 'General')}</div>
+        </td>
+        <td style="font-size: 0.85rem; color: var(--text-secondary);">
+          ${formatDate(app.appliedDate)}
+        </td>
+        <td>
+          ${getApplicationStatusBadge(app.status)}
+        </td>
+        <td>
+          <div class="table-action-btns">
             <button 
               type="button" 
-              class="btn btn-success btn-sm" 
-              title="Approve candidate and induct into society"
-              onclick="handleAdminApprove('${app.id}', '${escapeHTML(app.studentName)}')"
+              class="btn btn-outline btn-sm" 
+              title="View Application Details"
+              onclick="viewApplicationDetails('${app.id}')"
             >
-              Approve
+              View
             </button>
             <button 
               type="button" 
-              class="btn btn-warning btn-sm" 
-              title="Shortlist for interview rounds"
-              onclick="handleAdminShortlist('${app.id}', '${escapeHTML(app.studentName)}')"
+              class="btn btn-secondary btn-sm" 
+              style="color: var(--primary);" 
+              title="Shortlist for Interview"
+              onclick="handleStatusUpdate('${app.id}', 'SHORTLISTED')"
             >
               Shortlist
             </button>
             <button 
               type="button" 
+              class="btn btn-success btn-sm" 
+              title="Approve & Accept"
+              onclick="handleStatusUpdate('${app.id}', 'ACCEPTED')"
+            >
+              Approve
+            </button>
+            <button 
+              type="button" 
               class="btn btn-danger btn-sm" 
-              title="Reject application"
-              onclick="handleAdminReject('${app.id}', '${escapeHTML(app.studentName)}')"
+              title="Reject"
+              onclick="handleStatusUpdate('${app.id}', 'REJECTED')"
             >
               Reject
             </button>
@@ -154,221 +196,146 @@ function renderAdminApplications() {
   }).join("");
 }
 
-function handleAdminApprove(appId, studentName) {
+// Action handlers
+function handleStatusUpdate(appId, newStatus) {
   if (typeof Storage === "undefined") return;
-  Storage.updateApplicationStatus(appId, "ACCEPTED", "Candidate has been approved and inducted into the collegiate society.");
-  refreshAdminDashboard();
-  showToast(`Approved ${studentName}! Induction confirmed.`, "success");
+
+  const updated = Storage.updateApplicationStatus(appId, newStatus);
+  if (updated) {
+    refreshAdminView();
+    updateNavBadges();
+    showToast(`Applicant status changed to ${newStatus}`, "success");
+  }
 }
 
-function handleAdminShortlist(appId, studentName) {
-  if (typeof Storage === "undefined") return;
-  Storage.updateApplicationStatus(appId, "SHORTLISTED", "Candidate is shortlisted for Round 1 technical & creative interviews.");
-  refreshAdminDashboard();
-  showToast(`Shortlisted ${studentName} for evaluation rounds.`, "info");
-}
-
-function handleAdminReject(appId, studentName) {
-  const confirmed = window.confirm(`Are you sure you want to decline the candidacy of ${studentName}?`);
-  if (!confirmed) return;
-  if (typeof Storage === "undefined") return;
-  Storage.updateApplicationStatus(appId, "REJECTED", "Thank you for applying. We are unable to offer membership this term.");
-  refreshAdminDashboard();
-  showToast(`Declined application for ${studentName}.`, "error");
-}
-
-// ============================================================
-// MEMBER MANAGEMENT TABLE & ACTIONS
-// ============================================================
-function renderAdminMembers() {
+// ---------------- RENDER MEMBERS TABLE ----------------
+function renderMembersTable() {
   const tbody = document.getElementById("admin-members-tbody");
-  if (!tbody) return;
+  if (!tbody || typeof CAMPUS_MEMBERS === "undefined") return;
 
-  const searchInput = document.getElementById("admin-member-search");
-  const query = searchInput ? searchInput.value.trim().toLowerCase() : "";
+  document.getElementById("tab-count-admin-members").textContent = CAMPUS_MEMBERS.length;
 
-  let filtered = adminMembers.filter(m => {
-    return !query ||
-      m.name.toLowerCase().includes(query) ||
-      m.roll.toLowerCase().includes(query) ||
-      m.clubName.toLowerCase().includes(query) ||
-      m.domain.toLowerCase().includes(query);
-  });
-
-  if (filtered.length === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="6" style="text-align: center; padding: 3rem; color: var(--text-secondary);">
-          No members found matching your search.
-        </td>
-      </tr>
-    `;
-    return;
-  }
-
-  tbody.innerHTML = filtered.map(m => {
-    return `
-      <tr>
-        <td>
-          <div class="candidate-detail-item">
-            <span class="candidate-name">${escapeHTML(m.name)}</span>
-            <span class="candidate-roll">${escapeHTML(m.roll)}</span>
-          </div>
-        </td>
-        <td><strong>${escapeHTML(m.clubName)}</strong></td>
-        <td><span class="badge badge-cat">${escapeHTML(m.role)}</span></td>
-        <td>${escapeHTML(m.domain)}</td>
-        <td><span class="badge badge-status-open">Active Scholar</span></td>
-        <td>
-          <div class="table-action-group">
-            <button 
-              type="button" 
-              class="btn btn-outline btn-sm"
-              onclick="showToast('Member role edit enabled.', 'info')"
-            >
-              Edit Role
-            </button>
-            <button 
-              type="button" 
-              class="btn btn-danger btn-sm"
-              onclick="handleRemoveMember('${m.id}', '${escapeHTML(m.name)}')"
-            >
-              Remove
-            </button>
-          </div>
-        </td>
-      </tr>
-    `;
-  }).join("");
+  tbody.innerHTML = CAMPUS_MEMBERS.map(mem => `
+    <tr>
+      <td>
+        <div style="font-weight: 700; color: var(--text-main);">${escapeHTML(mem.name)}</div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary);">${escapeHTML(mem.roll)}</div>
+      </td>
+      <td>
+        <div style="font-weight: 600; color: var(--navy);">${escapeHTML(mem.clubName)}</div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary);">${escapeHTML(mem.domain)}</div>
+      </td>
+      <td>
+        <span class="badge badge-cat badge-cat-technical">${escapeHTML(mem.role)}</span>
+      </td>
+      <td style="font-size: 0.85rem; color: var(--text-secondary);">
+        ${escapeHTML(mem.joined)}
+      </td>
+      <td>
+        <span class="badge badge-status-open"><span class="badge-dot"></span> Active</span>
+      </td>
+    </tr>
+  `).join("");
 }
 
-function handleRemoveMember(memberId, name) {
-  const confirmed = window.confirm(`Are you sure you want to revoke active society membership for ${name}?`);
-  if (!confirmed) return;
+// ---------------- RENDER EVENTS TABLE ----------------
+function renderEventsTable() {
+  const container = document.getElementById("admin-events-grid");
+  if (!container || typeof CAMPUS_EVENTS === "undefined") return;
 
-  adminMembers = adminMembers.filter(m => m.id !== memberId);
-  refreshAdminDashboard();
-  showToast(`Revoked membership for ${name}.`, "info");
-}
+  document.getElementById("tab-count-admin-events").textContent = CAMPUS_EVENTS.length;
 
-// ============================================================
-// EVENT MANAGEMENT TABLE & ACTIONS
-// ============================================================
-function renderAdminEvents() {
-  const tbody = document.getElementById("admin-events-tbody");
-  if (!tbody) return;
-
-  if (adminEvents.length === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-secondary);">
-          No scheduled events. Click "Create Event" to schedule an assembly.
-        </td>
-      </tr>
-    `;
-    return;
-  }
-
-  tbody.innerHTML = adminEvents.map(evt => {
+  container.innerHTML = CAMPUS_EVENTS.map(evt => {
     const d = new Date(evt.date);
-    const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    const dateFormatted = d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
     return `
-      <tr>
-        <td><strong>${escapeHTML(evt.title)}</strong></td>
-        <td>${escapeHTML(evt.clubName)}</td>
-        <td>${dateStr}</td>
-        <td>📍 ${escapeHTML(evt.venue)}</td>
-        <td>
-          <div class="table-action-group">
-            <button 
-              type="button" 
-              class="btn btn-outline btn-sm"
-              onclick="showToast('Event modification mode opened.', 'info')"
-            >
-              Edit
-            </button>
-            <button 
-              type="button" 
-              class="btn btn-danger btn-sm"
-              onclick="handleDeleteEvent('${evt.id}', '${escapeHTML(evt.title)}')"
-            >
-              Delete
-            </button>
+      <div class="application-card" style="margin-bottom: 0;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.75rem;">
+          <div>
+            <span class="badge badge-cat badge-cat-technical" style="margin-bottom: 0.35rem;">${escapeHTML(evt.type)}</span>
+            <h3 style="font-family: var(--font-heading); font-size: 1.1rem; color: var(--text-main); margin-bottom: 0.25rem;">
+              ${escapeHTML(evt.title)}
+            </h3>
+            <div style="font-size: 0.85rem; color: var(--primary); font-weight: 600;">${escapeHTML(evt.clubName)}</div>
           </div>
-        </td>
-      </tr>
+          <span class="badge badge-status-open">Upcoming</span>
+        </div>
+
+        <div class="app-details-grid" style="margin-bottom: 0.85rem;">
+          <div class="app-detail-item">
+            <span class="app-detail-label">Schedule</span>
+            <span class="app-detail-val">📅 ${dateFormatted}</span>
+          </div>
+          <div class="app-detail-item">
+            <span class="app-detail-label">Location</span>
+            <span class="app-detail-val">📍 ${escapeHTML(evt.venue)}</span>
+          </div>
+          <div class="app-detail-item">
+            <span class="app-detail-label">Registered Attendees</span>
+            <span class="app-detail-val">👥 ${evt.attendees} Students</span>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+          <button class="btn btn-outline btn-sm" onclick="showToast('Event details notification dispatched to registered attendees', 'info')">Send Announcement</button>
+          <button class="btn btn-secondary btn-sm" onclick="showToast('Event settings opened', 'info')">Edit Event</button>
+        </div>
+      </div>
     `;
   }).join("");
 }
 
-function handleDeleteEvent(eventId, title) {
-  const confirmed = window.confirm(`Are you sure you want to cancel the event "${title}"?`);
-  if (!confirmed) return;
+// ---------------- VIEW APPLICATION DETAIL MODAL ----------------
+function initViewModal() {
+  const modal = document.getElementById("viewAppModal");
+  const closeBtn = document.getElementById("modal-view-close-btn");
+  if (!modal || !closeBtn) return;
 
-  adminEvents = adminEvents.filter(e => e.id !== eventId);
-  refreshAdminDashboard();
-  showToast(`Cancelled event: ${title}`, "info");
-}
+  closeBtn.addEventListener("click", () => modal.close());
 
-// ============================================================
-// CREATE EVENT MODAL
-// ============================================================
-function initCreateEventModal() {
-  const modal = document.getElementById("create-event-modal");
-  const form = document.getElementById("create-event-form");
-  const openBtn = document.getElementById("open-create-event-btn");
-  const closeBtn = document.getElementById("modal-event-close-x");
-  const cancelBtn = document.getElementById("modal-event-cancel-btn");
-
-  if (!modal || !form) return;
-
-  if (openBtn) openBtn.onclick = () => modal.showModal();
-  if (closeBtn) closeBtn.onclick = () => modal.close();
-  if (cancelBtn) cancelBtn.onclick = () => modal.close();
-
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const title = document.getElementById("evt-title").value.trim();
-    const clubName = document.getElementById("evt-society").value;
-    const date = document.getElementById("evt-date").value;
-    const venue = document.getElementById("evt-venue").value.trim();
-    const type = document.getElementById("evt-type").value;
-
-    const newEvt = {
-      id: "evt-" + Date.now(),
-      clubId: "gdsc",
-      clubName,
-      title,
-      date: date || new Date().toISOString(),
-      venue: venue || "Main Auditorium",
-      type,
-      status: "UPCOMING",
-      attendees: 50,
-      banner: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&auto=format&fit=crop&q=80"
-    };
-
-    adminEvents.unshift(newEvt);
-    modal.close();
-    form.reset();
-    refreshAdminDashboard();
-    showToast(`Published event "${title}" successfully!`, "success");
+  modal.addEventListener("click", (e) => {
+    const dims = modal.getBoundingClientRect();
+    if (
+      e.clientX < dims.left ||
+      e.clientX > dims.right ||
+      e.clientY < dims.top ||
+      e.clientY > dims.bottom
+    ) {
+      modal.close();
+    }
   });
 }
 
-function initAdminFilters() {
-  const appSearch = document.getElementById("admin-app-search");
-  const appStatus = document.getElementById("admin-app-status-filter");
-  const memberSearch = document.getElementById("admin-member-search");
+function viewApplicationDetails(appId) {
+  if (typeof Storage === "undefined") return;
+  const app = Storage.getApplicationById(appId);
+  const modal = document.getElementById("viewAppModal");
+  if (!app || !modal) return;
 
-  if (appSearch) {
-    appSearch.addEventListener("input", renderAdminApplications);
+  document.getElementById("view-modal-name").textContent = app.studentName;
+  document.getElementById("view-modal-club").textContent = `${app.clubName} • ${app.domain}`;
+  document.getElementById("view-modal-roll").textContent = app.studentRoll || "N/A";
+  document.getElementById("view-modal-dept").textContent = `${app.branch || ''} (${app.year || ''})`;
+  document.getElementById("view-modal-email").textContent = app.email || "N/A";
+  document.getElementById("view-modal-date").textContent = formatDate(app.appliedDate);
+  document.getElementById("view-modal-status").innerHTML = getApplicationStatusBadge(app.status);
+  document.getElementById("view-modal-sop").textContent = app.statement || "No statement provided.";
+
+  const portfolioContainer = document.getElementById("view-modal-portfolio");
+  if (app.portfolioUrl) {
+    portfolioContainer.innerHTML = `<a href="${escapeHTML(app.portfolioUrl)}" target="_blank" rel="noopener noreferrer" style="color: var(--primary); font-weight: 600; text-decoration: underline;">${escapeHTML(app.portfolioUrl)} &nearr;</a>`;
+  } else {
+    portfolioContainer.textContent = "None provided.";
   }
-  if (appStatus) {
-    appStatus.addEventListener("change", renderAdminApplications);
-  }
-  if (memberSearch) {
-    memberSearch.addEventListener("input", renderAdminMembers);
-  }
+
+  // Quick Action Buttons inside View Modal
+  const actionsBox = document.getElementById("view-modal-actions");
+  actionsBox.innerHTML = `
+    <button type="button" class="btn btn-secondary btn-sm" onclick="handleStatusUpdate('${app.id}', 'SHORTLISTED'); document.getElementById('viewAppModal').close();">Shortlist</button>
+    <button type="button" class="btn btn-success btn-sm" onclick="handleStatusUpdate('${app.id}', 'ACCEPTED'); document.getElementById('viewAppModal').close();">Approve</button>
+    <button type="button" class="btn btn-danger btn-sm" onclick="handleStatusUpdate('${app.id}', 'REJECTED'); document.getElementById('viewAppModal').close();">Reject</button>
+  `;
+
+  modal.showModal();
 }

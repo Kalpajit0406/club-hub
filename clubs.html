@@ -3,21 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Explore Societies & Academic Chapters | CampusClubs</title>
+  <title>Explore Student Organizations & Chapters | CampusConnect</title>
   <meta name="description" content="Browse, search, and filter all registered campus clubs by category, recruitment status, and domains.">
 
-  <!-- Dark / Light Theme Immediate Init (Anti-Flicker) -->
-  <script>
-    (function() {
-      var saved = localStorage.getItem("campus_connect_theme_v1") || "light";
-      document.documentElement.setAttribute("data-theme", saved);
-    })();
-  </script>
-
-  <!-- Google Fonts: Playfair Display & Inter -->
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600;1,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
 
   <!-- CSS Stylesheets -->
   <link rel="stylesheet" href="css/style.css">
@@ -29,16 +21,16 @@
   <!-- ==================== NAVIGATION BAR ==================== -->
   <header class="navbar">
     <div class="container nav-container">
-      <a href="index.html" class="brand-logo" aria-label="CampusClubs Home">
+      <a href="index.html" class="brand-logo" aria-label="CampusConnect Home">
         <div class="brand-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/>
-            <polyline points="9 12 11 14 15 10"/>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
           </svg>
         </div>
         <div class="brand-text">
-          Campus<span>Clubs</span>
-          <span class="brand-sub">Burgundy Heritage</span>
+          Campus<span>Connect</span>
+          <span class="brand-sub">Student Life Platform</span>
         </div>
       </a>
 
@@ -46,20 +38,18 @@
         <ul class="nav-links">
           <li><a href="index.html" class="nav-link">Home</a></li>
           <li><a href="clubs.html" class="nav-link active">Explore Clubs</a></li>
-          <li><a href="index.html#upcoming-events" class="nav-link">Events</a></li>
           <li>
             <a href="dashboard.html" class="nav-link">
               My Dashboard
               <span id="nav-app-count" class="nav-counter" style="display: none;">0</span>
             </a>
           </li>
-          <li><a href="admin.html" class="nav-link">Admin Portal</a></li>
         </ul>
       </nav>
 
       <div class="nav-actions">
         <div id="nav-auth-box"></div>
-        <a href="dashboard.html" class="btn btn-outline btn-sm" style="background: rgba(250, 247, 240, 0.12); color: #FAF7F0 !important; border-color: rgba(232, 217, 185, 0.35);">My Applications</a>
+        <a href="dashboard.html" class="btn btn-outline btn-sm">My Applications</a>
         <button class="mobile-nav-toggle" aria-label="Toggle Navigation Menu" aria-expanded="false">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="3" y1="12" x2="21" y2="12"/>
@@ -77,9 +67,9 @@
     <!-- PAGE HEADER -->
     <div class="clubs-page-header">
       <div class="container">
-        <h1 class="clubs-page-title">Explore Campus Societies & Guilds</h1>
+        <h1 class="clubs-page-title">Explore Campus Clubs</h1>
         <p class="clubs-page-desc">
-          Browse all official collegiate organizations, engineering teams, and artistic collectives. Discover open recruitment wings, explore requirements, and submit membership applications.
+          Browse all official student organizations, technical chapters, and competitive leagues. Filter by domain or find which societies have active recruitment drives this week.
         </p>
       </div>
     </div>
@@ -99,41 +89,42 @@
             <input 
               type="text" 
               id="catalog-search-input" 
-              placeholder="Search by society name, acronym (GDSC, DebSoc), technical discipline, or keyword..."
+              placeholder="Search by club name, acronym (GDSC, DebSoc), technical skill, or keyword..."
               autocomplete="off"
             >
-            <button type="button" id="search-clear-btn" class="search-clear-btn" aria-label="Clear search input">&times;</button>
+            <button id="catalog-search-clear" class="search-clear-btn" aria-label="Clear search query">&times;</button>
           </div>
         </div>
 
         <!-- Category Filter Chips -->
-        <div class="category-chips-wrapper" id="category-chips-container" role="group" aria-label="Filter by category">
+        <div id="category-chips-container" class="category-chips-wrapper">
           <!-- Dynamically populated by js/clubs.js -->
         </div>
 
-        <!-- Secondary Filters (Status, Sort, Reset) -->
+        <!-- Secondary Filters Row (Status, Sorting, Reset) -->
         <div class="secondary-filters-row">
           <div class="filters-group">
-            <span class="filter-select-label">Filter by:</span>
-            <select id="status-filter-select" class="filter-select" aria-label="Filter by recruitment status">
-              <option value="ALL">All Recruitment Statuses</option>
-              <option value="OPEN">Recruiting Now (Open)</option>
+            <label for="status-filter-select" class="filter-select-label">Recruitment Status:</label>
+            <select id="status-filter-select" class="filter-select">
+              <option value="ALL">All Statuses</option>
+              <option value="OPEN">Recruiting Now</option>
               <option value="CLOSED">Recruitment Closed</option>
             </select>
           </div>
 
           <div class="filters-group">
-            <span class="filter-select-label">Sort by:</span>
-            <select id="sort-select" class="filter-select" aria-label="Sort clubs">
-              <option value="popular">Most Active Members</option>
-              <option value="name">Alphabetical (A - Z)</option>
+            <label for="sort-select" class="filter-select-label">Sort by:</label>
+            <select id="sort-select" class="filter-select">
+              <option value="recommended">Featured / Recommended</option>
+              <option value="name-asc">Alphabetical (A - Z)</option>
+              <option value="members-desc">Most Members</option>
               <option value="newest">Recently Established</option>
             </select>
 
-            <span id="reset-filters-btn" class="reset-filters-link" role="button" tabindex="0">
+            <button type="button" class="reset-filters-link" onclick="resetAllFilters()">
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
               Reset Filters
-            </span>
+            </button>
           </div>
         </div>
 
@@ -141,15 +132,15 @@
 
       <!-- RESULTS COUNT & ACTIVE FILTER BAR -->
       <div class="results-bar">
-        <div class="results-count" id="results-count-text">
-          Showing <span>0</span> organizations
+        <div class="results-count">
+          Showing <span id="results-count-number">0</span> Clubs
         </div>
       </div>
 
-      <!-- CLUBS GRID (Responsive 3-Column Desktop Grid) -->
-      <div id="clubs-grid" class="clubs-grid">
-        <!-- Dynamically populated by js/clubs.js -->
-      </div>
+      <!-- CLUBS CARDS GRID -->
+      <section id="clubs-catalog-grid" class="clubs-grid" aria-label="List of student clubs">
+        <!-- Dynamically rendered by js/clubs.js -->
+      </section>
 
     </div>
 
@@ -162,31 +153,29 @@
         <div class="footer-brand">
           <div class="brand-logo">
             <div class="brand-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/>
-                <polyline points="9 12 11 14 15 10"/>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                <path d="M6 12v5c3 3 9 3 12 0v-5"/>
               </svg>
             </div>
             <div class="brand-text">
-              Campus<span>Clubs</span>
+              Campus<span>Connect</span>
             </div>
           </div>
-          <p>Burgundy Heritage – Beyond the Classroom. Explore certified student societies, chapters, and collegiate organizations.</p>
+          <p>The centralized directory for extracurricular student life, technical innovation, and creative societies.</p>
         </div>
 
         <div>
           <h4 class="footer-heading">Navigation</h4>
           <ul class="footer-links">
             <li><a href="index.html">Home</a></li>
-            <li><a href="clubs.html">Explore Societies</a></li>
-            <li><a href="index.html#upcoming-events">Campus Events</a></li>
+            <li><a href="clubs.html">Explore Clubs</a></li>
             <li><a href="dashboard.html">Student Dashboard</a></li>
-            <li><a href="admin.html">Club Admin Portal</a></li>
           </ul>
         </div>
 
         <div>
-          <h4 class="footer-heading">Disciplines</h4>
+          <h4 class="footer-heading">Categories</h4>
           <ul class="footer-links">
             <li><a href="clubs.html?category=Technical">Technical & Coding</a></li>
             <li><a href="clubs.html?category=Cultural">Cultural & Arts</a></li>
@@ -196,23 +185,23 @@
         </div>
 
         <div>
-          <h4 class="footer-heading">Student Support</h4>
+          <h4 class="footer-heading">Assistance</h4>
           <ul class="footer-links">
-            <li><a href="mailto:societies@campusclubs.edu">societies@campusclubs.edu</a></li>
-            <li><a href="#">Recruitment Guidelines</a></li>
-            <li><a href="#">Report Inaccuracy</a></li>
+            <li><a href="mailto:support@campusconnect.edu">support@campusconnect.edu</a></li>
+            <li><a href="#">Student Council Office</a></li>
+            <li><a href="#">Club FAQs</a></li>
           </ul>
         </div>
       </div>
 
       <div class="footer-bottom">
-        <div>&copy; 2026 CampusClubs. Burgundy Heritage. All Rights Reserved.</div>
-        <div>Editorial University SaaS Architecture • HTML5, CSS3, JavaScript</div>
+        <div>&copy; 2026 CampusConnect. All rights reserved. Built for College Students.</div>
+        <div>Modern SaaS Architecture • Pure HTML5, CSS3 & JavaScript</div>
       </div>
     </div>
   </footer>
 
-  <!-- Scripts -->
+  <!-- Core Scripts -->
   <script src="js/data.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/common.js"></script>

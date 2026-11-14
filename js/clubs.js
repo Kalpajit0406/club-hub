@@ -71,10 +71,9 @@ function renderCategoryChips() {
 // Setup input listeners for search, status, and sorting
 function initFilterControls() {
   const searchInput = document.getElementById("catalog-search-input");
-  const clearBtn = document.getElementById("search-clear-btn") || document.getElementById("catalog-search-clear");
+  const clearBtn = document.getElementById("catalog-search-clear");
   const statusSelect = document.getElementById("status-filter-select");
   const sortSelect = document.getElementById("sort-select");
-  const resetBtn = document.getElementById("reset-filters-btn");
 
   if (searchInput) {
     let debounceTimer;
@@ -112,14 +111,10 @@ function initFilterControls() {
       applyFiltersAndRender();
     });
   }
-
-  if (resetBtn) {
-    resetBtn.addEventListener("click", resetAllFilters);
-  }
 }
 
 function toggleSearchClearBtn(show) {
-  const clearBtn = document.getElementById("search-clear-btn") || document.getElementById("catalog-search-clear");
+  const clearBtn = document.getElementById("catalog-search-clear");
   if (clearBtn) {
     if (show) clearBtn.classList.add("visible");
     else clearBtn.classList.remove("visible");
@@ -128,8 +123,8 @@ function toggleSearchClearBtn(show) {
 
 // Filter, Sort, and Render Clubs
 function applyFiltersAndRender() {
-  const gridContainer = document.getElementById("clubs-grid") || document.getElementById("clubs-catalog-grid");
-  const countEl = document.getElementById("results-count-number") || document.querySelector("#results-count-text span");
+  const gridContainer = document.getElementById("clubs-catalog-grid");
+  const countEl = document.getElementById("results-count-number");
   if (!gridContainer || typeof CLUBS_DATA === "undefined") return;
 
   let results = [...CLUBS_DATA];

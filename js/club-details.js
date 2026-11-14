@@ -25,61 +25,33 @@ function loadClubData() {
   }
 
   // Update document title
-  document.title = `${currentClub.name} (${currentClub.acronym || currentClub.category}) | CampusClubs`;
+  document.title = `${currentClub.name} (${currentClub.acronym || currentClub.category}) | CampusConnect`;
 
   // Render hero banner & identity
-  const bannerImg = document.getElementById("club-banner-img");
-  if (bannerImg) {
-    bannerImg.src = currentClub.banner;
-    bannerImg.alt = `${currentClub.name} Banner`;
+  document.getElementById("club-banner-img").src = currentClub.banner;
+  document.getElementById("club-banner-img").alt = `${currentClub.name} Banner`;
+  document.getElementById("club-logo-img").src = currentClub.logo;
+  document.getElementById("club-logo-img").alt = `${currentClub.name} Logo`;
+
+  document.getElementById("club-name-title").textContent = currentClub.name;
+  if (currentClub.acronym) {
+    document.getElementById("club-acronym-badge").textContent = `(${currentClub.acronym})`;
+  } else {
+    document.getElementById("club-acronym-badge").style.display = "none";
   }
 
-  const logoImg = document.getElementById("club-logo-img");
-  if (logoImg) {
-    logoImg.src = currentClub.logo;
-    logoImg.alt = `${currentClub.name} Logo`;
-  }
-
-  const nameTitle = document.getElementById("club-name-title");
-  if (nameTitle) nameTitle.textContent = currentClub.name;
-
-  const verifiedBadge = document.getElementById("club-verified-badge");
-  if (verifiedBadge) verifiedBadge.innerHTML = getVerifiedBadgeSvg();
-
-  const acronymText = document.getElementById("club-acronym-text") || document.getElementById("club-acronym-badge");
-  if (acronymText) {
-    if (currentClub.acronym) {
-      acronymText.textContent = `(${currentClub.acronym})`;
-      acronymText.style.display = "inline";
-    } else {
-      acronymText.style.display = "none";
-    }
-  }
-
-  const taglineEl = document.getElementById("club-tagline-text") || document.getElementById("club-tagline");
-  if (taglineEl) taglineEl.textContent = currentClub.tagline;
-
-  const categoryBox = document.getElementById("club-category-badge") || document.getElementById("club-category-box");
-  if (categoryBox) categoryBox.innerHTML = getCategoryBadge(currentClub.category);
-
-  const statusBox = document.getElementById("club-status-badge") || document.getElementById("club-status-box");
-  if (statusBox) statusBox.innerHTML = getStatusBadge(currentClub.status);
-
-  const membersCount = document.getElementById("club-members-count");
-  if (membersCount) membersCount.textContent = `${currentClub.memberCount} active members`;
-
-  const establishedYear = document.getElementById("club-established-year");
-  if (establishedYear) establishedYear.textContent = `Chartered ${currentClub.established}`;
-
-  const meetingInfo = document.getElementById("club-meeting-info");
-  if (meetingInfo) meetingInfo.textContent = currentClub.meetingInfo || "Assembly: Contact society leads.";
+  document.getElementById("club-tagline").textContent = currentClub.tagline;
+  document.getElementById("club-category-box").innerHTML = getCategoryBadge(currentClub.category);
+  document.getElementById("club-status-box").innerHTML = getStatusBadge(currentClub.status);
+  document.getElementById("club-members-count").textContent = `${currentClub.memberCount} members`;
+  document.getElementById("club-established-year").textContent = `Est. ${currentClub.established}`;
+  document.getElementById("club-meeting-info").textContent = currentClub.meetingInfo || "Contact coordinators for schedule";
 
   // Social Links
   renderSocialLinks(currentClub.socials);
 
   // Render main description
-  const descEl = document.getElementById("club-full-description") || document.getElementById("club-description");
-  if (descEl) descEl.textContent = currentClub.description;
+  document.getElementById("club-description").textContent = currentClub.description;
 
   // Render achievements
   const achievementsContainer = document.getElementById("club-achievements-list");
@@ -95,7 +67,7 @@ function loadClubData() {
   }
 
   // Render open domains
-  const domainsContainer = document.getElementById("club-domains-grid") || document.getElementById("club-domains-list");
+  const domainsContainer = document.getElementById("club-domains-list");
   if (domainsContainer) {
     domainsContainer.innerHTML = (currentClub.domains || []).map(d => `
       <div class="domain-pill-card">
@@ -109,14 +81,14 @@ function loadClubData() {
   }
 
   // Render coordinators
-  const coordsContainer = document.getElementById("club-coordinators-grid") || document.getElementById("club-coordinators-list");
+  const coordsContainer = document.getElementById("club-coordinators-list");
   if (coordsContainer) {
     coordsContainer.innerHTML = (currentClub.coordinators || []).map(c => `
       <div class="coordinator-card">
         <div class="coord-name">${escapeHTML(c.name)}</div>
         <div class="coord-role">${escapeHTML(c.role)}</div>
         <div class="coord-contact">
-          <a href="mailto:${escapeHTML(c.email)}" class="btn-link" style="color: var(--maroon); font-weight: 600;">
+          <a href="mailto:${escapeHTML(c.email)}" class="btn-link" style="color: var(--primary);">
             ${escapeHTML(c.email)}
           </a>
         </div>
@@ -154,7 +126,7 @@ function loadClubData() {
         `;
       }).join("");
     } else {
-      eventsContainer.innerHTML = `<p style="font-size: 0.875rem; color: var(--text-secondary);">No upcoming events scheduled at this moment. Society convocations will be announced soon.</p>`;
+      eventsContainer.innerHTML = `<p style="font-size: 0.875rem; color: var(--text-secondary);">No upcoming events scheduled at this moment. Stay tuned for new workshop announcements.</p>`;
     }
   }
 
@@ -162,30 +134,17 @@ function loadClubData() {
   updateActionButtons();
 
   // Populate domains in modal dropdown
-  const modalDomainSelect = document.getElementById("app-target-domain") || document.getElementById("modal-domain-select");
+  const modalDomainSelect = document.getElementById("modal-domain-select");
   if (modalDomainSelect && currentClub.domains) {
     modalDomainSelect.innerHTML = currentClub.domains.map(d => `
       <option value="${escapeHTML(d)}">${escapeHTML(d)}</option>
     `).join("");
   }
 
-  // Share button listener
-  const shareBtn = document.getElementById("club-share-btn");
-  if (shareBtn) {
-    shareBtn.onclick = () => {
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(window.location.href);
-        showToast("Society profile link copied to clipboard!", "info");
-      } else {
-        showToast("Profile link: " + window.location.href, "info");
-      }
-    };
-  }
-
   // Check if auto-apply trigger was passed in URL (?apply=true)
   if (params.get("apply") === "true" && currentClub.status === "OPEN") {
     if (typeof Storage !== "undefined" && Storage.hasApplied(currentClub.id)) {
-      showToast("You have already submitted an application to this society!", "info");
+      showToast("You have already submitted an application to this club!", "info");
     } else {
       openApplyModal();
     }
@@ -193,7 +152,7 @@ function loadClubData() {
 }
 
 function renderSocialLinks(socials) {
-  const container = document.getElementById("club-socials-container") || document.getElementById("club-socials-box");
+  const container = document.getElementById("club-socials-box");
   if (!container || !socials) return;
 
   let html = "";
@@ -218,8 +177,8 @@ function renderSocialLinks(socials) {
 function updateActionButtons() {
   if (!currentClub) return;
 
-  const joinBtn = document.getElementById("club-primary-apply-btn") || document.getElementById("club-main-join-btn");
-  const sidebarJoinBtn = document.getElementById("sidebar-apply-btn") || document.getElementById("sidebar-join-btn");
+  const joinBtn = document.getElementById("club-main-join-btn");
+  const sidebarJoinBtn = document.getElementById("sidebar-join-btn");
   const bookmarkBtn = document.getElementById("club-bookmark-btn");
 
   const hasApplied = typeof Storage !== "undefined" && Storage.hasApplied(currentClub.id);
@@ -229,18 +188,18 @@ function updateActionButtons() {
   if (bookmarkBtn) {
     bookmarkBtn.classList.toggle("saved", isBookmarked);
     bookmarkBtn.innerHTML = `
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="${isBookmarked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2.2">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="${isBookmarked ? '#e11d48' : 'none'}" stroke="currentColor" stroke-width="2">
         <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
       </svg>
-      <span>${isBookmarked ? 'Saved' : 'Bookmark'}</span>
+      <span>${isBookmarked ? 'Saved to Bookmarks' : 'Bookmark Club'}</span>
     `;
 
     bookmarkBtn.onclick = () => {
       const isNowSaved = Storage.toggleBookmark(currentClub.id);
       bookmarkBtn.classList.toggle("saved", isNowSaved);
-      bookmarkBtn.querySelector("svg").setAttribute("fill", isNowSaved ? "currentColor" : "none");
-      bookmarkBtn.querySelector("span").textContent = isNowSaved ? "Saved" : "Bookmark";
-      showToast(isNowSaved ? "Added to your saved societies!" : "Removed from saved societies.", "info");
+      bookmarkBtn.querySelector("svg").setAttribute("fill", isNowSaved ? "#e11d48" : "none");
+      bookmarkBtn.querySelector("span").textContent = isNowSaved ? "Saved to Bookmarks" : "Bookmark Club";
+      showToast(isNowSaved ? "Club saved to your bookmarks!" : "Club removed from bookmarks", "info");
     };
   }
 
@@ -251,7 +210,7 @@ function updateActionButtons() {
     if (hasApplied) {
       btn.className = "btn btn-outline";
       btn.innerHTML = `
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#15803D" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
         Application Submitted
       `;
       btn.onclick = () => {
@@ -259,7 +218,7 @@ function updateActionButtons() {
       };
     } else if (currentClub.status === "OPEN") {
       btn.className = "btn btn-primary";
-      btn.innerHTML = `Apply for Membership`;
+      btn.innerHTML = `Join Club / Apply Now`;
       btn.onclick = openApplyModal;
     } else {
       btn.className = "btn btn-secondary";
@@ -274,30 +233,15 @@ function updateActionButtons() {
 
 // ---------------- NATIVE <dialog> MODAL LOGIC ----------------
 function initApplicationModal() {
-  const modal = document.getElementById("application-modal") || document.getElementById("applyModal");
-  const form = document.getElementById("membership-application-form") || document.getElementById("club-application-form");
-  const closeBtn = document.getElementById("modal-close-x") || document.getElementById("modal-close-btn");
+  const modal = document.getElementById("applyModal");
+  const form = document.getElementById("club-application-form");
+  const closeBtn = document.getElementById("modal-close-btn");
   const cancelBtn = document.getElementById("modal-cancel-btn");
 
   if (!modal || !form) return;
 
   if (closeBtn) closeBtn.onclick = () => modal.close();
   if (cancelBtn) cancelBtn.onclick = () => modal.close();
-
-  // Pre-fill user data if available
-  if (typeof Storage !== "undefined") {
-    const user = Storage.getCurrentUser();
-    if (user) {
-      const nameInput = document.getElementById("app-student-name");
-      const rollInput = document.getElementById("app-student-roll");
-      const branchInput = document.getElementById("app-student-branch");
-      const emailInput = document.getElementById("app-student-email");
-      if (nameInput && !nameInput.value) nameInput.value = user.name || "";
-      if (rollInput && !rollInput.value) rollInput.value = user.roll || "";
-      if (branchInput && !branchInput.value) branchInput.value = user.branch || "";
-      if (emailInput && !emailInput.value) emailInput.value = user.email || "";
-    }
-  }
 
   // Close modal when clicking outside dialog on the backdrop
   modal.addEventListener("click", (e) => {
@@ -321,9 +265,6 @@ function initApplicationModal() {
       return;
     }
 
-    const domainSelect = document.getElementById("app-target-domain") || document.getElementById("modal-domain-select");
-    const statementInput = document.getElementById("app-student-statement") || document.getElementById("app-student-sop");
-
     const applicationData = {
       clubId: currentClub.id,
       clubName: currentClub.name,
@@ -334,12 +275,12 @@ function initApplicationModal() {
       branch: document.getElementById("app-student-branch").value.trim(),
       year: document.getElementById("app-student-year").value,
       email: document.getElementById("app-student-email").value.trim().toLowerCase(),
-      domain: domainSelect ? domainSelect.value : "General",
-      statement: statementInput ? statementInput.value.trim() : "",
+      domain: document.getElementById("modal-domain-select").value,
+      statement: document.getElementById("app-student-sop").value.trim(),
       portfolioUrl: document.getElementById("app-student-portfolio").value.trim(),
       status: "PENDING",
       appliedDate: new Date().toISOString(),
-      interviewNotes: "Application submitted. Under initial review by society heads."
+      interviewNotes: "Application submitted. Under initial review."
     };
 
     if (typeof Storage !== "undefined") {
@@ -351,38 +292,35 @@ function initApplicationModal() {
 
     // Update buttons on the page to reflect submission
     updateActionButtons();
-    if (typeof updateNavBadges === "function") updateNavBadges();
+    updateNavBadges();
 
-    showToast("Application submitted successfully! Track review status on your Dashboard.", "success");
+    showToast("Application submitted successfully! Track it on your Dashboard.", "success");
   });
 }
 
 function openApplyModal() {
-  const modal = document.getElementById("application-modal") || document.getElementById("applyModal");
+  const modal = document.getElementById("applyModal");
   if (!modal || !currentClub) return;
 
-  const modalTitle = document.getElementById("modal-club-name");
-  if (modalTitle) modalTitle.textContent = `Apply to ${currentClub.name}`;
+  document.getElementById("modal-club-name").textContent = currentClub.name;
   modal.showModal();
 }
 
 function showClubNotFound() {
-  const main = document.querySelector(".main-content");
-  if (main) {
-    main.innerHTML = `
-      <div class="container" style="padding-top: 3rem;">
-        <div class="empty-state" style="margin: 3rem auto; max-width: 600px;">
-          <div class="empty-state-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="15" y1="9" x2="9" y2="15"/>
-              <line x1="9" y1="9" x2="15" y2="15"/>
-            </svg>
-          </div>
-          <h2 class="empty-state-title">Society Not Found</h2>
-          <p class="empty-state-desc">The requested student organization does not exist or may have been archived. Browse all registered societies in our directory.</p>
-          <a href="clubs.html" class="btn btn-primary">Return to Directory</a>
+  const container = document.getElementById("club-details-container");
+  if (container) {
+    container.innerHTML = `
+      <div class="empty-state" style="margin: 4rem auto; max-width: 600px;">
+        <div class="empty-state-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/>
+            <line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
         </div>
+        <h2 class="empty-state-title">Club Not Found</h2>
+        <p class="empty-state-desc">The requested club does not exist or may have been unlisted. Browse all registered clubs in our directory.</p>
+        <a href="clubs.html" class="btn btn-primary">Return to Clubs Directory</a>
       </div>
     `;
   }
