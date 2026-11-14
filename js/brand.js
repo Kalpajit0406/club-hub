@@ -41,3 +41,4 @@ const Brand = {
 };
 
 document.addEventListener("DOMContentLoaded", () => Brand.renderAll());
+

@@ -52,3 +52,4 @@ function renderIconsInDOM(root = document) {
 }
 
 document.addEventListener("DOMContentLoaded", () => renderIconsInDOM());
+
