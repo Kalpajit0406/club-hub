@@ -32,9 +32,9 @@
 
 .hero-header-row {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
-  margin-top: -55px;
+  margin-top: 1rem;
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
   gap: 1.5rem;
@@ -44,6 +44,7 @@
 
 .club-avatar-wrap {
   flex-shrink: 0;
+  margin-top: -65px;
 }
 
 .club-logo-img {
@@ -89,6 +90,20 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  padding-top: 4px;
+}
+
+/* Bookmark Button in Club Details */
+.bookmark-btn.saved {
+  background: var(--primary) !important;
+  color: #FFFFFF !important;
+  border-color: var(--primary) !important;
+}
+
+.bookmark-btn.saved svg {
+  fill: #FFFFFF !important;
+  stroke: #FFFFFF !important;
+  color: #FFFFFF !important;
 }
 
 /* Quick Metrics Bar */
@@ -110,23 +125,47 @@
 }
 
 .meta-item svg {
-  color: var(--primary-color);
+  color: var(--primary);
+  stroke: currentColor;
 }
 
 .social-links-item {
   margin-left: auto;
   display: flex;
-  gap: 12px;
+  gap: 8px;
+  align-items: center;
 }
 
 .social-link-icon {
   color: var(--text-secondary);
-  transition: color var(--transition-fast);
+  transition: all var(--transition-fast);
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
 }
 
 .social-link-icon:hover {
-  color: var(--primary-color);
+  color: var(--primary) !important;
+  border-color: var(--primary-border);
+  background: var(--primary-light);
+  transform: translateY(-1px);
+}
+
+.social-link-icon:active,
+.social-link-icon:focus {
+  color: var(--primary) !important;
+  background: var(--primary-light) !important;
+  border-color: var(--primary) !important;
+}
+
+.social-link-icon svg {
+  stroke: currentColor;
+  display: block;
 }
 
 /* Content Layout (Main + Sticky Sidebar) */

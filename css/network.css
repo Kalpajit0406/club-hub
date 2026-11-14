@@ -27,16 +27,21 @@
 }
 
 .net-chip:hover {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
-  background: rgba(47, 91, 231, 0.04);
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
 }
 
 .net-chip.active {
-  background: var(--primary-color);
-  border-color: var(--primary-color);
-  color: #FFFFFF;
-  box-shadow: 0 2px 8px rgba(47, 91, 231, 0.25);
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.net-chip.active svg {
+  stroke: #FFFFFF !important;
+  color: #FFFFFF !important;
 }
 
 /* Layout Grid (Main Feed + Sidebar) */
@@ -150,14 +155,19 @@
 }
 
 .net-action-btn:hover {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .net-action-btn.upvoted {
-  background: rgba(47, 91, 231, 0.1);
-  border-color: var(--primary-color);
-  color: var(--primary-color);
+  background: var(--primary-light);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.net-action-btn.upvoted svg {
+  stroke: var(--primary) !important;
+  color: var(--primary) !important;
 }
 
 /* Comments Drawer */

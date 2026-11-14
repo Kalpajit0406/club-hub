@@ -91,16 +91,21 @@
 }
 
 .events-chip:hover {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
-  background: rgba(47, 91, 231, 0.04);
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
 }
 
 .events-chip.active {
-  background: var(--primary-color);
-  border-color: var(--primary-color);
-  color: #FFFFFF;
-  box-shadow: 0 2px 8px rgba(47, 91, 231, 0.25);
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.events-chip.active svg {
+  stroke: #FFFFFF !important;
+  color: #FFFFFF !important;
 }
 
 /* Events Grid */

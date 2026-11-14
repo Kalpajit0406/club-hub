@@ -75,14 +75,14 @@
 
 .filter-primary-row {
   display: flex;
-  gap: 16px;
+  gap: 14px;
   align-items: center;
   flex-wrap: wrap;
 }
 
 .search-box,
 .search-input-box {
-  flex: 1;
+  flex: 1 1 320px;
   min-width: 280px;
   position: relative;
   display: flex;
@@ -93,7 +93,7 @@
 .search-icon {
   position: absolute;
   left: 14px;
-  color: var(--text-muted);
+  color: var(--primary);
   pointer-events: none;
   transition: color var(--transition-fast), opacity var(--transition-fast);
 }
@@ -112,9 +112,9 @@
 
 .search-input-box .search-input:focus {
   outline: none;
-  border-color: var(--primary-color);
+  border-color: var(--primary);
   background: var(--bg-card);
-  box-shadow: 0 0 0 3px rgba(47, 91, 231, 0.15);
+  box-shadow: 0 0 0 3px var(--primary-light);
 }
 
 .search-clear {
@@ -132,7 +132,6 @@
   font-size: 1.125rem;
   line-height: 1;
   cursor: pointer;
-  border: none;
   transition: all var(--transition-fast);
 }
 
@@ -145,6 +144,13 @@
   display: flex;
   gap: 12px;
   align-items: center;
+  flex-wrap: wrap;
+}
+
+.filter-select-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
 }
 
 .filter-select {
@@ -162,8 +168,8 @@
 
 .filter-select:focus {
   outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(47, 91, 231, 0.15);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
 }
 
 /* Category Chips */
@@ -196,16 +202,21 @@
 }
 
 .category-chip:hover {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
-  background: rgba(47, 91, 231, 0.04);
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
 }
 
 .category-chip.active {
-  background: var(--primary-color);
-  border-color: var(--primary-color);
-  color: #FFFFFF;
-  box-shadow: 0 2px 8px rgba(47, 91, 231, 0.25);
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.category-chip.active svg {
+  stroke: #FFFFFF !important;
+  color: #FFFFFF !important;
 }
 
 /* Active filter bar */
@@ -305,14 +316,21 @@
 
 .club-card-bookmark-btn:hover {
   background: #FFFFFF;
-  color: var(--primary-color);
+  color: var(--primary);
+  border-color: var(--primary-border);
   transform: scale(1.08);
 }
 
 .club-card-bookmark-btn.saved {
-  background: var(--primary-color);
-  color: #FFFFFF;
-  border-color: var(--primary-color);
+  background: var(--primary) !important;
+  color: #FFFFFF !important;
+  border-color: var(--primary) !important;
+}
+
+.club-card-bookmark-btn.saved svg {
+  fill: #FFFFFF !important;
+  stroke: #FFFFFF !important;
+  color: #FFFFFF !important;
 }
 
 /* Card Body */
