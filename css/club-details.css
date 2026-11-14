@@ -7,7 +7,6 @@
   position: relative;
   background-color: var(--bg-page);
   border-bottom: 1px solid var(--border-champagne);
-  margin-top: calc(-1.25rem);
   margin-bottom: 2.75rem;
 }
 

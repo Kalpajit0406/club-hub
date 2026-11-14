@@ -4,7 +4,6 @@
   padding: 2.75rem 0 3rem;
   background: var(--bg-page);
   border-bottom: 1px solid var(--border-champagne);
-  margin-top: calc(-1.25rem);
   margin-bottom: 2.75rem;
   background-image: 
     radial-gradient(circle at 10% 20%, rgba(100, 30, 50, 0.04) 0%, transparent 40%),
