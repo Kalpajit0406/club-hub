@@ -443,7 +443,7 @@ function initCreateClubModal() {
     try {
       if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.innerHTML = "Chartering Society...";
+        submitBtn.innerHTML = "Creating Club...";
       }
 
       let finalImageUrl = imageUrl;
@@ -475,7 +475,7 @@ function initCreateClubModal() {
     } finally {
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = "Charter Club";
+        submitBtn.innerHTML = "Create Club";
       }
     }
   });

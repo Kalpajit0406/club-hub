@@ -432,13 +432,13 @@ function initAddClubModal() {
         recruitment_open: true
       });
 
-      showToast(`Club '${name}' chartered successfully! You are its Lead Coordinator.`, "success");
+      showToast(`Club '${name}' created successfully! You are its Lead Coordinator.`, "success");
       modal.style.display = "none";
       form.reset();
       selectedClubId = created.id;
       await loadAdminDashboard();
     } catch (err) {
-      showToast(err.message || "Failed to charter club.", "error");
+      showToast(err.message || "Failed to create club.", "error");
     }
   });
 }
@@ -607,7 +607,7 @@ async function renderAdminSocieties() {
     container.innerHTML = `
       <div style="grid-column: 1 / -1; text-align: center; padding: 48px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card);">
         <p style="color: var(--text-secondary); margin-bottom: 12px;">You are not coordinating any societies yet.</p>
-        <button class="btn btn-cta btn-sm" onclick="document.getElementById('open-add-club-btn').click()">+ Charter Club</button>
+        <button class="btn btn-cta btn-sm" onclick="document.getElementById('open-add-club-btn').click()">+ Create Club</button>
       </div>
     `;
     return;
