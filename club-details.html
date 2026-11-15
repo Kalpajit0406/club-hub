@@ -79,13 +79,17 @@
             <p id="club-tagline" class="club-tagline">Collegiate Society at TINT</p>
           </div>
 
-          <div class="hero-actions">
+          <div class="hero-actions" id="club-hero-actions">
             <a href="clubs.html" class="btn btn-outline">
               &larr; All Clubs
             </a>
             <button type="button" id="hero-apply-btn" class="btn btn-cta">
               Join Club
             </button>
+            <div id="club-details-admin-actions" style="display: none; gap: 8px;">
+              <button type="button" id="club-details-edit-btn" class="btn btn-outline">✏️ Edit Club</button>
+              <button type="button" id="club-details-delete-btn" class="btn btn-outline" style="color: var(--danger); border-color: var(--danger);">🗑️ Delete Club</button>
+            </div>
           </div>
         </div>
 
@@ -222,6 +226,66 @@
     </div>
   </dialog>
 
+  <!-- EDIT CLUB MODAL (FOR COORDINATOR) -->
+  <div id="edit-club-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="max-width: 540px;">
+      <div class="modal-header">
+        <h3 style="margin: 0; font-size: 18px; font-family: 'Plus Jakarta Sans', sans-serif;">✏️ Edit Society Profile</h3>
+        <button type="button" id="close-edit-club-modal-btn" class="modal-close" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="edit-club-form">
+          <input type="hidden" id="edit-club-id">
+
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label">Society Name <span class="required">*</span></label>
+            <input type="text" id="edit-club-name" class="form-input" required placeholder="e.g. Google Developer Student Club">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Category <span class="required">*</span></label>
+              <select id="edit-club-category" class="form-select" required>
+                <option value="Technical">Technical</option>
+                <option value="Cultural">Cultural</option>
+                <option value="Sports">Sports &amp; Athletics</option>
+                <option value="Social">Social / Community</option>
+                <option value="Literary">Literary &amp; Debate</option>
+                <option value="Entrepreneurship">Entrepreneurship &amp; E-Cell</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Recruitment Status</label>
+              <select id="edit-club-recruitment" class="form-select">
+                <option value="open">Open (Recruiting Members)</option>
+                <option value="closed">Closed (Recruitment Paused)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label">Society Banner / Logo</label>
+            <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 8px;">
+              <input type="file" id="edit-club-file" accept="image/png, image/jpeg, image/jpg, image/webp" class="form-input" style="font-size: 12px; padding: 4px;">
+              <div id="edit-club-preview" style="width: 52px; height: 52px; border-radius: 6px; border: 1px solid var(--border); overflow: hidden; background: var(--bg-surface); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-muted); flex-shrink: 0;">Preview</div>
+            </div>
+            <input type="url" id="edit-club-image-url" class="form-input" placeholder="Or paste image URL (https://...)">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label class="form-label">Description &amp; Charter <span class="required">*</span></label>
+            <textarea id="edit-club-desc" class="form-textarea" rows="4" required placeholder="What are the mission, goals, and tracks of this society?"></textarea>
+          </div>
+
+          <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('edit-club-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-cta btn-sm">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- ENTERPRISE FOOTER -->
   <footer class="footer">
     <div class="container footer-content">
@@ -239,9 +303,8 @@
         <ul class="footer-links">
           <li><a href="clubs.html">All Societies</a></li>
           <li><a href="events.html">Campus Events</a></li>
-          <li><a href="marketplace.html">Student Exchange</a></li>
           <li><a href="network.html">Peer Network</a></li>
-          <li><a href="recruiters.html">Career Drives</a></li>
+          <li><a href="dashboard.html">Student Profile</a></li>
         </ul>
       </div>
 
@@ -249,10 +312,9 @@
         <div class="footer-col-title">Command Center</div>
         <ul class="footer-links">
           <li><a href="dashboard.html">Student Profile</a></li>
-          <li><a href="recruiter-dashboard.html">Recruiter Portal</a></li>
-          <li><a href="admin.html">Secretariat Access</a></li>
+          <li><a href="admin.html">Club Admin Secretariat</a></li>
           <li><a href="login.html">Account Sign In</a></li>
-          <li><a href="register.html">Student Onboarding</a></li>
+          <li><a href="register.html">Account Registration</a></li>
         </ul>
       </div>
 
@@ -279,11 +341,11 @@
   </footer>
 
   <!-- Scripts -->
-  <script src="js/data.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/storage.js"></script>
-  <script src="js/palette.js"></script>
-  <script src="js/common.js"></script>
-  <script src="js/club-details.js"></script>
+  <script src="js/data.js?v=2.6"></script>
+  <script src="js/api.js?v=2.6"></script>
+  <script src="js/storage.js?v=2.6"></script>
+  <script src="js/palette.js?v=2.6"></script>
+  <script src="js/common.js?v=2.6"></script>
+  <script src="js/club-details.js?v=2.6"></script>
 </body>
 </html>

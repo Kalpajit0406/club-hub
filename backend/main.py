@@ -5,6 +5,7 @@ Integrates modular routers, database initialization, CORS, OpenAPI docs, and sta
 """
 
 import os
+import tempfile
 from contextlib import asynccontextmanager
 from pathlib import Path
 from dotenv import load_dotenv
@@ -30,7 +31,8 @@ from backend.routers import (
     network,
     badges,
     dashboard,
-    admin
+    admin,
+    upload
 )
 
 # Parse CORS Origins from environment
@@ -81,6 +83,7 @@ app.include_router(network.router)
 app.include_router(badges.router)
 app.include_router(dashboard.router)
 app.include_router(admin.router)
+app.include_router(upload.router)
 
 
 @app.get(
@@ -102,6 +105,11 @@ def health_check(db: Session = Depends(get_db)):
             "database_error": str(e)
         }
 
+
+# Mount Uploads directory for user profile avatars and banners
+upload_dir = Path(tempfile.gettempdir()) / "clubhub_uploads"
+upload_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=str(upload_dir)), name="uploads")
 
 # Mount Static Files to serve frontend HTML, CSS, JS at root when running locally
 if not os.getenv("VERCEL"):

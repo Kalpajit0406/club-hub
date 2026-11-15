@@ -60,11 +60,8 @@
         <h1>Campus Events &amp; Tech Fests</h1>
         <p>National hackathons, competitive robowars, coding workshops, and cultural showcases happening at TINT.</p>
       </div>
-      <div>
-        <button id="create-event-trigger" class="btn btn-cta">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          + Schedule Event
-        </button>
+      <div id="admin-event-actions-slot">
+        <!-- Injected dynamically ONLY for authenticated Club Admins; strictly empty for students -->
       </div>
     </div>
   </section>
@@ -182,6 +179,15 @@
             <input type="text" id="new-event-venue" class="form-input" required placeholder="e.g. Main Auditorium / Lab 302">
           </div>
 
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label">Banner Image (Optional)</label>
+            <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 8px;">
+              <input type="file" id="new-event-banner-file" accept="image/png, image/jpeg, image/jpg, image/webp" class="form-input" style="font-size: 12px; padding: 4px;">
+              <div id="new-event-banner-preview" style="width: 52px; height: 52px; border-radius: 6px; border: 1px solid var(--border); overflow: hidden; background: var(--bg-surface); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-muted); flex-shrink: 0;">Preview</div>
+            </div>
+            <input type="url" id="new-event-banner-url" class="form-input" placeholder="Or paste banner image URL (https://...)">
+          </div>
+
           <div class="form-group" style="margin-bottom: 20px;">
             <label class="form-label">Description &amp; Agenda</label>
             <textarea id="new-event-desc" class="form-textarea" rows="3" placeholder="Brief outline of event agenda, tracks, eligibility..."></textarea>
@@ -190,6 +196,67 @@
           <div style="display: flex; gap: 10px; justify-content: flex-end;">
             <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('create-event-modal').style.display='none'">Cancel</button>
             <button type="submit" class="btn btn-cta btn-sm">Schedule to Campus</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT EVENT MODAL (ADMIN / LEAD) -->
+  <div id="edit-event-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="max-width: 540px;">
+      <div class="modal-header">
+        <h3 style="margin: 0; font-size: 18px; font-family: 'Plus Jakarta Sans', sans-serif;">✏️ Edit Campus Event</h3>
+        <button id="edit-event-close" class="modal-close" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="edit-event-form">
+          <input type="hidden" id="edit-event-id">
+
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label">Event Title <span class="required">*</span></label>
+            <input type="text" id="edit-event-title" class="form-input" required placeholder="e.g. AI &amp; Web3 Hackathon 2026">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Category <span class="required">*</span></label>
+              <select id="edit-event-category" class="form-select" required>
+                <option value="Hackathon">Hackathon</option>
+                <option value="Competition">Competition / Robowars</option>
+                <option value="Workshop">Workshop</option>
+                <option value="Cultural">Cultural</option>
+                <option value="Entrepreneurship">Entrepreneurship</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-event-date">Date &amp; Time <span class="required">*</span></label>
+              <input type="datetime-local" id="edit-event-date" class="form-input" required>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label">Campus Venue <span class="required">*</span></label>
+            <input type="text" id="edit-event-venue" class="form-input" required placeholder="e.g. Main Auditorium / Lab 302">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label">Banner Image (Optional)</label>
+            <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 8px;">
+              <input type="file" id="edit-event-banner-file" accept="image/png, image/jpeg, image/jpg, image/webp" class="form-input" style="font-size: 12px; padding: 4px;">
+              <div id="edit-event-banner-preview" style="width: 52px; height: 52px; border-radius: 6px; border: 1px solid var(--border); overflow: hidden; background: var(--bg-surface); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-muted); flex-shrink: 0;">Preview</div>
+            </div>
+            <input type="url" id="edit-event-banner-url" class="form-input" placeholder="Or paste banner image URL (https://...)">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label class="form-label">Description &amp; Agenda</label>
+            <textarea id="edit-event-desc" class="form-textarea" rows="3" placeholder="Brief outline of event agenda, tracks, eligibility..."></textarea>
+          </div>
+
+          <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('edit-event-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-cta btn-sm">Save Changes</button>
           </div>
         </form>
       </div>
@@ -213,9 +280,8 @@
         <ul class="footer-links">
           <li><a href="clubs.html">All Societies</a></li>
           <li><a href="events.html">Campus Events</a></li>
-          <li><a href="marketplace.html">Student Exchange</a></li>
           <li><a href="network.html">Peer Network</a></li>
-          <li><a href="recruiters.html">Career Drives</a></li>
+          <li><a href="dashboard.html">Student Profile</a></li>
         </ul>
       </div>
 
@@ -223,10 +289,9 @@
         <div class="footer-col-title">Command Center</div>
         <ul class="footer-links">
           <li><a href="dashboard.html">Student Profile</a></li>
-          <li><a href="recruiter-dashboard.html">Recruiter Portal</a></li>
-          <li><a href="admin.html">Secretariat Access</a></li>
+          <li><a href="admin.html">Club Admin Secretariat</a></li>
           <li><a href="login.html">Account Sign In</a></li>
-          <li><a href="register.html">Student Onboarding</a></li>
+          <li><a href="register.html">Account Registration</a></li>
         </ul>
       </div>
 
@@ -253,14 +318,14 @@
   </footer>
 
   <!-- Scripts -->
-  <script src="js/icons.js"></script>
-  <script src="js/states.js"></script>
-  <script src="js/brand.js"></script>
-  <script src="js/data.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/storage.js"></script>
-  <script src="js/palette.js"></script>
-  <script src="js/common.js"></script>
-  <script src="js/events.js"></script>
+  <script src="js/icons.js?v=2.5"></script>
+  <script src="js/states.js?v=2.5"></script>
+  <script src="js/brand.js?v=2.5"></script>
+  <script src="js/data.js?v=2.6"></script>
+  <script src="js/api.js?v=2.6"></script>
+  <script src="js/storage.js?v=2.6"></script>
+  <script src="js/palette.js?v=2.6"></script>
+  <script src="js/common.js?v=2.6"></script>
+  <script src="js/events.js?v=2.6"></script>
 </body>
 </html>

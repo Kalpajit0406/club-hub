@@ -149,19 +149,17 @@ def create_event(
             detail=f"Club with ID {payload.club_id} not found."
         )
 
-    # Authorization: Coordinator of this specific club, active member, or site admin
-    is_coordinator = (club.coordinator_id == current_user.id)
-    is_admin = (current_user.role == "admin")
-    is_coord_role = (current_user.role == "coordinator")
-    is_member = db.query(Membership).filter(
-        Membership.club_id == club.id,
-        Membership.student_id == current_user.id
-    ).first() is not None
-
-    if not (is_coordinator or is_admin or is_coord_role or is_member):
+    # Authorization: Coordinator or site admin
+    if current_user.role not in ("coordinator", "admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can schedule events for clubs you coordinate or belong to only."
+            detail="Only Club Admins or platform administrators can schedule events."
+        )
+
+    if current_user.role != "admin" and club.coordinator_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are only authorized to schedule events for clubs that you coordinate."
         )
 
     new_event = Event(
@@ -182,6 +180,59 @@ def create_event(
     return new_event
 
 
+@router.patch(
+    "/{event_id}",
+    response_model=EventResponse,
+    summary="Edit an event"
+)
+def update_event(
+    event_id: int,
+    payload: EventUpdate,
+    current_user: Student = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    event = (
+        db.query(Event)
+        .options(joinedload(Event.club))
+        .filter(Event.id == event_id)
+        .first()
+    )
+    if not event:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Event with ID {event_id} not found."
+        )
+
+    if current_user.role not in ("coordinator", "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only Club Admins or platform administrators can edit events."
+        )
+
+    if not event.club or (event.club.coordinator_id != current_user.id and current_user.role != "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are only authorized to edit events belonging to clubs you coordinate."
+        )
+
+    if payload.title is not None:
+        event.title = payload.title.strip()
+    if payload.description is not None:
+        event.description = payload.description.strip()
+    if payload.category is not None:
+        event.category = payload.category.strip()
+    if payload.event_date is not None:
+        event.event_date = payload.event_date
+    if payload.location is not None:
+        event.location = payload.location.strip()
+    if payload.banner_url is not None:
+        event.banner_url = payload.banner_url
+
+    db.commit()
+    db.refresh(event)
+    return event
+
+
 @router.post(
     "/{event_id}/register",
     response_model=EventRegistrationResponse,
@@ -198,6 +249,13 @@ def register_for_event(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Event with ID {event_id} not found."
+        )
+
+    # Club Admins already have organizer access and should not register for passes
+    if current_user.role in ("coordinator", "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Club Admins have direct organizer access to campus events and do not need to register for passes."
         )
 
     existing_reg = db.query(EventRegistration).filter(
@@ -250,11 +308,20 @@ def delete_event(
             detail=f"Event with ID {event_id} not found."
         )
 
-    if event.club and event.club.coordinator_id != current_user.id and current_user.role != "admin":
+    if current_user.role not in ("coordinator", "admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only delete events for clubs you coordinate."
+            detail="Only Club Admins or platform administrators can delete events."
         )
+
+    if not event.club or (event.club.coordinator_id != current_user.id and current_user.role != "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are only authorized to delete events belonging to clubs you coordinate."
+        )
+
+    # Clean up registrations before event deletion
+    db.query(EventRegistration).filter(EventRegistration.event_id == event_id).delete(synchronize_session=False)
 
     title = event.title
     db.delete(event)

@@ -17,7 +17,11 @@ env_path = project_root / ".env"
 load_dotenv(dotenv_path=env_path)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL:
+if DATABASE_URL and DATABASE_URL.startswith("sqlite:///."):
+    rel_part = DATABASE_URL.replace("sqlite:///", "")
+    abs_path = (project_root / rel_part).resolve()
+    DATABASE_URL = f"sqlite:///{abs_path.as_posix()}"
+elif not DATABASE_URL:
     default_db_file = project_root / "clubclash.db"
     is_writable = False
     try:
@@ -75,7 +79,20 @@ def get_db():
 def init_db():
     """
     Creates all database tables defined in models.py if they do not exist.
+    Also executes schema migrations for newly added columns if necessary.
     """
     import backend.models  # Ensure models are registered with Base metadata
     Base.metadata.create_all(bind=engine)
+
+    # Automatic column migrations for SQLite
+    try:
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            result = conn.execute(text("PRAGMA table_info(students)")).fetchall()
+            col_names = [row[1] for row in result]
+            if "avatar_url" not in col_names:
+                conn.execute(text("ALTER TABLE students ADD COLUMN avatar_url VARCHAR(500)"))
+                conn.commit()
+    except Exception as e:
+        print(f"[DB MIGRATION] Notice: {e}")
 

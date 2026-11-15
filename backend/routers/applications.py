@@ -3,9 +3,9 @@ backend/routers/applications.py
 Club Join Requests & Applications Router.
 """
 
-from typing import List
+from typing import List, Optional
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session, joinedload
 
 from backend.database import get_db
@@ -120,6 +120,38 @@ def get_my_applications(
     return applications
 
 
+@router.get(
+    "/incoming",
+    response_model=List[ApplicationResponse],
+    summary="Get incoming join requests for club admins"
+)
+def get_incoming_applications(
+    club_id: Optional[int] = Query(None, description="Filter by specific club ID"),
+    status_filter: Optional[str] = Query(None, description="Filter by status: Pending, Approved, Rejected"),
+    current_user: Student = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # RBAC: Only Club Admins or Site Administrators can access incoming join requests
+    if current_user.role not in ("coordinator", "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only Club Admins or Platform Administrators can view incoming join requests."
+        )
+
+    query = (
+        db.query(Application)
+        .options(joinedload(Application.student), joinedload(Application.club))
+    )
+
+    if club_id is not None:
+        query = query.filter(Application.club_id == club_id)
+
+    if status_filter and status_filter.strip():
+        query = query.filter(Application.status == status_filter.strip())
+
+    return query.order_by(Application.applied_at.desc()).all()
+
+
 @router.patch(
     "/{application_id}/status",
     response_model=ApplicationResponse,
@@ -143,19 +175,11 @@ def update_application_status(
             detail=f"Join request with ID {application_id} not found."
         )
 
-    # Authorization Check: club coordinator, site admin/coordinator, or club member
-    is_club_coord = application.club and application.club.coordinator_id == current_user.id
-    is_site_admin = current_user.role in ("admin", "coordinator")
-    is_club_member = (
-        db.query(Membership)
-        .filter(Membership.club_id == application.club_id, Membership.student_id == current_user.id)
-        .first() is not None
-    )
-
-    if not (is_club_coord or is_site_admin or is_club_member):
+    # Authorization Check: Strictly Club Admins (coordinators) or site administrators
+    if current_user.role not in ("coordinator", "admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only administrators or members of this club can approve or reject its join requests."
+            detail="Only Club Admins or Platform Administrators can approve or reject join requests."
         )
 
     new_status = payload.status

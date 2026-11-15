@@ -125,6 +125,19 @@ function updateNavBadges() {
   }
 }
 
+// Helper to render user avatar (image if uploaded, otherwise initials circle)
+function renderAvatarHTML(user, size = 36, customClass = "") {
+  if (!user) {
+    return `<div class="${customClass}" style="width: ${size}px; height: ${size}px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: ${Math.max(11, Math.floor(size * 0.36))}px;">U</div>`;
+  }
+  const name = user.full_name || user.name || "User";
+  const initials = name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase() || "U";
+  if (user.avatar_url) {
+    return `<img src="${escapeHTML(user.avatar_url)}" alt="${escapeHTML(name)}" class="${customClass}" style="width: ${size}px; height: ${size}px; border-radius: 50%; object-fit: cover; display: inline-block; vertical-align: middle;">`;
+  }
+  return `<div class="${customClass}" style="width: ${size}px; height: ${size}px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: ${Math.max(11, Math.floor(size * 0.36))}px; vertical-align: middle;">${escapeHTML(initials)}</div>`;
+}
+
 // ---------------- NAVBAR AUTH BUTTONS / USER PROFILE ----------------
 function renderNavAuth() {
   const container = document.getElementById("nav-auth-box");
@@ -151,12 +164,16 @@ function renderNavAuth() {
       adminBtnHtml = `<a href="admin.html" class="btn btn-outline btn-sm" style="border-color: var(--warm-accent, #F59E0B); color: var(--warm-accent, #F59E0B); font-size: 11px; padding: 4px 8px;" title="Manage Club Requests">🛡️ Club Admin</a>`;
     }
 
+    const avatarHtml = currentUser.avatar_url
+      ? `<img src="${escapeHTML(currentUser.avatar_url)}" alt="${escapeHTML(displayName)}" class="nav-user-avatar" style="object-fit: cover; border-radius: 50%;">`
+      : `<span class="nav-user-avatar">${escapeHTML(initials)}</span>`;
+
     container.innerHTML = `
       <div style="display: flex; align-items: center; gap: 8px;">
         ${adminBtnHtml}
         <div class="nav-user-pill">
           <a href="${targetDashboard}" class="nav-user-profile" title="View Command Center (${roleBadge})">
-            <span class="nav-user-avatar">${escapeHTML(initials)}</span>
+            ${avatarHtml}
             <div style="display: flex; flex-direction: column; text-align: left; line-height: 1.1;">
               <span class="nav-user-name" style="font-weight: 600;">${escapeHTML(displayName.split(" ")[0])}</span>
               <span style="font-size: 10px; color: var(--warm-accent, #F59E0B); font-weight: 600;">${roleBadge}</span>
@@ -200,6 +217,26 @@ function requireAuth(redirectUrl = null) {
     setTimeout(() => {
       const dest = redirectUrl || window.location.pathname.split("/").pop() || "index.html";
       window.location.href = `login.html?redirect=${encodeURIComponent(dest)}`;
+    }, 450);
+    return null;
+  }
+  return user;
+}
+
+function requireAdminAuth() {
+  const user = (typeof API !== "undefined") ? API.getCurrentUser() : (typeof Storage !== "undefined" ? Storage.getCurrentUser() : null);
+  if (!user) {
+    showToast("Please log in to continue.", "warning");
+    setTimeout(() => {
+      window.location.href = "login.html?section=admin&redirect=admin.html";
+    }, 450);
+    return null;
+  }
+  const role = (user.role || "").toLowerCase();
+  if (role !== "coordinator" && role !== "admin") {
+    showToast("Access forbidden: You do not have Club Admin privileges.", "error");
+    setTimeout(() => {
+      window.location.href = "dashboard.html";
     }, 450);
     return null;
   }

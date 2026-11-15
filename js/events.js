@@ -3,11 +3,13 @@
 let selectedCategory = "all";
 let searchQuery = "";
 let debounceTimer = null;
+let loadedEvents = [];
 
 document.addEventListener("DOMContentLoaded", async () => {
   setupFilterChips();
   setupSearchInput();
   setupCreateEventModal();
+  setupEditEventModal();
   await loadAndRenderEvents();
 });
 
@@ -50,13 +52,8 @@ function setupSearchInput() {
 async function loadAndRenderEvents() {
   const grid = document.getElementById("events-grid");
   const countEl = document.getElementById("events-count-badge");
-  const createTrigger = document.getElementById("create-event-trigger");
 
   if (!grid) return;
-
-  if (createTrigger) {
-    createTrigger.style.display = "inline-flex";
-  }
 
   grid.innerHTML = `
     <div style="grid-column: 1 / -1; text-align: center; padding: 48px; color: var(--text-secondary);">
@@ -70,9 +67,10 @@ async function loadAndRenderEvents() {
       category: selectedCategory,
       search: searchQuery
     });
+    loadedEvents = events || [];
 
     if (countEl) {
-      countEl.textContent = `${events.length} Events Scheduled`;
+      countEl.textContent = `${loadedEvents.length} Events Scheduled`;
     }
 
     if (!events || events.length === 0) {
@@ -95,8 +93,27 @@ async function loadAndRenderEvents() {
       const dateStr = dateObj.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
       const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+      const currentUser = API.getCurrentUser();
+      const isSuperAdmin = currentUser && currentUser.role === "admin";
+      const isCoordinator = currentUser && currentUser.role === "coordinator";
+      const isOwner = currentUser && (isSuperAdmin || (isCoordinator && ev.club && ev.club.coordinator_id === currentUser.id));
+      const isAdminOrCoordinator = currentUser && (currentUser.role === "coordinator" || currentUser.role === "admin");
+
       let actionHtml = "";
-      if (ev.is_registered) {
+      if (isOwner) {
+        actionHtml = `
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="openEditEventModal(${ev.id})" style="padding: 4px 10px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;" title="Edit Event Details">✏️ Edit</button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="handleDeleteEvent(${ev.id}, '${escapeHTML(ev.title)}')" style="padding: 4px 10px; font-size: 12px; font-weight: 600; color: var(--danger); border-color: var(--danger); display: inline-flex; align-items: center; gap: 4px;" title="Delete Scheduled Event">🗑️ Delete</button>
+          </div>
+        `;
+      } else if (isAdminOrCoordinator) {
+        actionHtml = `
+          <span class="btn btn-outline btn-sm" style="color: var(--warm-accent, #F59E0B); border-color: var(--warm-accent, #F59E0B); cursor: default; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;" title="Club Admins have direct organizer access to campus events.">
+            🛡️ Admin Access
+          </span>
+        `;
+      } else if (ev.is_registered) {
         actionHtml = `
           <button type="button" class="btn btn-outline btn-sm" style="color: var(--success); border-color: var(--success);" onclick="showPassModal('${escapeHTML(ev.title)}', '${escapeHTML(clubName)}', '${escapeHTML(ev.pass_code)}', '${dateStr} ${timeStr}', '${escapeHTML(ev.location)}')">
             ✓ Pass Held
@@ -110,6 +127,10 @@ async function loadAndRenderEvents() {
         `;
       }
 
+      const ownerBadge = isOwner
+        ? `<span class="badge" style="position: absolute; top: 12px; right: 12px; font-size: 11px; background: rgba(245,158,11,0.92); color: #000; font-weight: 700; border: none;">🛡️ Your Event</span>`
+        : "";
+
       return `
         <article class="event-card" style="display: flex; flex-direction: column; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); overflow: hidden; box-shadow: var(--shadow-sm); transition: transform 0.2s, box-shadow 0.2s;">
           <div style="position: relative; height: 160px; overflow: hidden; background: var(--bg-surface);">
@@ -117,6 +138,7 @@ async function loadAndRenderEvents() {
             <span class="badge" style="position: absolute; top: 12px; left: 12px; font-size: 11px; background: rgba(0,0,0,0.6); color: #FFF; border: none;">
               ${escapeHTML(ev.category)}
             </span>
+            ${ownerBadge}
           </div>
 
           <div style="padding: 20px; display: flex; flex-direction: column; flex-grow: 1;">
@@ -159,6 +181,11 @@ async function loadAndRenderEvents() {
 async function handleEventRegistration(eventId, title, clubName) {
   const user = requireAuth();
   if (!user) return;
+
+  if (user.role === "coordinator" || user.role === "admin") {
+    showToast("Club Admins have direct organizer access to campus events.", "info");
+    return;
+  }
 
   try {
     showToast(`Registering for ${title}...`, "info");
@@ -244,7 +271,7 @@ function showPassModal(title, clubName, passCode, dateStr, location) {
 
 // ---------------- CREATE EVENT MODAL (FOR COORDINATORS) ----------------
 function setupCreateEventModal() {
-  const trigger = document.getElementById("create-event-trigger");
+  const slot = document.getElementById("admin-event-actions-slot");
   const modal = document.getElementById("create-event-modal");
   const closeBtn = document.getElementById("create-event-close");
   const form = document.getElementById("create-event-form");
@@ -256,22 +283,56 @@ function setupCreateEventModal() {
     regClose.addEventListener("click", () => { regModal.style.display = "none"; });
   }
 
+  // Strictly for students and logged-out users: empty slot
+  const user = API.getCurrentUser();
+  if (!user || (user.role !== "coordinator" && user.role !== "admin")) {
+    if (slot) slot.innerHTML = "";
+    return;
+  }
+
+  // Inject only for verified Club Admins (single plus icon, clean title)
+  if (slot) {
+    slot.innerHTML = `
+      <button type="button" id="create-event-trigger" class="btn btn-cta">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: middle; margin-right: 4px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Schedule Event
+      </button>
+    `;
+  }
+
+  const trigger = document.getElementById("create-event-trigger");
+  const bannerFile = document.getElementById("new-event-banner-file");
+  const bannerPreview = document.getElementById("new-event-banner-preview");
+
   if (!trigger || !modal || !form) return;
 
+  if (bannerFile && bannerPreview) {
+    bannerFile.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) {
+        if (file.size > 5 * 1024 * 1024) {
+          showToast("Banner image must be under 5MB.", "error");
+          bannerFile.value = "";
+          return;
+        }
+        bannerPreview.innerHTML = `<img src="${URL.createObjectURL(file)}" style="width: 100%; height: 100%; object-fit: cover;">`;
+      }
+    });
+  }
+
   trigger.addEventListener("click", async () => {
-    const user = requireAuth();
-    if (!user) return;
+    const currentUser = API.getCurrentUser();
+    if (!currentUser || (currentUser.role !== "coordinator" && currentUser.role !== "admin")) {
+      showToast("Access forbidden: Only Club Admins can schedule events.", "error");
+      return;
+    }
 
     try {
-      let clubs = await API.getCoordinatedClubs();
-      if (!clubs || clubs.length === 0) {
-        clubs = await API.getClubs();
-      }
+      const clubs = await API.getCoordinatedClubs();
 
       if (!clubs || clubs.length === 0) {
-        showToast("Please charter a club first before scheduling an event.", "warning");
+        showToast("You are not coordinating any clubs yet. Please charter a club in the Admin portal.", "warning");
         setTimeout(() => {
-          window.location.href = "clubs.html";
+          window.location.href = "admin.html";
         }, 1200);
         return;
       }
@@ -281,6 +342,9 @@ function setupCreateEventModal() {
           <option value="${c.id}">${escapeHTML(c.name)}</option>
         `).join("");
       }
+
+      if (bannerPreview) bannerPreview.innerHTML = "Preview";
+      if (bannerFile) bannerFile.value = "";
 
       modal.style.display = "flex";
     } catch (err) {
@@ -302,6 +366,7 @@ function setupCreateEventModal() {
     const dateVal = document.getElementById("new-event-date").value;
     const location = document.getElementById("new-event-venue").value.trim();
     const desc = document.getElementById("new-event-desc").value.trim();
+    const bannerUrlInp = document.getElementById("new-event-banner-url") ? document.getElementById("new-event-banner-url").value.trim() : null;
     const submitBtn = form.querySelector("button[type='submit']");
 
     if (!clubId || !title || !dateVal || !location) {
@@ -315,13 +380,25 @@ function setupCreateEventModal() {
         submitBtn.innerHTML = "Scheduling...";
       }
 
+      let finalBannerUrl = bannerUrlInp;
+      const file = bannerFile && bannerFile.files && bannerFile.files[0];
+      if (file) {
+        showToast("Uploading event banner...", "info");
+        const upRes = await API.uploadImage(file);
+        finalBannerUrl = upRes.url;
+      }
+      if (!finalBannerUrl) {
+        finalBannerUrl = "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80";
+      }
+
       await API.createEvent({
         club_id: clubId,
         title,
         category,
         event_date: new Date(dateVal).toISOString(),
         location,
-        description: desc || "Campus event"
+        description: desc || "Campus event",
+        banner_url: finalBannerUrl
       });
 
       showToast(`Event '${title}' scheduled successfully!`, "success");
@@ -338,3 +415,161 @@ function setupCreateEventModal() {
     }
   });
 }
+
+// ---------------- EDIT EVENT MODAL & MANAGEMENT ----------------
+function setupEditEventModal() {
+  const modal = document.getElementById("edit-event-modal");
+  const closeBtn = document.getElementById("edit-event-close");
+  const form = document.getElementById("edit-event-form");
+  const bannerFile = document.getElementById("edit-event-banner-file");
+  const bannerPreview = document.getElementById("edit-event-banner-preview");
+
+  if (!modal || !form) return;
+
+  if (bannerFile && bannerPreview) {
+    bannerFile.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) {
+        if (file.size > 5 * 1024 * 1024) {
+          showToast("Banner image must be under 5MB.", "error");
+          bannerFile.value = "";
+          return;
+        }
+        bannerPreview.innerHTML = `<img src="${URL.createObjectURL(file)}" style="width: 100%; height: 100%; object-fit: cover;">`;
+      }
+    });
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+  }
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.style.display = "none";
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const eventId = Number(document.getElementById("edit-event-id").value);
+    if (!eventId) return;
+
+    const title = document.getElementById("edit-event-title").value.trim();
+    const category = document.getElementById("edit-event-category").value;
+    const dateVal = document.getElementById("edit-event-date").value;
+    const venue = document.getElementById("edit-event-venue").value.trim();
+    const desc = document.getElementById("edit-event-desc").value.trim();
+    const bannerUrlInp = document.getElementById("edit-event-banner-url").value.trim();
+    const submitBtn = form.querySelector("button[type='submit']");
+
+    if (!title || !dateVal || !venue) {
+      showToast("Please provide event title, date, and venue.", "error");
+      return;
+    }
+
+    try {
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = "Saving...";
+      }
+
+      let finalBannerUrl = bannerUrlInp || undefined;
+      const file = bannerFile && bannerFile.files && bannerFile.files[0];
+      if (file) {
+        showToast("Uploading banner image...", "info");
+        const upRes = await API.uploadImage(file);
+        finalBannerUrl = upRes.url;
+      }
+
+      const payload = {
+        title,
+        category,
+        event_date: new Date(dateVal).toISOString(),
+        location: venue,
+        description: desc || "Campus event",
+        ...(finalBannerUrl ? { banner_url: finalBannerUrl } : {})
+      };
+
+      await API.updateEvent(eventId, payload);
+      showToast(`Event '${title}' updated successfully.`, "success");
+      modal.style.display = "none";
+      await loadAndRenderEvents();
+    } catch (err) {
+      showToast(err.message || "Failed to update event.", "error");
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Save Changes";
+      }
+    }
+  });
+}
+
+window.openEditEventModal = function(eventId) {
+  const ev = loadedEvents.find(e => e.id === eventId);
+  const modal = document.getElementById("edit-event-modal");
+  if (!modal) return;
+
+  if (ev) {
+    populateAndShowEditModal(ev, modal);
+  } else {
+    API.getEvent(eventId).then(fetched => {
+      populateAndShowEditModal(fetched, modal);
+    }).catch(err => {
+      showToast(err.message || "Failed to fetch event details.", "error");
+    });
+  }
+};
+
+function populateAndShowEditModal(ev, modal) {
+  document.getElementById("edit-event-id").value = ev.id;
+  document.getElementById("edit-event-title").value = ev.title || "";
+  document.getElementById("edit-event-category").value = ev.category || "Workshop";
+
+  if (ev.event_date) {
+    const d = new Date(ev.event_date);
+    const pad = n => String(n).padStart(2, '0');
+    const localIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    document.getElementById("edit-event-date").value = localIso;
+  }
+
+  document.getElementById("edit-event-venue").value = ev.location || "";
+  document.getElementById("edit-event-desc").value = ev.description || "";
+  document.getElementById("edit-event-banner-url").value = ev.banner_url || "";
+
+  const preview = document.getElementById("edit-event-banner-preview");
+  if (preview) {
+    if (ev.banner_url) {
+      preview.innerHTML = `<img src="${escapeHTML(ev.banner_url)}" style="width: 100%; height: 100%; object-fit: cover;">`;
+    } else {
+      preview.innerHTML = "Preview";
+    }
+  }
+
+  const fileInput = document.getElementById("edit-event-banner-file");
+  if (fileInput) fileInput.value = "";
+
+  modal.style.display = "flex";
+}
+
+window.handleDeleteEvent = async function(eventId, title) {
+  const currentUser = API.getCurrentUser();
+  if (!currentUser || (currentUser.role !== "coordinator" && currentUser.role !== "admin")) {
+    showToast("Access forbidden: Only Club Admins can delete events.", "error");
+    return;
+  }
+
+  if (!confirm(`Are you sure you want to permanently delete the event '${title}'?\n\nThis will remove the event from public listings and revoke any issued attendee passes. This action cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    showToast(`Deleting event '${title}'...`, "info");
+    await API.deleteEvent(eventId);
+    showToast(`Event '${title}' has been deleted successfully.`, "success");
+    await loadAndRenderEvents();
+  } catch (err) {
+    showToast(err.message || "Failed to delete event.", "error");
+  }
+};

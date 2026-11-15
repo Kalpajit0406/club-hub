@@ -3,7 +3,7 @@ backend/routers/dashboard.py
 Dashboard & System Analytics Router.
 """
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
@@ -72,20 +72,18 @@ def get_coordinated_clubs(
     current_user: Student = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    if current_user.role not in ("coordinator", "admin"):
+        raise HTTPException(
+            status_code=403,
+            detail="Access forbidden: requires coordinator or admin role."
+        )
+
     if current_user.role == "admin":
         clubs = db.query(Club).all()
     else:
-        # Include clubs where current_user is coordinator OR an active member
-        member_club_ids = [m.club_id for m in db.query(Membership.club_id).filter(Membership.student_id == current_user.id).all()]
-        clubs = db.query(Club).filter(
-            or_(
-                Club.coordinator_id == current_user.id,
-                Club.id.in_(member_club_ids) if member_club_ids else False
-            )
-        ).all()
-
-        # If user has coordinator or admin role and has no clubs assigned yet, allow managing all campus societies:
-        if not clubs and current_user.role in ("coordinator", "admin"):
+        clubs = db.query(Club).filter(Club.coordinator_id == current_user.id).all()
+        if not clubs:
+            # If the coordinator has not chartered their own club yet, provide access to all campus clubs
             clubs = db.query(Club).all()
 
     result = []
@@ -101,6 +99,8 @@ def get_coordinated_clubs(
             "id": c.id,
             "name": c.name,
             "category": c.category,
+            "description": c.description,
+            "image_url": c.image_url,
             "recruitment_open": c.recruitment_open,
             "pending_requests": pending_requests,
             "member_count": member_count,

@@ -7,11 +7,14 @@ const catalogState = {
   sortBy: "RECOMMENDED"
 };
 
+let loadedClubs = [];
+
 document.addEventListener("DOMContentLoaded", () => {
   parseURLParameters();
   renderCategoryChips();
   initFilterControls();
   initCreateClubModal();
+  initEditClubModal();
   loadAndRenderClubs();
 });
 
@@ -156,6 +159,7 @@ async function loadAndRenderClubs() {
       recruitment_open: catalogState.status,
       sort: catalogState.sortBy
     });
+    loadedClubs = clubs || [];
 
     if (!clubs || clubs.length === 0) {
       grid.innerHTML = "";
@@ -186,9 +190,21 @@ async function loadAndRenderClubs() {
       // Category color class
       const catClass = getCategoryClass(club.category);
 
-      // Join button state
+      const currentUser = API.getCurrentUser();
+      const isSuperAdmin = currentUser && currentUser.role === "admin";
+      const isCoordinator = currentUser && currentUser.role === "coordinator";
+      const isOwner = currentUser && (isSuperAdmin || (isCoordinator && club.coordinator_id === currentUser.id));
+
+      // Action button state
       let actionBtnHtml = "";
-      if (club.user_status === "admin") {
+      if (isOwner) {
+        actionBtnHtml = `
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="openEditClubModalFromCard(${club.id})" style="padding: 4px 8px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 3px;" title="Edit Society Profile">✏️ Edit</button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="handleDeleteClubFromCard(${club.id}, '${escapeHTML(club.name)}')" style="padding: 4px 8px; font-size: 12px; font-weight: 600; color: var(--danger); border-color: var(--danger); display: inline-flex; align-items: center; gap: 3px;" title="Delete Society">🗑️ Delete</button>
+          </div>
+        `;
+      } else if (club.user_status === "admin") {
         actionBtnHtml = `<a href="admin.html" class="btn btn-outline btn-sm" style="font-weight: 700;">Club Admin</a>`;
       } else if (club.user_status === "member") {
         actionBtnHtml = `<span class="badge-status-member" style="padding: 6px 14px; border-radius: var(--radius-btn); font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">✓ Member</span>`;
@@ -207,6 +223,9 @@ async function loadAndRenderClubs() {
       const coordinatorName = club.coordinator ? club.coordinator.full_name : "Campus Secretariat";
       const membersCount = club.member_count || 0;
       const bannerImg = club.image_url || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80";
+      const ownerBadge = isOwner
+        ? `<span class="badge" style="position: absolute; top: 12px; right: 52px; font-size: 10px; background: rgba(245,158,11,0.92); color: #000; font-weight: 700; border: none;">🛡️ Your Club</span>`
+        : "";
 
       return `
         <article class="club-card" style="display: flex; flex-direction: column; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); overflow: hidden; box-shadow: var(--shadow-sm); transition: transform 0.2s, box-shadow 0.2s;">
@@ -215,6 +234,7 @@ async function loadAndRenderClubs() {
             <div style="position: absolute; top: 12px; left: 12px;">
               ${statusBadge}
             </div>
+            ${ownerBadge}
             <button 
               type="button" 
               class="club-card-save-btn ${isSaved ? 'saved' : ''}" 
@@ -342,16 +362,55 @@ function handleToggleBookmark(e, clubId) {
 
 // ---------------- CREATE CLUB MODAL ----------------
 function initCreateClubModal() {
-  const openBtn = document.getElementById("open-create-club-btn");
+  const slot = document.getElementById("admin-actions-slot");
   const modal = document.getElementById("create-club-modal");
   const closeBtn = document.getElementById("close-create-club-btn");
   const form = document.getElementById("create-club-form");
 
+  // RBAC: Strictly hidden for students and logged-out users
+  const user = API.getCurrentUser();
+  if (!user || (user.role !== "coordinator" && user.role !== "admin")) {
+    if (slot) slot.innerHTML = "";
+    return;
+  }
+
+  // Inject only for verified Club Admins (single plus icon, clean title)
+  if (slot) {
+    slot.innerHTML = `
+      <button type="button" id="open-create-club-btn" class="btn btn-cta">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: middle; margin-right: 4px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Create Club
+      </button>
+    `;
+  }
+
+  const openBtn = document.getElementById("open-create-club-btn");
+  const fileInput = document.getElementById("club-image-file");
+  const preview = document.getElementById("club-image-preview");
+
   if (!openBtn || !modal || !form) return;
 
+  if (fileInput && preview) {
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) {
+        if (file.size > 5 * 1024 * 1024) {
+          showToast("Image must be smaller than 5MB.", "error");
+          fileInput.value = "";
+          return;
+        }
+        preview.innerHTML = `<img src="${URL.createObjectURL(file)}" style="width: 100%; height: 100%; object-fit: cover;">`;
+      }
+    });
+  }
+
   openBtn.addEventListener("click", () => {
-    const user = requireAuth();
-    if (!user) return;
+    const currentUser = API.getCurrentUser();
+    if (!currentUser || (currentUser.role !== "coordinator" && currentUser.role !== "admin")) {
+      showToast("Access forbidden: Only Club Admins can charter new societies.", "error");
+      return;
+    }
+    if (preview) preview.innerHTML = "Preview";
+    if (fileInput) fileInput.value = "";
     modal.style.display = "flex";
   });
 
@@ -387,11 +446,22 @@ function initCreateClubModal() {
         submitBtn.innerHTML = "Chartering Society...";
       }
 
+      let finalImageUrl = imageUrl;
+      const file = fileInput && fileInput.files && fileInput.files[0];
+      if (file) {
+        showToast("Uploading club cover image...", "info");
+        const upRes = await API.uploadImage(file);
+        finalImageUrl = upRes.url;
+      }
+      if (!finalImageUrl) {
+        finalImageUrl = "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80";
+      }
+
       await API.createClub({
         name,
         category,
         description,
-        image_url: imageUrl || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80",
+        image_url: finalImageUrl,
         recruitment_open: true
       });
 
@@ -410,3 +480,152 @@ function initCreateClubModal() {
     }
   });
 }
+
+// ---------------- EDIT CLUB MODAL & MANAGEMENT ----------------
+function initEditClubModal() {
+  const modal = document.getElementById("edit-club-modal");
+  const closeBtn = document.getElementById("close-edit-club-modal-btn");
+  const form = document.getElementById("edit-club-form");
+  const fileInput = document.getElementById("edit-club-file");
+  const preview = document.getElementById("edit-club-preview");
+
+  if (!modal || !form) return;
+
+  if (fileInput && preview) {
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) {
+        if (file.size > 5 * 1024 * 1024) {
+          showToast("Image must be smaller than 5MB.", "error");
+          fileInput.value = "";
+          return;
+        }
+        preview.innerHTML = `<img src="${URL.createObjectURL(file)}" style="width: 100%; height: 100%; object-fit: cover;">`;
+      }
+    });
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+  }
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.style.display = "none";
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const clubId = Number(document.getElementById("edit-club-id").value);
+    if (!clubId) return;
+
+    const name = document.getElementById("edit-club-name").value.trim();
+    const category = document.getElementById("edit-club-category").value;
+    const recruitmentVal = document.getElementById("edit-club-recruitment").value;
+    const description = document.getElementById("edit-club-desc").value.trim();
+    const imageUrl = document.getElementById("edit-club-image-url").value.trim();
+    const submitBtn = form.querySelector("button[type='submit']");
+
+    if (!name || !category || !description) {
+      showToast("Please fill in society name, category, and description.", "error");
+      return;
+    }
+
+    try {
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = "Saving Changes...";
+      }
+
+      let finalImageUrl = imageUrl || undefined;
+      const file = fileInput && fileInput.files && fileInput.files[0];
+      if (file) {
+        showToast("Uploading society cover image...", "info");
+        const upRes = await API.uploadImage(file);
+        finalImageUrl = upRes.url;
+      }
+
+      const payload = {
+        name,
+        category,
+        description,
+        recruitment_open: recruitmentVal === "open",
+        ...(finalImageUrl ? { image_url: finalImageUrl } : {})
+      };
+
+      await API.updateClub(clubId, payload);
+      showToast(`Society '${name}' updated successfully!`, "success");
+      modal.style.display = "none";
+      await loadAndRenderClubs();
+
+    } catch (err) {
+      showToast(err.message || "Failed to update society profile.", "error");
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Save Changes";
+      }
+    }
+  });
+}
+
+window.openEditClubModalFromCard = function(clubId) {
+  const club = loadedClubs.find(c => c.id === clubId);
+  const modal = document.getElementById("edit-club-modal");
+  if (!modal) return;
+
+  if (club) {
+    populateAndShowClubEditModal(club, modal);
+  } else {
+    API.getClub(clubId).then(fetched => {
+      populateAndShowClubEditModal(fetched, modal);
+    }).catch(err => {
+      showToast(err.message || "Failed to fetch club details.", "error");
+    });
+  }
+};
+
+function populateAndShowClubEditModal(club, modal) {
+  document.getElementById("edit-club-id").value = club.id;
+  document.getElementById("edit-club-name").value = club.name || "";
+  document.getElementById("edit-club-category").value = club.category || "Technical";
+  document.getElementById("edit-club-recruitment").value = club.recruitment_open ? "open" : "closed";
+  document.getElementById("edit-club-desc").value = club.description || "";
+  document.getElementById("edit-club-image-url").value = club.image_url || "";
+
+  const preview = document.getElementById("edit-club-preview");
+  if (preview) {
+    if (club.image_url) {
+      preview.innerHTML = `<img src="${escapeHTML(club.image_url)}" style="width: 100%; height: 100%; object-fit: cover;">`;
+    } else {
+      preview.innerHTML = "Preview";
+    }
+  }
+
+  const fileInput = document.getElementById("edit-club-file");
+  if (fileInput) fileInput.value = "";
+
+  modal.style.display = "flex";
+}
+
+window.handleDeleteClubFromCard = async function(clubId, clubName) {
+  const currentUser = API.getCurrentUser();
+  if (!currentUser || (currentUser.role !== "coordinator" && currentUser.role !== "admin")) {
+    showToast("Access forbidden: Only Club Admins can delete societies.", "error");
+    return;
+  }
+
+  if (!confirm(`Are you sure you want to permanently delete the society '${clubName}'?\n\nWarning: This will delete all member rosters, pending requests, and scheduled events for this society. This action cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    showToast(`Deleting society '${clubName}'...`, "info");
+    await API.deleteClub(clubId);
+    showToast(`Society '${clubName}' has been permanently deleted.`, "success");
+    await loadAndRenderClubs();
+  } catch (err) {
+    showToast(err.message || "Failed to delete society.", "error");
+  }
+};

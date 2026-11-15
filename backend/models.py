@@ -37,6 +37,7 @@ class Student(Base):
     department = Column(String(100), nullable=False)
     year = Column(Integer, nullable=False)
     role = Column(String(50), nullable=False, default="student")
+    avatar_url = Column(String(500), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     # Relationships

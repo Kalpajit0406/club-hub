@@ -159,7 +159,49 @@
         </form>
       </div>
     </div>
-  </dialog>
+  </div>
+
+  <!-- EDIT POST MODAL -->
+  <div id="edit-post-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="max-width: 520px;">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Edit Collaboration Post</h3>
+          <p class="modal-subtitle">Update discussion details or change tag</p>
+        </div>
+        <button id="edit-post-close" class="modal-close" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="edit-post-form">
+          <input type="hidden" id="edit-post-id">
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label">Post Headline / Topic <span class="required">*</span></label>
+            <input type="text" id="edit-post-title-input" class="form-input" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label">Category Tag <span class="required">*</span></label>
+            <select id="edit-post-tag-select" class="form-select" required>
+              <option value="#HackathonTeam">#HackathonTeam (Hackathon teammate search)</option>
+              <option value="#StudyGroup">#StudyGroup (Exam prep &amp; subject circles)</option>
+              <option value="#ProjectCollab">#ProjectCollab (Robotics, Web, or Hardware builds)</option>
+              <option value="#CampusLife">#CampusLife (General campus events &amp; society talk)</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label class="form-label">Discussion Details <span class="required">*</span></label>
+            <textarea id="edit-post-content-input" class="form-textarea" rows="4" required></textarea>
+          </div>
+
+          <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('edit-post-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary btn-sm">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <!-- ENTERPRISE FOOTER -->
   <footer class="footer">
@@ -178,9 +220,8 @@
         <ul class="footer-links">
           <li><a href="clubs.html">All Societies</a></li>
           <li><a href="events.html">Campus Events</a></li>
-          <li><a href="marketplace.html">Student Exchange</a></li>
           <li><a href="network.html">Peer Network</a></li>
-          <li><a href="recruiters.html">Career Drives</a></li>
+          <li><a href="dashboard.html">Student Profile</a></li>
         </ul>
       </div>
 
@@ -188,10 +229,9 @@
         <div class="footer-col-title">Command Center</div>
         <ul class="footer-links">
           <li><a href="dashboard.html">Student Profile</a></li>
-          <li><a href="recruiter-dashboard.html">Recruiter Portal</a></li>
-          <li><a href="admin.html">Secretariat Access</a></li>
-          <li><a href="login.html">Account Sign In</a></li>
-          <li><a href="register.html">Student Onboarding</a></li>
+          <li><a href="clubs.html">Campus Societies</a></li>
+          <li><a href="events.html">Events &amp; Workshops</a></li>
+          <li><a href="network.html">Peer Network</a></li>
         </ul>
       </div>
 
@@ -218,14 +258,14 @@
   </footer>
 
   <!-- Scripts -->
-  <script src="js/icons.js"></script>
-  <script src="js/states.js"></script>
-  <script src="js/brand.js"></script>
-  <script src="js/data.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/storage.js"></script>
-  <script src="js/palette.js"></script>
-  <script src="js/common.js"></script>
-  <script src="js/network.js"></script>
+  <script src="js/icons.js?v=2.5"></script>
+  <script src="js/states.js?v=2.5"></script>
+  <script src="js/brand.js?v=2.5"></script>
+  <script src="js/data.js?v=2.5"></script>
+  <script src="js/api.js?v=2.5"></script>
+  <script src="js/storage.js?v=2.5"></script>
+  <script src="js/palette.js?v=2.5"></script>
+  <script src="js/common.js?v=2.5"></script>
+  <script src="js/network.js?v=2.5"></script>
 </body>
 </html>

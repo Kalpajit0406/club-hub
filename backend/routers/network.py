@@ -13,6 +13,7 @@ from backend.database import get_db
 from backend.models import NetworkPost, NetworkPostUpvote, NetworkComment, Student
 from backend.schemas import (
     NetworkPostCreate,
+    NetworkPostUpdate,
     NetworkPostResponse,
     NetworkCommentCreate,
     NetworkCommentResponse,
@@ -184,3 +185,94 @@ def add_comment(
     db.refresh(new_comment)
 
     return new_comment
+
+
+@router.patch(
+    "/posts/{post_id}",
+    response_model=NetworkPostResponse,
+    summary="Edit an existing collaboration post"
+)
+def update_post(
+    post_id: int,
+    payload: NetworkPostUpdate,
+    current_user: Student = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Allows the original author to update their collaboration post:
+    - title
+    - content
+    - tag
+    Rejects modification by unauthorized users.
+    """
+    post = (
+        db.query(NetworkPost)
+        .options(joinedload(NetworkPost.author))
+        .filter(NetworkPost.id == post_id)
+        .first()
+    )
+    if not post:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Discussion post with ID {post_id} not found."
+        )
+
+    # Authorization check: only original author
+    if post.student_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not authorized to edit this post. Only the original author can edit it."
+        )
+
+    if payload.title is not None and payload.title.strip():
+        post.title = payload.title.strip()
+    if payload.content is not None and payload.content.strip():
+        post.content = payload.content.strip()
+    if payload.tag is not None and payload.tag.strip():
+        post.tag = payload.tag.strip()
+
+    db.commit()
+    db.refresh(post)
+
+    resp = NetworkPostResponse.model_validate(post)
+    resp.comments_count = db.query(NetworkComment).filter(NetworkComment.post_id == post.id).count()
+    upvote = db.query(NetworkPostUpvote).filter(
+        NetworkPostUpvote.post_id == post.id,
+        NetworkPostUpvote.student_id == current_user.id
+    ).first()
+    resp.has_upvoted = upvote is not None
+    return resp
+
+
+@router.delete(
+    "/posts/{post_id}",
+    response_model=MessageResponse,
+    summary="Delete a collaboration post"
+)
+def delete_post(
+    post_id: int,
+    current_user: Student = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Allows the original author (or site admin) to delete their collaboration post.
+    Cascades removal of comments and upvotes.
+    """
+    post = db.query(NetworkPost).filter(NetworkPost.id == post_id).first()
+    if not post:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Discussion post with ID {post_id} not found."
+        )
+
+    if post.student_id != current_user.id and current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not authorized to delete this post. Only the author or platform admin can delete it."
+        )
+
+    title = post.title
+    db.delete(post)
+    db.commit()
+
+    return MessageResponse(message=f"Post '{title}' has been successfully deleted.")

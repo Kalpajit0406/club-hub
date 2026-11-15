@@ -26,11 +26,13 @@ class StudentBase(BaseModel):
     full_name: str = Field(..., min_length=2, max_length=150)
     email: EmailStr
     department: str = Field(..., min_length=2, max_length=100)
-    year: int = Field(..., ge=1, le=5)
+    year: Optional[int] = Field(default=1, ge=1, le=5)
+    avatar_url: Optional[str] = None
 
 
 class StudentRegister(StudentBase):
     password: str = Field(..., min_length=6, max_length=100)
+    role: Optional[str] = Field(default="student", pattern="^(student|coordinator)$")
 
 
 class StudentLogin(BaseModel):
@@ -43,8 +45,17 @@ class StudentResponse(StudentBase):
     id: int
     role: str
     created_at: datetime
+    avatar_url: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class StudentProfileUpdate(BaseModel):
+    full_name: Optional[str] = Field(None, min_length=2, max_length=150)
+    email: Optional[EmailStr] = None
+    department: Optional[str] = Field(None, min_length=2, max_length=100)
+    year: Optional[int] = Field(None, ge=1, le=5)
+    avatar_url: Optional[str] = None
 
 
 class StudentRoleUpdate(BaseModel):
@@ -217,6 +228,12 @@ class NetworkPostCreate(BaseModel):
     title: str = Field(..., min_length=3, max_length=200)
     content: str = Field(..., min_length=5)
     tag: str = Field("#CampusLife", max_length=50)
+
+
+class NetworkPostUpdate(BaseModel):
+    title: Optional[str] = Field(None, min_length=3, max_length=200)
+    content: Optional[str] = Field(None, min_length=5)
+    tag: Optional[str] = Field(None, max_length=50)
 
 
 class NetworkCommentCreate(BaseModel):

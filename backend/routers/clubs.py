@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_, func
 
 from backend.database import get_db
-from backend.models import Club, Student, Membership, Application, Event
+from backend.models import Club, Student, Membership, Application, Event, EventRegistration, Badge
 from backend.schemas import (
     ClubCreate,
     ClubUpdate,
@@ -173,6 +173,13 @@ def create_club(
     current_user: Student = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    # RBAC: Only Club Admins (coordinators) or site administrators can create clubs
+    if current_user.role not in ("coordinator", "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only Club Admins or Platform Administrators can charter clubs."
+        )
+
     # Check for name uniqueness
     existing = db.query(Club).filter(Club.name.ilike(payload.name.strip())).first()
     if existing:
@@ -194,11 +201,6 @@ def create_club(
     db.add(new_club)
     db.commit()
     db.refresh(new_club)
-
-    # Promote user role to coordinator if currently standard student
-    if current_user.role == "student":
-        current_user.role = "coordinator"
-        db.commit()
 
     # Automatically add creator as a member of the club
     membership = Membership(
@@ -235,10 +237,16 @@ def update_club(
         )
 
     # Authorization: Only club coordinator or admin
+    if current_user.role not in ("coordinator", "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only Club Admins or platform administrators can modify club details."
+        )
+
     if club.coordinator_id != current_user.id and current_user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You are only authorized to manage clubs you coordinate."
+            detail="You are only authorized to modify clubs that you coordinate."
         )
 
     if payload.name and payload.name.strip().lower() != club.name.lower():
@@ -287,18 +295,11 @@ def toggle_club_recruitment(
             detail=f"Club with ID {club_id} not found."
         )
 
-    is_coord = club.coordinator_id == current_user.id
-    is_admin = current_user.role in ("admin", "coordinator")
-    is_member = (
-        db.query(Membership)
-        .filter(Membership.club_id == club_id, Membership.student_id == current_user.id)
-        .first() is not None
-    )
-
-    if not (is_coord or is_admin or is_member):
+    # Authorization: Strictly coordinator or site admin
+    if current_user.role not in ("coordinator", "admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only toggle recruitment for clubs you coordinate or belong to."
+            detail="Only Club Admins or platform administrators can toggle recruitment."
         )
 
     club.recruitment_open = payload.recruitment_open
@@ -371,19 +372,11 @@ def get_club_requests(
             detail=f"Club with ID {club_id} not found."
         )
 
-    # Enforce club admin / coordinator / member access
-    is_coord = club.coordinator_id == current_user.id
-    is_admin = current_user.role in ("admin", "coordinator")
-    is_member = (
-        db.query(Membership)
-        .filter(Membership.club_id == club_id, Membership.student_id == current_user.id)
-        .first() is not None
-    )
-
-    if not (is_coord or is_admin or is_member):
+    # Authorization: Strictly Club Admins (coordinators) or platform administrators
+    if current_user.role not in ("coordinator", "admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only administrators or members of this club can view its join requests."
+            detail="Only Club Admins or platform administrators can view join requests."
         )
 
     query = (
@@ -397,6 +390,45 @@ def get_club_requests(
 
     applications = query.order_by(Application.applied_at.desc()).all()
     return applications
+
+
+@router.delete(
+    "/{club_id}/members/{student_id}",
+    response_model=MessageResponse,
+    summary="Remove a member from a club"
+)
+def remove_club_member(
+    club_id: int,
+    student_id: int,
+    current_user: Student = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    club = db.query(Club).filter(Club.id == club_id).first()
+    if not club:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Club with ID {club_id} not found."
+        )
+
+    if current_user.role not in ("coordinator", "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only Club Admins or platform administrators can manage club members."
+        )
+
+    membership = db.query(Membership).filter(
+        Membership.club_id == club_id,
+        Membership.student_id == student_id
+    ).first()
+    if not membership:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Member record not found in this club."
+        )
+
+    db.delete(membership)
+    db.commit()
+    return MessageResponse(message="Member removed successfully from club roster.")
 
 
 @router.delete(
@@ -421,6 +453,15 @@ def delete_club(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only the coordinator of this club or a site admin can delete it."
         )
+
+    # Safe cascade deletion of all dependent entities
+    event_ids = [e.id for e in db.query(Event.id).filter(Event.club_id == club_id).all()]
+    if event_ids:
+        db.query(EventRegistration).filter(EventRegistration.event_id.in_(event_ids)).delete(synchronize_session=False)
+        db.query(Event).filter(Event.club_id == club_id).delete(synchronize_session=False)
+    db.query(Application).filter(Application.club_id == club_id).delete(synchronize_session=False)
+    db.query(Membership).filter(Membership.club_id == club_id).delete(synchronize_session=False)
+    db.query(Badge).filter(Badge.club_id == club_id).update({Badge.club_id: None}, synchronize_session=False)
 
     name = club.name
     db.delete(club)

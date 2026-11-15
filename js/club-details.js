@@ -5,6 +5,7 @@ let currentClub = null;
 document.addEventListener("DOMContentLoaded", async () => {
   await loadClubData();
   initApplicationModal();
+  initEditClubModal();
 });
 
 async function loadClubData() {
@@ -108,15 +109,33 @@ function updateJoinButtonState() {
   if (!heroApplyBtn && !widgetApplyBtn) return;
 
   const status = currentClub ? currentClub.user_status : "none";
+  const currentUser = API.getCurrentUser();
+  const isSuperAdmin = currentUser && currentUser.role === "admin";
+  const isCoordinator = currentUser && currentUser.role === "coordinator";
+  const isOwner = currentUser && (isSuperAdmin || (isCoordinator && currentClub && currentClub.coordinator_id === currentUser.id));
+
+  const adminActionsDiv = document.getElementById("club-details-admin-actions");
+  const editBtn = document.getElementById("club-details-edit-btn");
+  const deleteBtn = document.getElementById("club-details-delete-btn");
+
+  if (isOwner && adminActionsDiv) {
+    adminActionsDiv.style.display = "inline-flex";
+    if (heroApplyBtn) heroApplyBtn.style.display = "none";
+
+    if (editBtn) {
+      editBtn.onclick = () => openEditClubModal();
+    }
+    if (deleteBtn) {
+      deleteBtn.onclick = () => handleDeleteClub();
+    }
+  } else {
+    if (adminActionsDiv) adminActionsDiv.style.display = "none";
+    if (heroApplyBtn) heroApplyBtn.style.display = "inline-block";
+  }
 
   if (status === "admin") {
-    if (heroApplyBtn) {
-      heroApplyBtn.textContent = "Manage in Club Admin";
-      heroApplyBtn.href = "admin.html";
-      heroApplyBtn.className = "btn btn-outline";
-    }
     if (widgetApplyBtn) {
-      widgetApplyBtn.textContent = "Manage Club Requests";
+      widgetApplyBtn.textContent = "Manage in Club Admin";
       widgetApplyBtn.className = "btn btn-outline btn-block btn-lg";
       widgetApplyBtn.onclick = () => window.location.href = "admin.html";
     }
@@ -319,5 +338,144 @@ function showClubNotFound(msg = "Society Not Found") {
         <a href="clubs.html" class="btn btn-primary">Back to Clubs Directory</a>
       </div>
     `;
+  }
+}
+
+// ---------------- EDIT CLUB MODAL (FOR AUTHORIZED LEAD) ----------------
+function initEditClubModal() {
+  const modal = document.getElementById("edit-club-modal");
+  const closeBtn = document.getElementById("close-edit-club-modal-btn");
+  const form = document.getElementById("edit-club-form");
+  const fileInput = document.getElementById("edit-club-file");
+  const preview = document.getElementById("edit-club-preview");
+
+  if (!modal || !form) return;
+
+  if (fileInput && preview) {
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) {
+        if (file.size > 5 * 1024 * 1024) {
+          showToast("Image must be smaller than 5MB.", "error");
+          fileInput.value = "";
+          return;
+        }
+        preview.innerHTML = `<img src="${URL.createObjectURL(file)}" style="width: 100%; height: 100%; object-fit: cover;">`;
+      }
+    });
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+  }
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.style.display = "none";
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!currentClub) return;
+
+    const name = document.getElementById("edit-club-name").value.trim();
+    const category = document.getElementById("edit-club-category").value;
+    const recruitmentVal = document.getElementById("edit-club-recruitment").value;
+    const description = document.getElementById("edit-club-desc").value.trim();
+    const imageUrl = document.getElementById("edit-club-image-url").value.trim();
+    const submitBtn = form.querySelector("button[type='submit']");
+
+    if (!name || !category || !description) {
+      showToast("Please fill in society name, category, and description.", "error");
+      return;
+    }
+
+    try {
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = "Saving Changes...";
+      }
+
+      let finalImageUrl = imageUrl || undefined;
+      const file = fileInput && fileInput.files && fileInput.files[0];
+      if (file) {
+        showToast("Uploading society cover image...", "info");
+        const upRes = await API.uploadImage(file);
+        finalImageUrl = upRes.url;
+      }
+
+      const payload = {
+        name,
+        category,
+        description,
+        recruitment_open: recruitmentVal === "open",
+        ...(finalImageUrl ? { image_url: finalImageUrl } : {})
+      };
+
+      await API.updateClub(currentClub.id, payload);
+      showToast(`Society '${name}' updated successfully!`, "success");
+      modal.style.display = "none";
+      await loadClubData();
+
+    } catch (err) {
+      showToast(err.message || "Failed to update society profile.", "error");
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Save Changes";
+      }
+    }
+  });
+}
+
+function openEditClubModal() {
+  if (!currentClub) return;
+  const modal = document.getElementById("edit-club-modal");
+  if (!modal) return;
+
+  document.getElementById("edit-club-id").value = currentClub.id;
+  document.getElementById("edit-club-name").value = currentClub.name || "";
+  document.getElementById("edit-club-category").value = currentClub.category || "Technical";
+  document.getElementById("edit-club-recruitment").value = currentClub.recruitment_open ? "open" : "closed";
+  document.getElementById("edit-club-desc").value = currentClub.description || "";
+  document.getElementById("edit-club-image-url").value = currentClub.image_url || "";
+
+  const preview = document.getElementById("edit-club-preview");
+  if (preview) {
+    if (currentClub.image_url) {
+      preview.innerHTML = `<img src="${escapeHTML(currentClub.image_url)}" style="width: 100%; height: 100%; object-fit: cover;">`;
+    } else {
+      preview.innerHTML = "Preview";
+    }
+  }
+
+  const fileInput = document.getElementById("edit-club-file");
+  if (fileInput) fileInput.value = "";
+
+  modal.style.display = "flex";
+}
+
+async function handleDeleteClub() {
+  if (!currentClub) return;
+  const currentUser = API.getCurrentUser();
+  if (!currentUser || (currentUser.role !== "coordinator" && currentUser.role !== "admin")) {
+    showToast("Access forbidden: Only Club Admins can delete societies.", "error");
+    return;
+  }
+
+  if (!confirm(`Are you sure you want to permanently delete '${currentClub.name}'?\n\nWarning: This will delete all member rosters, pending requests, and scheduled events for this society. This action cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    showToast(`Deleting society '${currentClub.name}'...`, "info");
+    await API.deleteClub(currentClub.id);
+    showToast(`Society '${currentClub.name}' has been permanently deleted.`, "success");
+    setTimeout(() => {
+      window.location.href = "clubs.html";
+    }, 800);
+  } catch (err) {
+    showToast(err.message || "Failed to delete society.", "error");
   }
 }

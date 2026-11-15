@@ -1,10 +1,16 @@
 // js/dashboard.js - Student Dashboard & Campus Life Command Center Controller
 
+let cachedStudentRequests = [];
+let activeRequestFilter = "all";
+
 document.addEventListener("DOMContentLoaded", async () => {
   const user = requireAuth();
   if (!user) return;
 
   initDashboardTabs();
+  initEditProfileModal();
+  initRequestFilterButtons();
+  setupPassModal();
   await refreshDashboard();
 });
 
@@ -37,6 +43,7 @@ async function refreshDashboard() {
   updateUserProfileHeader();
   await Promise.all([
     renderMyClubs(),
+    renderClubJoinRequests(),
     renderRegisteredEvents(),
     renderMyCollabPosts(),
     renderMyBadges()
@@ -56,8 +63,14 @@ function updateUserProfileHeader() {
 
   if (nameEl) nameEl.textContent = displayName;
   if (avatarEl) {
-    const initials = displayName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase() || "ST";
-    avatarEl.textContent = initials;
+    if (user.avatar_url) {
+      avatarEl.innerHTML = `<img src="${escapeHTML(user.avatar_url)}" alt="${escapeHTML(displayName)}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+      avatarEl.style.padding = "0";
+    } else {
+      const initials = displayName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase() || "ST";
+      avatarEl.innerHTML = escapeHTML(initials);
+      avatarEl.style.padding = "";
+    }
   }
   if (deptEl) {
     const yearStr = user.year ? `${user.year} Year` : "Student";
@@ -69,6 +82,293 @@ function updateUserProfileHeader() {
     if (user.role === "admin") r = "Site Super Admin";
     else if (user.role === "coordinator") r = "Club Lead / Admin";
     roleEl.textContent = r;
+  }
+}
+
+// ---------------- EDIT PROFILE MODAL ----------------
+let avatarFileToUpload = null;
+let avatarRemoved = false;
+
+function initEditProfileModal() {
+  const openBtn = document.getElementById("open-edit-profile-btn");
+  const modal = document.getElementById("edit-profile-modal");
+  const closeBtn = document.getElementById("close-edit-profile-btn");
+  const form = document.getElementById("edit-profile-form");
+  const fileInput = document.getElementById("profile-avatar-file");
+  const preview = document.getElementById("profile-avatar-preview");
+  const removeBtn = document.getElementById("remove-avatar-btn");
+
+  if (!modal || !form) return;
+
+  const updateModalPreview = (user, imgUrl = null) => {
+    if (!preview) return;
+    const name = user ? (user.full_name || user.name || "Student") : "Student";
+    const initials = name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase() || "ST";
+    if (imgUrl) {
+      preview.innerHTML = `<img src="${escapeHTML(imgUrl)}" alt="Avatar Preview" style="width: 100%; height: 100%; object-fit: cover;">`;
+    } else {
+      preview.innerHTML = escapeHTML(initials);
+    }
+  };
+
+  if (openBtn) {
+    openBtn.addEventListener("click", () => {
+      const user = API.getCurrentUser();
+      if (!user) return;
+
+      avatarFileToUpload = null;
+      avatarRemoved = false;
+
+      const nameInp = document.getElementById("edit-profile-name");
+      const emailInp = document.getElementById("edit-profile-email");
+      const deptInp = document.getElementById("edit-profile-dept");
+      const yearInp = document.getElementById("edit-profile-year");
+
+      if (nameInp) nameInp.value = user.full_name || user.name || "";
+      if (emailInp) emailInp.value = user.email || "";
+      if (deptInp) deptInp.value = user.department || "";
+      if (yearInp) yearInp.value = user.year || 1;
+      if (fileInput) fileInput.value = "";
+
+      updateModalPreview(user, user.avatar_url);
+      modal.style.display = "flex";
+    });
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => { modal.style.display = "none"; });
+  }
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.style.display = "none";
+  });
+
+  if (fileInput) {
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      if (file.size > 5 * 1024 * 1024) {
+        showToast("Profile image must be under 5MB.", "error");
+        fileInput.value = "";
+        return;
+      }
+
+      avatarFileToUpload = file;
+      avatarRemoved = false;
+      const objectUrl = URL.createObjectURL(file);
+      updateModalPreview(null, objectUrl);
+    });
+  }
+
+  if (removeBtn) {
+    removeBtn.addEventListener("click", () => {
+      avatarFileToUpload = null;
+      avatarRemoved = true;
+      if (fileInput) fileInput.value = "";
+      const user = API.getCurrentUser();
+      updateModalPreview(user, null);
+      showToast("Profile picture removed (will revert to initials on save).", "info");
+    });
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const user = API.getCurrentUser();
+    if (!user) return;
+
+    const name = document.getElementById("edit-profile-name").value.trim();
+    const email = document.getElementById("edit-profile-email").value.trim();
+    const dept = document.getElementById("edit-profile-dept").value.trim();
+    const year = Number(document.getElementById("edit-profile-year").value);
+    const submitBtn = document.getElementById("save-profile-btn");
+
+    if (!name || !email) {
+      showToast("Name and email are required.", "error");
+      return;
+    }
+
+    try {
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Saving...";
+      }
+
+      let newAvatarUrl = undefined;
+      if (avatarFileToUpload) {
+        showToast("Uploading profile picture...", "info");
+        const uploadRes = await API.uploadImage(avatarFileToUpload);
+        newAvatarUrl = uploadRes.url;
+      } else if (avatarRemoved) {
+        newAvatarUrl = ""; // empty string signals backend to remove avatar
+      }
+
+      const payload = {
+        full_name: name,
+        email: email,
+        department: dept,
+        year: year
+      };
+      if (newAvatarUrl !== undefined) {
+        payload.avatar_url = newAvatarUrl;
+      }
+
+      const updated = await API.updateProfile(payload);
+      showToast("Profile updated successfully!", "success");
+      modal.style.display = "none";
+
+      updateUserProfileHeader();
+      renderNavAuth();
+    } catch (err) {
+      showToast(err.message || "Failed to update profile.", "error");
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Save Profile Changes";
+      }
+    }
+  });
+}
+
+// ---------------- TAB: DEDICATED JOIN REQUESTS TRACKER ----------------
+function initRequestFilterButtons() {
+  const btns = document.querySelectorAll(".req-filter-btn");
+  btns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      btns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeRequestFilter = btn.getAttribute("data-filter") || "all";
+      renderFilteredRequests();
+    });
+  });
+}
+
+async function renderClubJoinRequests() {
+  const tabBadge = document.getElementById("tab-count-requests");
+
+  try {
+    const data = await API.getMyClubs();
+    cachedStudentRequests = data.all_requests || [];
+
+    if (tabBadge) tabBadge.textContent = cachedStudentRequests.length;
+
+    renderFilteredRequests();
+  } catch (err) {
+    const container = document.getElementById("dash-requests-container");
+    if (container) {
+      container.innerHTML = `<div style="text-align: center; color: var(--danger); padding: 24px;">Failed to load requests tracker: ${escapeHTML(err.message)}</div>`;
+    }
+  }
+}
+
+function renderFilteredRequests() {
+  const container = document.getElementById("dash-requests-container");
+  if (!container) return;
+
+  let filtered = cachedStudentRequests;
+  if (activeRequestFilter !== "all") {
+    filtered = cachedStudentRequests.filter(r => r.status.toLowerCase() === activeRequestFilter.toLowerCase());
+  }
+
+  if (!filtered || filtered.length === 0) {
+    const msg = activeRequestFilter === "all"
+      ? "You haven't submitted any club membership applications yet."
+      : `No ${activeRequestFilter} requests found.`;
+
+    container.innerHTML = `
+      <div style="text-align: center; padding: 60px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card);">
+        <div style="font-size: 36px; margin-bottom: 12px;">📋</div>
+        <h4 style="font-size: 18px; margin: 0 0 8px; color: var(--text-main);">${msg}</h4>
+        <p style="color: var(--text-secondary); font-size: 14px; margin: 0 auto 20px; max-width: 400px;">
+          Explore campus societies to request induction into technical teams, sports cells, or cultural groups!
+        </p>
+        <a href="clubs.html" class="btn btn-cta">Browse Campus Societies</a>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = `
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
+      ${filtered.map(req => {
+        const dateStr = new Date(req.applied_at).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
+        
+        let statusBadge = "";
+        let actionFooter = "";
+
+        if (req.status === "Pending") {
+          statusBadge = `<span class="badge-status-pending" style="padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700;">⏳ Pending Review</span>`;
+          actionFooter = `
+            <div style="font-size: 12px; color: var(--warm-accent, #F59E0B); display: flex; align-items: center; gap: 4px;">
+              <span>Under review by Society Lead Coordinator</span>
+            </div>
+          `;
+        } else if (req.status === "Approved") {
+          statusBadge = `<span class="badge-status-approved" style="padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700;">✓ Accepted &bull; Inducted</span>`;
+          actionFooter = `
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <span style="font-size: 12px; color: var(--success); font-weight: 600;">Active Core Member</span>
+              <a href="club-details.html?id=${req.club_id}" class="btn btn-outline btn-sm">View Society &rarr;</a>
+            </div>
+          `;
+        } else {
+          statusBadge = `<span class="badge-status-rejected" style="padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700;">✗ Request Not Accepted</span>`;
+          actionFooter = `
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <span style="font-size: 12px; color: var(--danger);">Application not accepted</span>
+              <button type="button" class="btn btn-outline btn-sm" onclick="handleReapply(${req.club_id}, '${escapeHTML(req.club_name)}')">
+                🔄 Re-apply
+              </button>
+            </div>
+          `;
+        }
+
+        return `
+          <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--shadow-sm);">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 8px;">
+                <div>
+                  <h4 style="font-size: 17px; margin: 0 0 4px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; color: var(--text-main);">
+                    ${escapeHTML(req.club_name)}
+                  </h4>
+                  <span class="badge" style="font-size: 11px;">${escapeHTML(req.club_category || 'Society')}</span>
+                </div>
+                ${statusBadge}
+              </div>
+
+              <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 14px; font-size: 12px;">
+                <div style="color: var(--text-muted); margin-bottom: 4px;">Applied on: <strong>${dateStr}</strong></div>
+                <div style="color: var(--text-secondary); line-height: 1.4;">
+                  <strong>Motivation:</strong> ${escapeHTML(req.reason_for_joining || 'None provided')}
+                </div>
+                ${req.skills ? `<div style="color: var(--text-secondary); margin-top: 4px;"><strong>Skills:</strong> ${escapeHTML(req.skills)}</div>` : ''}
+              </div>
+            </div>
+
+            <div style="border-top: 1px solid var(--border); padding-top: 12px; display: flex; align-items: center;">
+              ${actionFooter}
+            </div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+async function handleReapply(clubId, clubName) {
+  const user = requireAuth();
+  if (!user) return;
+
+  const reason = prompt(`Submit your updated candidacy note for ${clubName}:`, "Interested in contributing to the society events and projects.");
+  if (reason === null) return; // user cancelled
+
+  try {
+    showToast(`Submitting re-application to ${clubName}...`, "info");
+    await API.submitJoinRequest(clubId, reason.trim() || "Re-application for society membership");
+    showToast(`Re-application for ${clubName} submitted successfully! Status reset to Pending.`, "success");
+    await refreshDashboard();
+  } catch (err) {
+    showToast(err.message || "Failed to submit re-application.", "error");
   }
 }
 
@@ -97,8 +397,8 @@ async function renderMyClubs() {
 
     let html = "";
 
-    // 1. Coordinated Clubs
-    if (coordinated.length > 0) {
+    // 1. Coordinated Clubs (Strictly visible to Club Admins / Coordinators only)
+    if (user && (user.role === "coordinator" || user.role === "admin") && coordinated.length > 0) {
       html += `
         <div style="margin-bottom: 24px;">
           <h3 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 16px; margin: 0 0 12px 0; color: var(--primary);">
@@ -398,9 +698,15 @@ async function renderMyCollabPosts() {
             </div>
             <h4 style="font-size: 16px; margin: 0 0 6px; color: var(--text-main); font-weight: 700;">${escapeHTML(post.title)}</h4>
             <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0 0 12px;">${escapeHTML(post.content)}</p>
-            <div style="display: flex; gap: 16px; font-size: 12px; color: var(--text-muted); font-weight: 600;">
-              <span>▲ ${post.upvotes_count} Upvotes</span>
-              <span>💬 ${post.comments_count || 0} Comments</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
+              <div style="display: flex; gap: 16px; font-size: 12px; color: var(--text-muted); font-weight: 600;">
+                <span>▲ ${post.upvotes_count} Upvotes</span>
+                <span>💬 ${post.comments_count || 0} Comments</span>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <button type="button" class="btn btn-outline btn-sm" style="font-size: 11px; padding: 2px 8px;" onclick="handleDashEditPost(${post.id})">✏️ Edit</button>
+                <button type="button" class="btn btn-outline btn-sm" style="font-size: 11px; padding: 2px 8px; color: var(--danger); border-color: var(--danger);" onclick="handleDashDeletePost(${post.id}, '${escapeHTML(post.title)}')">🗑️ Delete</button>
+              </div>
             </div>
           </div>
         `).join("")}
@@ -409,6 +715,39 @@ async function renderMyCollabPosts() {
 
   } catch (err) {
     container.innerHTML = `<div style="text-align: center; color: var(--danger); padding: 24px;">Failed to load posts: ${escapeHTML(err.message)}</div>`;
+  }
+}
+
+async function handleDashDeletePost(postId, title) {
+  if (!confirm(`Are you sure you want to delete "${title || 'this discussion post'}"?\n\nThis action cannot be undone.`)) return;
+  try {
+    await API.deleteNetworkPost(postId);
+    showToast("Post deleted successfully.", "success");
+    await renderMyCollabPosts();
+  } catch (e) {
+    showToast(e.message || "Failed to delete post.", "error");
+  }
+}
+
+async function handleDashEditPost(postId) {
+  try {
+    const allPosts = await API.getNetworkPosts();
+    const post = allPosts.find(p => p.id === postId);
+    if (!post) return;
+
+    const newTitle = prompt("Edit post headline:", post.title);
+    if (newTitle === null) return;
+    const newContent = prompt("Edit post discussion content:", post.content);
+    if (newContent === null) return;
+
+    await API.updateNetworkPost(postId, {
+      title: newTitle.trim() || post.title,
+      content: newContent.trim() || post.content
+    });
+    showToast("Discussion post updated successfully!", "success");
+    await renderMyCollabPosts();
+  } catch (e) {
+    showToast(e.message || "Failed to update post.", "error");
   }
 }
 
