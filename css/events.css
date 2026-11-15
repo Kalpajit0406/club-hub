@@ -23,38 +23,76 @@
   flex-wrap: wrap;
 }
 
-.events-search-box {
+.events-search-box,
+.search-box,
+.search-input-box {
   position: relative;
-  flex: 1;
-  min-width: 280px;
   display: flex;
   align-items: center;
-}
-
-.events-search-box .search-icon {
-  position: absolute;
-  left: 14px;
-  color: var(--text-muted);
-  pointer-events: none;
-}
-
-.events-search-box .search-input {
   width: 100%;
-  height: 44px;
-  padding: 0 40px 0 42px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  height: 48px;
+  flex: none;
+}
+
+.events-search-box .search-icon,
+.search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--primary);
+  pointer-events: none;
+  transition: color var(--transition-fast), opacity var(--transition-fast);
+  z-index: 2;
+}
+
+.events-search-box .search-input,
+.search-box .search-input,
+.search-input-box .search-input,
+.search-input {
+  width: 100% !important;
+  height: 48px !important;
+  padding: 0 42px 0 46px !important;
   border-radius: var(--radius-md);
+  border: 1.5px solid var(--border-color);
+  font-size: 0.95rem;
+  background: var(--bg-surface);
   color: var(--text-primary);
-  font-size: 0.9375rem;
+  transition: all var(--transition-fast);
+  box-sizing: border-box !important;
+}
+
+.events-search-box .search-input:focus,
+.search-box .search-input:focus,
+.search-input-box .search-input:focus,
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--bg-card);
+  box-shadow: 0 0 0 4px var(--primary-light);
+}
+
+.search-clear {
+  position: absolute;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--border-color);
+  color: var(--text-secondary);
+  border: none;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+  line-height: 1;
+  cursor: pointer;
   transition: all var(--transition-fast);
 }
 
-.events-search-box .search-input:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  background: var(--bg-card);
-  box-shadow: 0 0 0 3px rgba(47, 91, 231, 0.15);
+.search-clear:hover {
+  background: var(--border-strong);
+  color: var(--text-primary);
 }
 
 .events-stat-pill {

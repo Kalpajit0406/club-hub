@@ -31,10 +31,20 @@ function setupSearchInput() {
   input.addEventListener("input", (e) => {
     clearTimeout(debounceTimer);
     searchQuery = e.target.value.trim();
+    if (clearBtn) clearBtn.style.display = searchQuery ? "flex" : "none";
     debounceTimer = setTimeout(() => {
       loadAndRenderEvents();
     }, 300);
   });
+
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      input.value = "";
+      searchQuery = "";
+      clearBtn.style.display = "none";
+      loadAndRenderEvents();
+    });
+  }
 }
 
 async function loadAndRenderEvents() {
@@ -44,14 +54,8 @@ async function loadAndRenderEvents() {
 
   if (!grid) return;
 
-  // Check if current user is coordinator/admin
-  const user = typeof API !== "undefined" ? API.getCurrentUser() : null;
   if (createTrigger) {
-    if (user && (user.role === "coordinator" || user.role === "admin")) {
-      createTrigger.style.display = "inline-flex";
-    } else {
-      createTrigger.style.display = "none";
-    }
+    createTrigger.style.display = "inline-flex";
   }
 
   grid.innerHTML = `
@@ -259,9 +263,16 @@ function setupCreateEventModal() {
     if (!user) return;
 
     try {
-      const clubs = await API.getCoordinatedClubs();
+      let clubs = await API.getCoordinatedClubs();
       if (!clubs || clubs.length === 0) {
-        showToast("You need to charter a club first before scheduling events.", "warning");
+        clubs = await API.getClubs();
+      }
+
+      if (!clubs || clubs.length === 0) {
+        showToast("Please charter a club first before scheduling an event.", "warning");
+        setTimeout(() => {
+          window.location.href = "clubs.html";
+        }, 1200);
         return;
       }
 
@@ -273,17 +284,15 @@ function setupCreateEventModal() {
 
       modal.style.display = "flex";
     } catch (err) {
-      showToast(err.message || "Failed to load your clubs.", "error");
+      showToast(err.message || "Failed to load clubs.", "error");
     }
   });
 
   if (closeBtn) closeBtn.addEventListener("click", () => { modal.style.display = "none"; });
 
-  const closeCreate = () => {
-    if (!modal) return;
-    if (typeof modal.close === "function") modal.close();
-    else modal.style.display = "none";
-  };
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.style.display = "none";
+  });
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -293,6 +302,7 @@ function setupCreateEventModal() {
     const dateVal = document.getElementById("new-event-date").value;
     const location = document.getElementById("new-event-venue").value.trim();
     const desc = document.getElementById("new-event-desc").value.trim();
+    const submitBtn = form.querySelector("button[type='submit']");
 
     if (!clubId || !title || !dateVal || !location) {
       showToast("Please fill in all required fields.", "error");
@@ -300,6 +310,11 @@ function setupCreateEventModal() {
     }
 
     try {
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = "Scheduling...";
+      }
+
       await API.createEvent({
         club_id: clubId,
         title,
@@ -309,12 +324,17 @@ function setupCreateEventModal() {
         description: desc || "Campus event"
       });
 
-      showToast(`Event '${title}' published successfully!`, "success");
+      showToast(`Event '${title}' scheduled successfully!`, "success");
       modal.style.display = "none";
       form.reset();
       await loadAndRenderEvents();
     } catch (err) {
-      showToast(err.message || "Failed to publish event.", "error");
+      showToast(err.message || "Failed to schedule event.", "error");
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Schedule to Campus";
+      }
     }
   });
 }

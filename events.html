@@ -25,6 +25,7 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/palette.css">
   <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/clubs.css">
   <link rel="stylesheet" href="css/events.css">
 </head>
 <body>
@@ -60,7 +61,7 @@
         <p>National hackathons, competitive robowars, coding workshops, and cultural showcases happening at TINT.</p>
       </div>
       <div>
-        <button id="create-event-trigger" class="btn btn-cta" style="display: none;">
+        <button id="create-event-trigger" class="btn btn-cta">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           + Schedule Event
         </button>
@@ -68,32 +69,51 @@
     </div>
   </section>
 
+  <!-- SEARCH & FILTER TOOLBAR -->
+  <section class="filter-section">
+    <div class="container">
+      <div class="filter-card">
+        
+        <!-- Search Input Box -->
+        <div class="search-box search-input-box">
+          <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input 
+            type="text" 
+            id="events-search-input" 
+            class="search-input" 
+            placeholder="Search events by title, location, or keywords..."
+            aria-label="Search events"
+            autocomplete="off"
+          >
+          <button type="button" id="events-search-clear" class="search-clear" aria-label="Clear search query" style="display: none;">
+            &times;
+          </button>
+        </div>
+
+        <!-- CATEGORY CHIPS BAR -->
+        <div class="category-chips-container" role="tablist" aria-label="Filter events by category">
+          <div class="category-chips-scroll events-chips-scroll">
+            <button class="events-chip active" data-category="all">All Events</button>
+            <button class="events-chip" data-category="Hackathon">Hackathons</button>
+            <button class="events-chip" data-category="Competition">Robowars &amp; Contests</button>
+            <button class="events-chip" data-category="Workshop">Workshops &amp; Codelabs</button>
+            <button class="events-chip" data-category="Cultural">Cultural &amp; Concerts</button>
+            <button class="events-chip" data-category="Entrepreneurship">E-Cell &amp; Pitches</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
   <!-- MAIN CONTENT CONTAINER -->
-  <main class="container">
-    
-    <!-- Controls (Search + Chips) -->
-    <div class="events-controls">
-      <div class="events-search-row">
-        <div class="events-search-box">
-          <svg class="events-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="events-search-input" placeholder="Search events by title, location, or keywords...">
-        </div>
-
-        <div class="events-chips-scroll" role="tablist">
-          <button class="events-chip active" data-category="all">All Events</button>
-          <button class="events-chip" data-category="Hackathon">Hackathons</button>
-          <button class="events-chip" data-category="Competition">Robowars &amp; Contests</button>
-          <button class="events-chip" data-category="Workshop">Workshops &amp; Codelabs</button>
-          <button class="events-chip" data-category="Cultural">Cultural &amp; Concerts</button>
-          <button class="events-chip" data-category="Entrepreneurship">E-Cell &amp; Pitches</button>
-        </div>
-      </div>
-
-      <!-- Events Grid -->
-      <div id="events-grid" class="events-grid" aria-live="polite">
-        <!-- Injected by js/events.js -->
-      </div>
-
+  <main class="container" style="padding-bottom: 64px;">
+    <!-- Events Grid -->
+    <div id="events-grid" class="events-grid" aria-live="polite">
+      <!-- Injected by js/events.js -->
     </div>
   </main>
 
@@ -174,7 +194,7 @@
         </form>
       </div>
     </div>
-  </dialog>
+  </div>
 
   <!-- ENTERPRISE FOOTER -->
   <footer class="footer">

@@ -4,6 +4,8 @@ SQLAlchemy Database Configuration and Session Management for ClubClash.
 """
 
 import os
+import shutil
+import tempfile
 from pathlib import Path
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
@@ -14,13 +16,31 @@ project_root = Path(__file__).resolve().parent.parent
 env_path = project_root / ".env"
 load_dotenv(dotenv_path=env_path)
 
-DEFAULT_DB_FILE = project_root / "clubclash.db"
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
-    if os.getenv("VERCEL"):
-        DATABASE_URL = "sqlite:////tmp/clubclash.db"
+    default_db_file = project_root / "clubclash.db"
+    is_writable = False
+    try:
+        test_file = project_root / ".write_test"
+        with open(test_file, "a") as f:
+            pass
+        if test_file.exists():
+            test_file.unlink()
+        is_writable = True
+    except Exception:
+        is_writable = False
+
+    if is_writable and not os.getenv("VERCEL"):
+        DATABASE_URL = f"sqlite:///{default_db_file.as_posix()}"
     else:
-        DATABASE_URL = f"sqlite:///{DEFAULT_DB_FILE.as_posix()}"
+        temp_dir = Path(tempfile.gettempdir())
+        temp_db = temp_dir / "clubclash.db"
+        if not temp_db.exists() and default_db_file.exists():
+            try:
+                shutil.copy2(default_db_file, temp_db)
+            except Exception:
+                pass
+        DATABASE_URL = f"sqlite:///{temp_db.as_posix()}"
 
 # For SQLite, check_same_thread=False allows multiple threads in FastAPI requests
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}

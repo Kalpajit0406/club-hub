@@ -47,7 +47,7 @@ const API = {
       headers["Authorization"] = `Bearer ${token}`;
     }
 
-    if (options.body && typeof options.body === "object" && !(options.body instanceof FormData)) {
+    if (options.body && typeof options.body === "object" && (typeof FormData === "undefined" || !(options.body instanceof FormData))) {
       headers["Content-Type"] = "application/json";
       options.body = JSON.stringify(options.body);
     }
@@ -241,36 +241,55 @@ const API = {
 
   // Coordinator Clubs
   async getCoordinatedClubs() {
+    let result = [];
     try {
       const data = await this.request("/dashboard/coordinator-clubs");
-      if (Array.isArray(data) && data.length > 0) return data;
+      if (Array.isArray(data) && data.length > 0) result = data;
     } catch (e) {
-      console.warn("Backend /dashboard/coordinator-clubs endpoint unavailable, using demo coordinator clubs:", e.message || e);
+      console.warn("Backend /dashboard/coordinator-clubs endpoint unavailable:", e.message || e);
     }
 
-    const user = this.getCurrentUser();
-    if (user && (user.role === "coordinator" || user.role === "admin")) {
-      return [
-        {
-          id: 1,
-          name: "Google Developer Student Club",
-          category: "Technical",
-          recruitment_open: true,
-          member_count: 48,
-          pending_requests: 1
+    // Always merge newly created local clubs
+    const localClubs = this.getLocalClubs();
+    if (localClubs && localClubs.length > 0) {
+      for (const lc of localClubs) {
+        const exists = result.some(c => String(c.id) === String(lc.id) || (c.name && lc.name && c.name.toLowerCase() === lc.name.toLowerCase()));
+        if (!exists) {
+          result.unshift({
+            id: lc.id,
+            name: lc.name,
+            category: lc.category,
+            recruitment_open: lc.recruitment_open !== undefined ? lc.recruitment_open : true,
+            member_count: lc.member_count || 1,
+            pending_requests: 0
+          });
         }
-      ];
+      }
     }
-    return [];
+
+    if (result.length === 0) {
+      const user = this.getCurrentUser();
+      if (user && (user.role === "coordinator" || user.role === "admin")) {
+        result = [
+          {
+            id: 1,
+            name: "Google Developer Student Club",
+            category: "Technical",
+            recruitment_open: true,
+            member_count: 48,
+            pending_requests: 1
+          }
+        ];
+      }
+    }
+    return result;
   },
 
   // My Clubs & Memberships
   async getMyClubs() {
+    let res = null;
     try {
-      const res = await this.request("/students/my-clubs");
-      if (res && (res.memberships || res.coordinated || res.pending_requests)) {
-        return res;
-      }
+      res = await this.request("/students/my-clubs");
     } catch (e) {
       console.warn("Backend /students/my-clubs endpoint unavailable, using demo student memberships:", e.message || e);
     }
@@ -278,36 +297,102 @@ const API = {
     const user = this.getCurrentUser();
     const isCoord = user && (user.role === "coordinator" || user.role === "admin");
 
-    return {
-      memberships: [
-        {
-          club_id: 1,
-          club_name: "Google Developer Student Club",
-          joined_at: new Date().toISOString()
-        },
-        {
-          club_id: 2,
-          club_name: "Turing AI & Data Science Society",
-          joined_at: new Date().toISOString()
+    if (!res || (!res.memberships && !res.coordinated)) {
+      res = {
+        memberships: [
+          {
+            club_id: 1,
+            club_name: "Google Developer Student Club",
+            joined_at: new Date().toISOString()
+          },
+          {
+            club_id: 2,
+            club_name: "Turing AI & Data Science Society",
+            joined_at: new Date().toISOString()
+          }
+        ],
+        coordinated: isCoord ? [
+          {
+            club_id: 1,
+            club_name: "Google Developer Student Club",
+            member_count: 48,
+            pending_requests: 1
+          }
+        ] : [],
+        pending_requests: this.getLocalApplications().filter(a => a.status === "Pending"),
+        rejected_requests: []
+      };
+    }
+
+    // Merge created clubs into coordinated
+    const localClubs = this.getLocalClubs();
+    if (localClubs && localClubs.length > 0) {
+      if (!res.coordinated) res.coordinated = [];
+      for (const lc of localClubs) {
+        const exists = res.coordinated.some(c => String(c.club_id) === String(lc.id) || (c.club_name && lc.name && c.club_name.toLowerCase() === lc.name.toLowerCase()));
+        if (!exists) {
+          res.coordinated.unshift({
+            club_id: lc.id,
+            club_name: lc.name,
+            member_count: lc.member_count || 1,
+            pending_requests: 0
+          });
         }
-      ],
-      coordinated: isCoord ? [
-        {
-          club_id: 1,
-          club_name: "Google Developer Student Club",
-          member_count: 48,
-          pending_requests: 1
-        }
-      ] : [],
-      pending_requests: [
-        {
-          club_id: 3,
-          club_name: "Robotics & Embedded Systems Club",
-          applied_at: new Date().toISOString()
-        }
-      ],
-      rejected_requests: []
-    };
+      }
+    }
+
+    return res;
+  },
+
+  // Local Storage persistence for Created Clubs & Events
+  getLocalClubs() {
+    try {
+      const data = localStorage.getItem("clubhub_created_clubs");
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      return [];
+    }
+  },
+
+  saveLocalClub(club) {
+    if (!club) return;
+    try {
+      const clubs = this.getLocalClubs();
+      const existingIdx = clubs.findIndex(c => String(c.id) === String(club.id) || (c.name && club.name && c.name.toLowerCase() === club.name.toLowerCase()));
+      if (existingIdx >= 0) {
+        clubs[existingIdx] = { ...clubs[existingIdx], ...club };
+      } else {
+        clubs.unshift(club);
+      }
+      localStorage.setItem("clubhub_created_clubs", JSON.stringify(clubs));
+    } catch (e) {
+      console.warn("Could not save club locally:", e);
+    }
+  },
+
+  getLocalEvents() {
+    try {
+      const data = localStorage.getItem("clubhub_created_events");
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      return [];
+    }
+  },
+
+  saveLocalEvent(event) {
+    if (!event) return;
+    try {
+      const events = this.getLocalEvents();
+      const existingIdx = events.findIndex(e => String(e.id) === String(event.id) || (e.title && event.title && e.title.toLowerCase() === event.title.toLowerCase()));
+      if (existingIdx >= 0) {
+        events[existingIdx] = { ...events[existingIdx], ...event };
+      } else {
+        events.unshift(event);
+      }
+      localStorage.setItem("clubhub_created_events", JSON.stringify(events));
+    } catch (e) {
+      console.warn("Could not save event locally:", e);
+    }
   },
 
   // Client Applications Cache (Local persistence for offline/serverless resilience)
@@ -375,6 +460,18 @@ const API = {
       result = this.filterFallbackClubs(CLUBS_DATA, params);
     }
 
+    // Always merge newly created local clubs!
+    const localClubs = this.getLocalClubs();
+    if (localClubs && localClubs.length > 0) {
+      const filteredLocal = this.filterFallbackClubs(localClubs, params);
+      for (const lc of filteredLocal) {
+        const exists = result.some(c => String(c.id) === String(lc.id) || (c.name && lc.name && c.name.toLowerCase() === lc.name.toLowerCase()));
+        if (!exists) {
+          result.unshift(lc);
+        }
+      }
+    }
+
     // Enhance every club with user status
     return result.map(c => {
       const status = this.getUserClubStatus(c.id, c.user_status);
@@ -406,7 +503,9 @@ const API = {
     try {
       club = await this.request(`/clubs/${id}`);
     } catch (e) {
-      if (typeof CLUBS_DATA !== "undefined") {
+      const local = this.getLocalClubs().find(c => String(c.id) === String(id));
+      if (local) club = local;
+      else if (typeof CLUBS_DATA !== "undefined") {
         club = CLUBS_DATA.find(c => String(c.id) === String(id));
       }
     }
@@ -416,10 +515,49 @@ const API = {
   },
 
   async createClub(payload) {
-    return await this.request("/clubs", {
-      method: "POST",
-      body: payload
-    });
+    const user = this.getCurrentUser();
+    const coordName = user ? (user.full_name || user.name || "Campus Coordinator") : "Campus Coordinator";
+    const coordEmail = user ? (user.email || "coord@tint.edu.in") : "coord@tint.edu.in";
+    const userId = user ? (user.id || 1) : 1;
+
+    let createdClub = null;
+    try {
+      createdClub = await this.request("/clubs", {
+        method: "POST",
+        body: payload
+      });
+    } catch (err) {
+      console.warn("Backend /clubs creation unavailable or failed, saving locally:", err.message || err);
+      createdClub = {
+        id: Date.now(),
+        name: payload.name.trim(),
+        category: payload.category.trim(),
+        description: payload.description.trim(),
+        image_url: payload.image_url || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80",
+        recruitment_open: payload.recruitment_open !== undefined ? payload.recruitment_open : true,
+        member_count: 1,
+        coordinator_id: userId,
+        coordinator: { full_name: coordName, email: coordEmail },
+        user_status: "admin",
+        created_at: new Date().toISOString()
+      };
+    }
+
+    if (createdClub) {
+      if (!createdClub.coordinator) {
+        createdClub.coordinator = { full_name: coordName, email: coordEmail };
+      }
+      createdClub.user_status = "admin";
+      this.saveLocalClub(createdClub);
+
+      // Promote current user to coordinator role
+      if (user) {
+        user.role = "coordinator";
+        localStorage.setItem("clubhub_user", JSON.stringify(user));
+      }
+    }
+
+    return createdClub;
   },
 
   async updateClub(id, payload) {
@@ -563,31 +701,61 @@ const API = {
     if (params.club_id) query.set("club_id", params.club_id);
 
     const qs = query.toString() ? `?${query.toString()}` : "";
+    let result = [];
     try {
       const data = await this.request(`/events${qs}`);
-      if (Array.isArray(data) && data.length > 0) return data;
+      if (Array.isArray(data) && data.length > 0) result = data;
     } catch (e) {
       console.warn("Backend /events endpoint unavailable, using collegiate seed catalog:", e.message || e);
     }
 
-    if (typeof SEEDED_EVENTS !== "undefined" && SEEDED_EVENTS.length > 0) {
+    if (result.length === 0 && typeof SEEDED_EVENTS !== "undefined" && SEEDED_EVENTS.length > 0) {
       let list = [...SEEDED_EVENTS];
       if (params.category && params.category.toLowerCase() !== "all") {
         list = list.filter(ev => ev.category && ev.category.toLowerCase().includes(params.category.toLowerCase()));
       }
       if (params.search) {
         const q = params.search.toLowerCase();
-        list = list.filter(ev => (ev.title && ev.title.toLowerCase().includes(q)) || (ev.description && ev.description.toLowerCase().includes(q)));
+        list = list.filter(ev => (ev.title && ev.title.toLowerCase().includes(q)) || (ev.description && ev.description.toLowerCase().includes(q)) || (ev.location && ev.location.toLowerCase().includes(q)));
       }
-      return list;
+      if (params.club_id) {
+        list = list.filter(ev => String(ev.club_id) === String(params.club_id));
+      }
+      result = list;
     }
-    return [];
+
+    // Always merge newly created local events!
+    const localEvents = this.getLocalEvents();
+    if (localEvents && localEvents.length > 0) {
+      let filteredLocal = [...localEvents];
+      if (params.category && params.category.toLowerCase() !== "all") {
+        filteredLocal = filteredLocal.filter(ev => ev.category && ev.category.toLowerCase().includes(params.category.toLowerCase()));
+      }
+      if (params.search) {
+        const q = params.search.toLowerCase();
+        filteredLocal = filteredLocal.filter(ev => (ev.title && ev.title.toLowerCase().includes(q)) || (ev.description && ev.description.toLowerCase().includes(q)) || (ev.location && ev.location.toLowerCase().includes(q)));
+      }
+      if (params.club_id) {
+        filteredLocal = filteredLocal.filter(ev => String(ev.club_id) === String(params.club_id));
+      }
+
+      for (const le of filteredLocal) {
+        const exists = result.some(e => String(e.id) === String(le.id) || (e.title && le.title && e.title.toLowerCase() === le.title.toLowerCase()));
+        if (!exists) {
+          result.unshift(le);
+        }
+      }
+    }
+
+    return result;
   },
 
   async getEvent(id) {
     try {
       return await this.request(`/events/${id}`);
     } catch (e) {
+      const local = this.getLocalEvents().find(ev => String(ev.id) === String(id));
+      if (local) return local;
       if (typeof SEEDED_EVENTS !== "undefined") {
         const found = SEEDED_EVENTS.find(ev => String(ev.id) === String(id));
         if (found) return found;
@@ -597,10 +765,47 @@ const API = {
   },
 
   async createEvent(payload) {
-    return await this.request("/events", {
-      method: "POST",
-      body: payload
-    });
+    let clubName = "Campus Club";
+    try {
+      const allClubs = await this.getClubs();
+      const foundClub = allClubs.find(c => String(c.id) === String(payload.club_id));
+      if (foundClub && foundClub.name) {
+        clubName = foundClub.name;
+      }
+    } catch (e) {}
+
+    let createdEvent = null;
+    try {
+      createdEvent = await this.request("/events", {
+        method: "POST",
+        body: payload
+      });
+    } catch (err) {
+      console.warn("Backend /events creation unavailable or failed, saving locally:", err.message || err);
+      createdEvent = {
+        id: Date.now(),
+        club_id: Number(payload.club_id),
+        title: payload.title.trim(),
+        category: payload.category ? payload.category.trim() : "Workshop",
+        event_date: payload.event_date,
+        location: payload.location.trim(),
+        description: payload.description ? payload.description.trim() : "Campus event",
+        banner_url: payload.banner_url || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80",
+        club: { id: Number(payload.club_id), name: clubName },
+        is_registered: false,
+        pass_code: null,
+        created_at: new Date().toISOString()
+      };
+    }
+
+    if (createdEvent) {
+      if (!createdEvent.club || !createdEvent.club.name) {
+        createdEvent.club = { id: Number(payload.club_id), name: clubName };
+      }
+      this.saveLocalEvent(createdEvent);
+    }
+
+    return createdEvent;
   },
 
   async deleteEvent(id) {

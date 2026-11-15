@@ -371,8 +371,9 @@ function initCreateEventModal() {
 
   if (closeBtn) closeBtn.addEventListener("click", () => modal.style.display = "none");
 
-  if (closeBtn) closeBtn.onclick = closeModal;
-  if (cancelBtn) cancelBtn.onclick = closeModal;
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.style.display = "none";
+  });
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -416,8 +417,9 @@ function initIssueBadgeModal() {
 
   if (closeBtn) closeBtn.addEventListener("click", () => modal.style.display = "none");
 
-  if (closeBtn) closeBtn.onclick = closeModal;
-  if (cancelBtn) cancelBtn.onclick = closeModal;
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.style.display = "none";
+  });
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();

@@ -209,6 +209,7 @@ def create_club(
     db.add(membership)
     db.commit()
 
+    new_club.coordinator = current_user
     resp = ClubResponse.model_validate(new_club)
     resp.member_count = 1
     resp.user_status = "admin"

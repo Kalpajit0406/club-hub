@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_
 
 from backend.database import get_db
-from backend.models import Event, Club, Student, EventRegistration
+from backend.models import Event, Club, Student, EventRegistration, Membership
 from backend.schemas import (
     EventCreate,
     EventUpdate,
@@ -149,11 +149,19 @@ def create_event(
             detail=f"Club with ID {payload.club_id} not found."
         )
 
-    # Authorization: Coordinator of this specific club or site admin
-    if club.coordinator_id != current_user.id and current_user.role != "admin":
+    # Authorization: Coordinator of this specific club, active member, or site admin
+    is_coordinator = (club.coordinator_id == current_user.id)
+    is_admin = (current_user.role == "admin")
+    is_coord_role = (current_user.role == "coordinator")
+    is_member = db.query(Membership).filter(
+        Membership.club_id == club.id,
+        Membership.student_id == current_user.id
+    ).first() is not None
+
+    if not (is_coordinator or is_admin or is_coord_role or is_member):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can schedule events for clubs you coordinate only."
+            detail="You can schedule events for clubs you coordinate or belong to only."
         )
 
     new_event = Event(
@@ -170,6 +178,7 @@ def create_event(
     db.add(new_event)
     db.commit()
     db.refresh(new_event)
+    new_event.club = club
     return new_event
 
 

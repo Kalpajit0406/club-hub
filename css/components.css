@@ -768,6 +768,7 @@ dialog.modal::backdrop {
   transform: translateY(-1px);
 }
 
+.form-row,
 .modal-body-form .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -775,6 +776,7 @@ dialog.modal::backdrop {
 }
 
 @media (max-width: 480px) {
+  .form-row,
   .modal-body-form .form-row {
     grid-template-columns: 1fr;
     gap: 0;
